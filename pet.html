@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Found this pet? — PetFinder</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page" id="page">
+  <h1 id="petName">Loading…</h1>
+  <p class="sub" id="petMeta"></p>
+
+  <div class="card" id="ownerCard" style="display:none">
+    <h2 style="margin-top:0">Owner contact</h2>
+    <p id="ownerInfo"></p>
+  </div>
+
+  <div class="card" id="shareCard" style="display:none">
+    <h2 style="margin-top:0">Help reunite them</h2>
+    <p class="sub" style="margin:0 0 8px">
+      Sharing your location is optional. Your browser will ask you to confirm
+      before anything is collected.
+    </p>
+    <div class="row">
+      <button id="shareOnce" class="btn-secondary">Share location once</button>
+      <button id="shareLive" class="btn-primary">Share live for 30 min</button>
+    </div>
+    <div class="notice" id="status" style="display:none"></div>
+    <button id="stopLive" class="btn-danger" style="display:none">Stop sharing</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const petId = qs("id");
+const pet = petId ? Store.getPet(petId) : null;
+
+if (!pet) {
+  document.getElementById("petName").textContent = "Pet not found";
+  document.getElementById("petMeta").textContent = "This QR code isn't registered (or you're viewing it in a different browser than where it was created — this demo stores data locally).";
+} else {
+  const owner = Store.getOwner(pet.ownerId);
+  document.getElementById("petName").textContent = `You found ${pet.name}! 🐾`;
+  document.getElementById("petMeta").textContent = [pet.species, pet.breed].filter(Boolean).join(" · ") || "";
+
+  if (owner) {
+    document.getElementById("ownerCard").style.display = "block";
+    document.getElementById("ownerInfo").innerHTML =
+      `<strong>${owner.contactName}</strong><br>${owner.phone}` +
+      (owner.address ? `<br>${owner.address}` : "");
+  }
+
+  document.getElementById("shareCard").style.display = "block";
+
+  const statusEl = document.getElementById("status");
+  const stopBtn = document.getElementById("stopLive");
+  let liveEventId = null;
+  let watchId = null;
+  let liveTimer = null;
+
+  function showStatus(msg) {
+    statusEl.style.display = "block";
+    statusEl.textContent = msg;
+  }
+
+  document.getElementById("shareOnce").addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      showStatus("Your browser doesn't support location sharing.");
+      return;
+    }
+    showStatus("Requesting permission…");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        Store.recordScanEvent({
+          petId,
+          mode: "one-time",
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+        showStatus("Thanks — your location was shared once with the owner.");
+      },
+      (err) => showStatus("Location not shared: " + err.message),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  });
+
+  document.getElementById("shareLive").addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      showStatus("Your browser doesn't support location sharing.");
+      return;
+    }
+    showStatus("Requesting permission…");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const expiresAt = Date.now() + 30 * 60 * 1000;
+        liveEventId = Store.recordScanEvent({
+          petId,
+          mode: "live",
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          expiresAt,
+        });
+
+        watchId = navigator.geolocation.watchPosition(
+          (p) => Store.updateLiveEvent(liveEventId, { lat: p.coords.latitude, lng: p.coords.longitude }),
+          (err) => showStatus("Live sharing error: " + err.message),
+          { enableHighAccuracy: true }
+        );
+
+        liveTimer = setTimeout(stopLive, 30 * 60 * 1000);
+        showStatus("Sharing live location for 30 minutes. You can stop anytime.");
+        stopBtn.style.display = "block";
+      },
+      (err) => showStatus("Location not shared: " + err.message),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  });
+
+  function stopLive() {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    if (liveTimer) clearTimeout(liveTimer);
+    if (liveEventId) Store.stopLiveEvent(liveEventId);
+    showStatus("Live sharing stopped.");
+    stopBtn.style.display = "none";
+  }
+
+  stopBtn.addEventListener("click", stopLive);
+  window.addEventListener("beforeunload", () => {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+  });
+}
+</script>
+</body>
+</html>

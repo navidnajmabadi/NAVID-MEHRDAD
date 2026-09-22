@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Register — PetFinder</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div class="page">
+  <a class="link" href="index.html">&larr; Back</a>
+  <h1>Register your pet</h1>
+  <p class="sub">Demo account + pet profile. Password is stored in plain text in your browser for this prototype only — never do this in production.</p>
+
+  <form id="form" class="card">
+    <h2 style="margin-top:0">Your account</h2>
+    <label>Username</label>
+    <input id="username" required />
+    <label>Password</label>
+    <input id="password" type="password" required />
+    <label>Your name</label>
+    <input id="contactName" required />
+    <label>Phone</label>
+    <input id="phone" type="tel" required />
+    <label>Address (optional, shown to finders)</label>
+    <input id="address" />
+
+    <h2>Pet info</h2>
+    <label>Pet name</label>
+    <input id="petName" required />
+    <label>Species</label>
+    <input id="species" placeholder="Dog, cat, ..." />
+    <label>Breed</label>
+    <input id="breed" />
+    <label>Notes (medical, temperament, etc.)</label>
+    <input id="notes" />
+
+    <button type="submit" class="btn-primary">Create tag</button>
+  </form>
+
+  <div class="card" id="result" style="display:none">
+    <h2 style="margin-top:0">Your pet's QR tag</h2>
+    <div class="qr-wrap"><div id="qrcode"></div></div>
+    <p class="sub" id="linkOut" style="word-break:break-all"></p>
+    <a class="link" href="dashboard.html">Go to owner dashboard &rarr;</a>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("username").value.trim();
+  if (Store.findOwnerByUsername(username)) {
+    alert("That username is already taken in this browser's demo data.");
+    return;
+  }
+
+  const ownerId = Store.createOwner({
+    username,
+    password: document.getElementById("password").value,
+    contactName: document.getElementById("contactName").value.trim(),
+    phone: document.getElementById("phone").value.trim(),
+    address: document.getElementById("address").value.trim(),
+  });
+
+  const petId = Store.createPet({
+    ownerId,
+    name: document.getElementById("petName").value.trim(),
+    species: document.getElementById("species").value.trim(),
+    breed: document.getElementById("breed").value.trim(),
+    notes: document.getElementById("notes").value.trim(),
+  });
+
+  const petUrl = `${location.origin}${location.pathname.replace("register.html", "pet.html")}?id=${petId}`;
+
+  document.getElementById("form").style.display = "none";
+  document.getElementById("result").style.display = "block";
+  document.getElementById("linkOut").textContent = petUrl;
+
+  new QRCode(document.getElementById("qrcode"), {
+    text: petUrl,
+    width: 220,
+    height: 220,
+  });
+
+  // Keep the session handy for the dashboard demo.
+  sessionStorage.setItem("petfinder_last_owner", ownerId);
+});
+</script>
+</body>
+</html>
