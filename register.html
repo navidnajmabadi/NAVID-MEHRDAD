@@ -12,6 +12,7 @@
   <a class="link" href="index.html">&larr; Back</a>
   <h1>Register your pet</h1>
   <p class="sub">Demo account + pet profile. Password is stored in plain text in your browser for this prototype only — never do this in production.</p>
+  <p class="sub" id="tagNotice" style="display:none"></p>
 
   <form id="form" class="card">
     <h2 style="margin-top:0">Your account</h2>
@@ -49,6 +50,26 @@
 
 <script src="app.js"></script>
 <script>
+const incomingTagId = qs("tagId");
+let tagToClaim = null;
+
+if (incomingTagId) {
+  const tag = Store.getTag(incomingTagId);
+  const notice = document.getElementById("tagNotice");
+  notice.style.display = "block";
+
+  if (!tag) {
+    notice.textContent = "That tag wasn't found in this browser's demo data — it may have been generated in the admin panel on a different browser.";
+    document.getElementById("form").style.display = "none";
+  } else if (tag.claimed) {
+    notice.textContent = "This tag is already registered.";
+    document.getElementById("form").style.display = "none";
+  } else {
+    notice.textContent = `Activating tag ${incomingTagId}.`;
+    tagToClaim = tag;
+  }
+}
+
 document.getElementById("form").addEventListener("submit", (e) => {
   e.preventDefault();
 
@@ -74,7 +95,12 @@ document.getElementById("form").addEventListener("submit", (e) => {
     notes: document.getElementById("notes").value.trim(),
   });
 
-  const petUrl = `${location.origin}${location.pathname.replace("register.html", "pet.html")}?id=${petId}`;
+  // Claim the scanned tag if we arrived via one; otherwise mint a fresh tag
+  // (handy for testing this page directly without going through the admin panel).
+  const tagId = tagToClaim ? tagToClaim.id : Store.createTag();
+  Store.claimTag(tagId, petId);
+
+  const petUrl = `${location.origin}${location.pathname.replace("register.html", "pet.html")}?id=${tagId}`;
 
   document.getElementById("form").style.display = "none";
   document.getElementById("result").style.display = "block";

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin — PetFinder</title>
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div class="page">
+  <a class="link" href="index.html">&larr; Back</a>
+  <h1>Admin — QR tag batch</h1>
+  <p class="sub">Pre-generate blank tags for printing. Each one is unclaimed until the finder/owner registers it on first scan.</p>
+
+  <div class="card">
+    <button id="genBtn" class="btn-primary" style="margin-top:0">Generate new QR tag</button>
+  </div>
+
+  <div class="card" id="lastGenerated" style="display:none">
+    <h2 style="margin-top:0">Newly generated</h2>
+    <div class="qr-wrap"><div id="qrcode"></div></div>
+    <p class="sub" id="lastLink" style="word-break:break-all"></p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">All tags (<span id="count">0</span>)</h2>
+    <div id="list"></div>
+  </div>
+
+  <div class="notice">
+    This demo stores tags in this browser's localStorage only, so the gallery
+    below only shows tags generated here. A real deployment would keep this
+    list in a shared database so any admin device sees the full batch.
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+function petUrlFor(tagId) {
+  return `${location.origin}${location.pathname.replace("admin.html", "pet.html")}?id=${tagId}`;
+}
+
+function render() {
+  const tags = Store.allTags();
+  document.getElementById("count").textContent = tags.length;
+  const list = document.getElementById("list");
+
+  if (tags.length === 0) {
+    list.innerHTML = `<p class="sub" style="margin:0">No tags yet. Generate one above.</p>`;
+    return;
+  }
+
+  list.innerHTML = tags.map(tag => {
+    const pet = tag.claimed ? Store.getPet(tag.petId) : null;
+    const label = pet ? `Claimed — ${pet.name}` : "Unclaimed";
+    const url = petUrlFor(tag.id);
+    return `
+      <div class="notice" style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+        <div style="min-width:0">
+          <strong style="font-size:13px">${tag.id}</strong>
+          <br><a class="link" href="${url}" style="font-size:12px; word-break:break-all">${url}</a>
+        </div>
+        <span class="pill ${tag.claimed ? "pill-off" : "pill-live"}">${label}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+document.getElementById("genBtn").addEventListener("click", () => {
+  const tagId = Store.createTag();
+  const url = petUrlFor(tagId);
+
+  document.getElementById("lastGenerated").style.display = "block";
+  document.getElementById("lastLink").textContent = url;
+  document.getElementById("qrcode").innerHTML = "";
+  new QRCode(document.getElementById("qrcode"), { text: url, width: 200, height: 200 });
+
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

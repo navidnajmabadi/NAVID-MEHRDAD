@@ -4,11 +4,16 @@
 
 const DB_KEY = "petfinder_db_v1";
 
+function emptyDB() {
+  return { owners: {}, pets: {}, events: {}, tags: {} };
+}
+
 function loadDB() {
   try {
-    return JSON.parse(localStorage.getItem(DB_KEY)) || { owners: {}, pets: {}, events: {} };
+    const db = JSON.parse(localStorage.getItem(DB_KEY));
+    return db ? { ...emptyDB(), ...db } : emptyDB();
   } catch {
-    return { owners: {}, pets: {}, events: {} };
+    return emptyDB();
   }
 }
 
@@ -40,6 +45,36 @@ const Store = {
     db.pets[petId] = { id: petId, ownerId, name, species, breed, photoDataUrl, notes, createdAt: Date.now() };
     saveDB(db);
     return petId;
+  },
+
+  // --- Tags: blank QR codes an admin pre-generates for a batch of physical
+  // tags, before any of them are linked to a pet. The FIRST scan of an
+  // unclaimed tag triggers registration; later scans show the pet profile.
+  createTag() {
+    const db = loadDB();
+    const tagId = uid("tag");
+    db.tags[tagId] = { id: tagId, claimed: false, petId: null, createdAt: Date.now() };
+    saveDB(db);
+    return tagId;
+  },
+
+  getTag(tagId) {
+    const db = loadDB();
+    return db.tags[tagId] || null;
+  },
+
+  allTags() {
+    const db = loadDB();
+    return Object.values(db.tags).sort((a, b) => b.createdAt - a.createdAt);
+  },
+
+  claimTag(tagId, petId) {
+    const db = loadDB();
+    const tag = db.tags[tagId];
+    if (!tag) return;
+    tag.claimed = true;
+    tag.petId = petId;
+    saveDB(db);
   },
 
   getPet(petId) {
