@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Nakilab — Build the future you want to wake up to</title>
-<meta name="description" content="Nakilab is an AI product lab. We build practical AI tools that make everyday life better — starting from first principles, shipped for real people." />
+<meta name="description" content="Nakilab is an AI product lab. Ready-to-use AI products and custom AI tools built for you — practical technology that makes the world better." />
 <meta property="og:title" content="Nakilab — AI product lab" />
 <meta property="og:description" content="Practical AI tools that make the world a better place." />
 <meta property="og:image" content="https://nakilab.com/assets/nakilab-logo.png" />
@@ -16,6 +16,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
 <style>
 :root {
   --bg: #05070D;
@@ -45,23 +51,26 @@ a { color: inherit; }
 .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
 h1, h2, h3 { font-family: var(--display); color: var(--text); font-weight: 600; line-height: 1.04; letter-spacing: -0.035em; }
 .serif { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+.accent { color: var(--blue-hi); }
 .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 12px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
 .eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 1px; background: var(--blue); box-shadow: 0 0 12px var(--glow); }
-section { position: relative; padding: 140px 0; }
+section { position: relative; padding: 130px 0; }
 :focus-visible { outline: 2px solid var(--blue-hi); outline-offset: 3px; border-radius: 8px; }
 .skip { position: absolute; left: -999px; top: 8px; background: #fff; color: #000; padding: 8px 12px; border-radius: 8px; z-index: 100; }
 .skip:focus { left: 8px; }
+.section-head { display: flex; justify-content: space-between; align-items: end; gap: 24px 40px; flex-wrap: wrap; }
+.section-head h2 { font-size: clamp(36px, 5vw, 64px); max-width: 15ch; margin-top: 20px; }
 
 /* ---------- Nav ---------- */
 .nav { position: fixed; inset: 16px 16px auto; z-index: 50; display: flex; justify-content: center; pointer-events: none; }
 .nav-inner { pointer-events: auto; width: 100%; max-width: 1160px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 8px 8px 22px; border-radius: 999px; background: rgba(8,11,20,.55); border: 1px solid var(--line); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); }
 .nav img { height: 20px; width: auto; }
-.nav ul { display: flex; gap: 32px; list-style: none; padding: 0; }
+.nav ul { display: flex; gap: 30px; list-style: none; padding: 0; }
 .nav ul a { text-decoration: none; font-size: 14px; color: var(--muted); transition: color .2s; }
 .nav ul a:hover { color: var(--text); }
 
 /* ---------- Buttons ---------- */
-.btn { position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 500 15px/1 var(--body); text-decoration: none; cursor: pointer; transition: transform .25s var(--ease), background .25s, border-color .25s, box-shadow .25s; }
+.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 500 15px/1 var(--body); text-decoration: none; cursor: pointer; border: 0; transition: transform .25s var(--ease), background .25s, border-color .25s, box-shadow .25s; }
 .btn svg { width: 16px; height: 16px; transition: transform .25s var(--ease); }
 .btn:hover svg { transform: translateX(3px); }
 .btn:active { transform: scale(.97); }
@@ -71,91 +80,111 @@ section { position: relative; padding: 140px 0; }
 .btn-ghost:hover { border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.05); }
 .btn-sm { min-height: 44px; padding: 0 18px; font-size: 14px; }
 
-/* ---------- Hero ---------- */
-.hero { min-height: 100svh; padding: 0; display: flex; align-items: center; overflow: hidden; isolation: isolate; }
-#space { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
-.hero::after { /* sunrise glow behind the planet's horizon */
-  content: ""; position: absolute; left: 50%; bottom: -8vh; width: 160vw; height: 60vh; transform: translateX(-50%); z-index: -1; pointer-events: none;
-  background: radial-gradient(50% 55% at 50% 100%, rgba(76,141,255,.45), rgba(59,130,246,.14) 45%, transparent 72%);
-}
-.hero .wrap { width: 100%; padding-top: 112px; padding-bottom: 24vh; text-align: center; }
-.hero h1 { font-size: clamp(44px, 7.4vw, 112px); margin: 28px auto 0; max-width: 13ch; }
-.hero h1 .serif { color: var(--blue-hi); }
+/* ---------- Hero (shared) ---------- */
+.hero { position: relative; min-height: 100svh; display: flex; align-items: center; overflow: hidden; isolation: isolate; padding: 0; }
+#scene { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.hero .copy { width: 100%; padding-top: 110px; }
+.hero h1 { font-size: clamp(44px, 7vw, 104px); }
 .hero h1 .line { display: block; overflow: hidden; padding-bottom: .06em; }
 .hero h1 .line > span { display: inline-block; }
-.hero .lead { max-width: 36rem; margin: 28px auto 40px; font-size: clamp(17px, 1.6vw, 20px); }
-.hero .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.scroll-cue { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font: 500 11px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
-.scroll-cue i { width: 1px; height: 44px; background: linear-gradient(var(--blue-hi), transparent); transform-origin: top; animation: cue 2.4s var(--ease) infinite; }
-@media (max-height: 860px) { .scroll-cue { display: none; } }
-@keyframes cue { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+.hero h1 .serif { color: var(--blue-hi); }
+.hero .lead { max-width: 30rem; margin: 22px 0 36px; font-size: clamp(17px, 1.6vw, 20px); }
+.hero .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero::after { content: ""; position: absolute; inset: auto 0 0 0; height: 140px; background: linear-gradient(transparent, var(--bg)); z-index: -1; pointer-events: none; }
+
+/* Option A — centered text, globe rising below */
+.hero[data-v="a"] .copy { text-align: center; padding-bottom: 38vh; }
+.hero[data-v="a"] h1 { margin: 22px auto 0; max-width: 13ch; }
+.hero[data-v="a"] .lead { margin-left: auto; margin-right: auto; }
+.hero[data-v="a"] .btns { justify-content: center; }
+/* Options B, C — text left, 3D object right */
+.hero[data-v="b"] h1, .hero[data-v="c"] h1 { margin-top: 22px; max-width: 9.5em; font-size: clamp(44px, 5.6vw, 84px); }
+.hero[data-v="b"] .copy, .hero[data-v="c"] .copy { padding-bottom: 40px; }
+
+/* Floating glass cards (option A) */
+.float-cards { display: none; }
+.hero[data-v="a"] .float-cards { display: block; }
+.fcard { position: absolute; z-index: 1; width: 200px; padding: 18px; border-radius: 18px; background: rgba(12,17,30,.5); border: 1px solid var(--line-hi); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 30px 60px -30px #000; color: var(--text); font: 500 15px/1.3 var(--display); will-change: transform; }
+.fcard .ic { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 14px; background: linear-gradient(160deg, rgba(76,141,255,.3), rgba(76,141,255,.06)); border: 1px solid rgba(127,178,255,.3); color: var(--blue-hi); }
+.fcard .ic svg { width: 18px; height: 18px; }
+.fcard small { display: block; margin-top: 4px; font: 400 13px/1.4 var(--body); color: var(--muted); }
+.fcard.f1 { left: 6%; top: 46%; }
+.fcard.f2 { left: 10%; top: 70%; }
+.fcard.f3 { right: 6%; top: 44%; }
+.fcard.f4 { right: 9%; top: 68%; }
 
 /* Intro choreography */
-.js .hero .eyebrow, .js .hero .lead, .js .hero .btns { opacity: 0; transform: translateY(18px); }
+.js .hero .eyebrow, .js .hero .lead, .js .hero .btns, .js .fcard { opacity: 0; transform: translateY(18px); }
 .js .hero h1 .line > span { transform: translateY(110%); }
-.loaded .hero .eyebrow, .loaded .hero .lead, .loaded .hero .btns { opacity: 1; transform: none; transition: opacity 1s var(--ease), transform 1s var(--ease); }
+.loaded .hero .eyebrow, .loaded .hero .lead, .loaded .hero .btns, .loaded .fcard { opacity: 1; transform: none; transition: opacity 1s var(--ease), transform 1s var(--ease); }
 .loaded .hero h1 .line > span { transform: none; transition: transform 1.2s var(--ease); }
 .loaded .hero h1 .line:nth-child(2) > span { transition-delay: .08s; }
 .loaded .hero h1 .line:nth-child(3) > span { transition-delay: .16s; }
 .loaded .hero .lead { transition-delay: .35s; }
 .loaded .hero .btns { transition-delay: .45s; }
+.loaded .fcard { transition-delay: .7s; }
+.loaded .fcard.f2, .loaded .fcard.f4 { transition-delay: .85s; }
 
-/* ---------- Manifesto (words light up on scroll) ---------- */
-.manifesto { padding: 160px 0 120px; }
-.manifesto p.big { font-family: var(--display); font-weight: 500; font-size: clamp(30px, 4.6vw, 64px); line-height: 1.12; letter-spacing: -0.03em; max-width: 22ch; margin-top: 28px; color: var(--text); }
-.js .manifesto .w { color: #1F2840; transition: color .5s var(--ease); }
-.js .manifesto .w.lit { color: var(--text); }
-.js .manifesto .w.accent.lit { color: var(--blue-hi); }
+/* ---------- Mission line ---------- */
+.mission { padding: 140px 0 100px; }
+.mission p.big { font-family: var(--display); font-weight: 500; font-size: clamp(32px, 5vw, 68px); line-height: 1.1; letter-spacing: -0.03em; max-width: 20ch; margin-top: 28px; color: var(--text); }
+.js .mission .w { color: #1F2840; transition: color .5s var(--ease); }
+.js .mission .w.lit { color: var(--text); }
+.js .mission .w.acc.lit { color: var(--blue-hi); }
 
 /* ---------- Cards ---------- */
-.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 64px; }
 .card { position: relative; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); padding: 32px; overflow: hidden; isolation: isolate; transition: border-color .3s; }
-.card::before { /* spotlight that follows the pointer */
-  content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .3s;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(76,141,255,.14), transparent 60%);
-}
+.card::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .3s; background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(76,141,255,.14), transparent 60%); }
 .card:hover { border-color: var(--line-hi); }
 .card:hover::before { opacity: 1; }
-.card .icon { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(160deg, rgba(76,141,255,.22), rgba(76,141,255,.04)); border: 1px solid rgba(127,178,255,.25); color: var(--blue-hi); margin-bottom: 40px; }
-.card .icon svg { width: 22px; height: 22px; }
-.card .num { position: absolute; top: 30px; right: 32px; font: 500 13px/1 var(--display); color: var(--dim); }
-.card h3 { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 10px; }
-.section-head { display: flex; justify-content: space-between; align-items: end; gap: 24px 40px; flex-wrap: wrap; }
-.section-head h2 { font-size: clamp(36px, 5vw, 64px); max-width: 14ch; margin-top: 20px; }
-.section-head p { max-width: 26rem; }
+.icon { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(160deg, rgba(76,141,255,.22), rgba(76,141,255,.04)); border: 1px solid rgba(127,178,255,.25); color: var(--blue-hi); }
+.icon svg { width: 22px; height: 22px; }
 
-/* ---------- Products ---------- */
-.product-hero { display: grid; grid-template-columns: 1.05fr 1fr; margin-top: 64px; border-radius: 28px; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)); overflow: hidden; }
+/* ---------- Services ---------- */
+.services { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 56px; }
+.service { padding: 40px; min-height: 360px; display: flex; flex-direction: column; }
+.service .tag { margin: 28px 0 10px; font: 500 12px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--blue-hi); }
+.service h3 { font-size: clamp(28px, 3vw, 40px); }
+.service p { margin-top: 12px; max-width: 26rem; }
+.service .btn { margin-top: auto; align-self: flex-start; }
+.service .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 32px; }
+.service .chips span { font-size: 13px; color: var(--text); padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line-hi); background: rgba(255,255,255,.03); }
+.service.custom { background: linear-gradient(160deg, rgba(59,130,246,.16), rgba(59,130,246,.02) 60%); border-color: rgba(127,178,255,.25); }
+
+/* ---------- Product ---------- */
+.product-hero { display: grid; grid-template-columns: 1.05fr 1fr; margin-top: 56px; border-radius: 28px; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)); overflow: hidden; }
 .product-hero .copy { padding: 56px; display: flex; flex-direction: column; }
 .pill { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font: 500 12px/1 var(--display); letter-spacing: .04em; color: var(--paw); background: rgba(255,138,61,.1); border: 1px solid rgba(255,138,61,.22); }
 .pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--paw); box-shadow: 0 0 10px var(--paw); animation: blink 2s infinite; }
 @keyframes blink { 50% { opacity: .35; } }
-.product-hero h3 { font-size: clamp(40px, 5vw, 64px); margin: 24px 0 16px; }
+.product-hero h3 { font-size: clamp(40px, 5vw, 64px); margin: 24px 0 12px; }
 .product-hero ul { list-style: none; padding: 0; margin: 28px 0 40px; display: grid; gap: 14px; }
-.product-hero li { display: flex; gap: 12px; align-items: flex-start; color: var(--text); }
-.product-hero li svg { flex: none; width: 20px; height: 20px; color: var(--paw); margin-top: 3px; }
+.product-hero li { display: flex; gap: 12px; align-items: center; color: var(--text); }
+.product-hero li svg { flex: none; width: 20px; height: 20px; color: var(--paw); }
 .product-hero .btn { margin-top: auto; align-self: flex-start; }
-.stage { position: relative; min-height: 520px; background: radial-gradient(70% 60% at 50% 55%, rgba(255,138,61,.16), transparent 70%), radial-gradient(100% 100% at 50% 100%, rgba(76,141,255,.12), transparent 70%); overflow: hidden; }
+.stage { position: relative; min-height: 480px; background: radial-gradient(70% 60% at 50% 55%, rgba(255,138,61,.16), transparent 70%), radial-gradient(100% 100% at 50% 100%, rgba(76,141,255,.12), transparent 70%); overflow: hidden; }
 .stage .ring { position: absolute; left: 50%; top: 50%; width: 140px; height: 140px; margin: -70px 0 0 -70px; border-radius: 50%; border: 1.5px solid rgba(255,138,61,.55); opacity: 0; animation: ring 3.6s var(--ease) infinite; }
 .stage .ring:nth-child(2) { animation-delay: 1.2s; }
 .stage .ring:nth-child(3) { animation-delay: 2.4s; }
 @keyframes ring { 0% { transform: scale(.6); opacity: 0; } 15% { opacity: 1; } 100% { transform: scale(3.2); opacity: 0; } }
-.tag { position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 44px; background: linear-gradient(150deg, #1A2238, #0B0F1B); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 30px 80px -20px rgba(0,0,0,.8), 0 0 0 8px rgba(255,255,255,.02), inset 0 1px 0 rgba(255,255,255,.12); display: grid; place-items: center; animation: float 6s ease-in-out infinite; }
-.tag svg { width: 104px; height: 104px; }
+.tagdev { position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 44px; background: linear-gradient(150deg, #1A2238, #0B0F1B); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 30px 80px -20px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.12); display: grid; place-items: center; animation: float 6s ease-in-out infinite; }
+.tagdev svg { width: 104px; height: 104px; }
 @keyframes float { 50% { transform: translateY(-10px) rotate(-2deg); } }
-.chip { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: rgba(10,14,26,.72); border: 1px solid var(--line-hi); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 13px; line-height: 1.3; color: var(--text); box-shadow: 0 20px 40px -20px #000; white-space: nowrap; }
+.chip { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: rgba(10,14,26,.72); border: 1px solid var(--line-hi); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 13px; line-height: 1.3; color: var(--text); white-space: nowrap; }
 .chip svg { width: 16px; height: 16px; flex: none; }
 .chip small { display: block; color: var(--muted); font-size: 11px; }
 .chip.c1 { left: 8%; top: 16%; animation: float 7s ease-in-out infinite .5s; }
 .chip.c1 svg { color: var(--paw); }
 .chip.c2 { right: 7%; bottom: 18%; animation: float 8s ease-in-out infinite 1.2s; }
 .chip.c2 svg { color: #4ADE80; }
-.next { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 28px 32px; border-radius: var(--radius); border: 1px dashed var(--line-hi); }
-.next h3 { font-size: 22px; }
-.next p { margin-top: 4px; }
+
+/* ---------- Principles ---------- */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 56px; }
+.principle .icon { margin-bottom: 36px; }
+.principle h3 { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 8px; }
 
 /* ---------- Founders ---------- */
-.founders { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 64px; }
+.founders { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 56px; }
 .founder { display: flex; align-items: center; gap: 28px; padding: 36px; }
 .mono { position: relative; flex: none; width: 108px; height: 108px; border-radius: 50%; display: grid; place-items: center; font: 600 42px/1 var(--display); color: var(--text); background: radial-gradient(circle at 30% 25%, #1E2C4F, #070A13 70%); border: 1px solid var(--line-hi); }
 .mono::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 1px solid transparent; border-top-color: var(--blue-hi); border-right-color: rgba(127,178,255,.25); animation: spin 6s linear infinite; }
@@ -163,13 +192,35 @@ section { position: relative; padding: 140px 0; }
 .founder h3 { font-size: 32px; }
 .founder .role { margin-top: 10px; font: 500 13px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--blue-hi); }
 
-/* ---------- Closing ---------- */
-.closing { text-align: center; overflow: hidden; padding: 180px 0 200px; isolation: isolate; }
-.closing::before { content: ""; position: absolute; left: 50%; top: 100%; width: 1400px; height: 1400px; transform: translate(-50%, -38%); border-radius: 50%; z-index: -1; background: radial-gradient(closest-side, rgba(76,141,255,.35), rgba(76,141,255,.08) 55%, transparent 70%); }
-.closing::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1100px; height: 1100px; transform: translate(-50%, -30%); border-radius: 50%; z-index: -1; border-top: 1px solid rgba(127,178,255,.5); box-shadow: 0 -20px 80px -30px var(--glow); }
-.closing h2 { font-size: clamp(42px, 7vw, 104px); max-width: 14ch; margin: 28px auto 0; }
-.closing h2 .serif { color: var(--blue-hi); }
-.closing p { max-width: 32rem; margin: 24px auto 40px; }
+/* ---------- Investors ---------- */
+.investors { padding-top: 40px; }
+.inv { display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; align-items: center; padding: 56px; border-radius: 28px; border: 1px solid var(--line); background: radial-gradient(80% 120% at 100% 0%, rgba(76,141,255,.14), transparent 60%), var(--surface); }
+.inv h2 { font-size: clamp(32px, 4vw, 52px); margin-top: 18px; max-width: 16ch; }
+.inv ol { list-style: none; padding: 0; display: grid; gap: 14px; counter-reset: s; }
+.inv li { display: flex; gap: 16px; align-items: baseline; color: var(--text); padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.inv li::before { counter-increment: s; content: "0" counter(s); font: 500 13px/1 var(--display); color: var(--blue-hi); }
+.inv .btn { margin-top: 28px; }
+
+/* ---------- Book a consultation ---------- */
+.book { padding: 160px 0 140px; overflow: hidden; isolation: isolate; }
+.book::before { content: ""; position: absolute; left: 50%; top: 100%; width: 1400px; height: 1400px; transform: translate(-50%, -34%); border-radius: 50%; z-index: -1; background: radial-gradient(closest-side, rgba(76,141,255,.3), rgba(76,141,255,.06) 55%, transparent 70%); }
+.book-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: start; }
+.book h2 { font-size: clamp(40px, 6vw, 84px); margin-top: 22px; max-width: 11ch; }
+.book h2 .serif { color: var(--blue-hi); }
+.book .alt { margin-top: 28px; font-size: 15px; }
+.book .alt a { color: var(--text); }
+form.card { padding: 32px; display: grid; gap: 16px; background: rgba(10,14,26,.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.field { display: grid; gap: 8px; }
+.field label { font: 500 13px/1 var(--display); letter-spacing: .04em; color: var(--text); }
+.field input, .field select, .field textarea { width: 100%; min-height: 48px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line-hi); background: rgba(255,255,255,.03); color: var(--text); font: 400 16px/1.4 var(--body); transition: border-color .2s, background .2s; }
+.field textarea { min-height: 110px; resize: vertical; }
+.field select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%239AA6BF' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+.field select option { background: #0A0F1C; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--blue-hi); background: rgba(127,178,255,.06); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+form .btn { width: 100%; margin-top: 4px; }
+form .note { font-size: 13px; color: var(--dim); text-align: center; }
+
 footer { border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
 footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 28px; padding-bottom: 36px; }
 footer img { height: 16px; width: auto; opacity: .7; }
@@ -178,29 +229,46 @@ footer img { height: 16px; width: auto; opacity: .7; }
 .js .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease); transition-delay: calc(var(--i, 0) * 70ms); }
 .js .reveal.in { opacity: 1; transform: none; }
 
+/* ---------- Option switcher (preview only — removed once an option is chosen) ---------- */
+.switcher { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 60; display: flex; gap: 4px; padding: 6px; border-radius: 999px; background: rgba(8,11,20,.8); border: 1px solid var(--line-hi); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); font: 500 13px/1 var(--display); }
+.switcher span { padding: 12px 10px 12px 14px; color: var(--dim); }
+.switcher a { white-space: nowrap; padding: 12px 16px; border-radius: 999px; text-decoration: none; color: var(--muted); }
+.switcher a[aria-current] { background: var(--blue); color: #fff; }
+
+@media (max-width: 1000px) {
+  .fcard { display: none; }
+  .services, .grid3, .founders, .product-hero, .inv, .book-grid { grid-template-columns: 1fr; }
+}
 @media (max-width: 900px) {
+  .switcher span { display: none; }
+  .switcher a { padding: 12px 12px; }
   section { padding: 96px 0; }
   .nav ul { display: none; }
-  .grid3, .founders, .product-hero { grid-template-columns: 1fr; }
+  .hero[data-v="b"] .copy, .hero[data-v="c"] .copy { padding-top: 46vh; padding-bottom: 72px; }
+  .hero[data-v="a"] .copy { padding-bottom: 34vh; }
+  .service, .card, .inv { padding: 28px 24px; }
   .product-hero .copy { padding: 32px 24px; }
-  .stage { min-height: 360px; order: -1; }
-  .founder { padding: 28px 24px; gap: 22px; }
+  .stage { min-height: 340px; order: -1; }
+  .founder { gap: 22px; }
   .mono { width: 80px; height: 80px; font-size: 32px; }
   .founder h3 { font-size: 26px; }
-  .card { padding: 28px 24px; }
-  .chip.c1 { left: 5%; top: 9%; }
-  .chip.c2 { right: 5%; bottom: 9%; }
-  .next { padding: 24px; }
-  footer .wrap { flex-direction: column; }
+  .row2 { grid-template-columns: 1fr; }
+  form.card { padding: 24px; }
+  footer .wrap { flex-direction: column; padding-bottom: 96px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .js .reveal, .js .hero .eyebrow, .js .hero .lead, .js .hero .btns { opacity: 1; transform: none; }
+  .js .reveal, .js .hero .eyebrow, .js .hero .lead, .js .hero .btns, .js .fcard { opacity: 1; transform: none; }
   .js .hero h1 .line > span { transform: none; }
   .stage .ring { display: none; }
 }
 </style>
-<script>document.documentElement.classList.add('js');</script>
+<script>
+  document.documentElement.classList.add('js');
+  // Which hero option to show (preview only): ?v=a | b | c
+  window.HERO = (new URLSearchParams(location.search).get('v') || 'a').toLowerCase();
+  if (!['a', 'b', 'c'].includes(window.HERO)) window.HERO = 'a';
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -209,68 +277,73 @@ footer img { height: 16px; width: auto; opacity: .7; }
   <div class="nav-inner">
     <a href="#top" aria-label="Nakilab home"><img src="assets/nakilab-logo-white.png" alt="Nakilab" width="250" height="47" /></a>
     <ul>
-      <li><a href="#mission">Mission</a></li>
+      <li><a href="#services">Services</a></li>
       <li><a href="#products">Products</a></li>
       <li><a href="#founders">Founders</a></li>
+      <li><a href="#investors">Investors</a></li>
     </ul>
-    <a class="btn btn-primary btn-sm" href="#contact">Let's talk</a>
+    <a class="btn btn-primary btn-sm" href="#book">Book a call</a>
   </div>
 </nav>
 
 <main id="main">
   <header class="hero" id="top">
-    <canvas id="space" aria-hidden="true"></canvas>
-    <div class="wrap">
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="float-cards" aria-hidden="true">
+      <div class="fcard f1" data-depth="1.2"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg></div>First principles<small>Real problems first</small></div>
+      <div class="fcard f2" data-depth=".7"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg></div>Web + iPhone<small>Shipped, not slides</small></div>
+      <div class="fcard f3" data-depth="1"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M9 13v2M15 13v2"/></svg></div>AI-native<small>Built in from day one</small></div>
+      <div class="fcard f4" data-depth=".6"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg></div>Built for good<small>Useful over impressive</small></div>
+    </div>
+    <div class="wrap copy">
       <div class="eyebrow">Nakilab · AI product lab</div>
       <h1>
         <span class="line"><span>Build the future</span></span>
         <span class="line"><span>you want to</span></span>
         <span class="line"><span class="serif">wake up to.</span></span>
       </h1>
-      <p class="lead">We build practical AI tools that make everyday life better — for people, for the animals they love, and for the world we share.</p>
+      <p class="lead">Practical AI tools that make life better.</p>
       <div class="btns">
-        <a class="btn btn-primary" href="#products">Explore our work
+        <a class="btn btn-primary" href="#services">See what we do
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-        <a class="btn btn-ghost" href="#mission">Our mission</a>
+        <a class="btn btn-ghost" href="#book">Book a consultation</a>
       </div>
     </div>
-    <div class="scroll-cue" aria-hidden="true">Scroll<i></i></div>
   </header>
 
-  <section class="manifesto" id="mission">
+  <section class="mission" id="mission">
     <div class="wrap">
       <div class="eyebrow">Mission</div>
-      <p class="big" data-words>Start from first principles. Ask what people truly need, not what AI can show off. Then build it, ship it, and make it better every single week. <span data-accent>If it makes the world better, it's worth building — even when the odds say no.</span></p>
+      <p class="big" data-words>First principles. Real problems. Built, shipped, improved. <span data-accent>Technology that makes the world better.</span></p>
     </div>
   </section>
 
-  <section style="padding-top:40px">
+  <section id="services" style="padding-top:40px">
     <div class="wrap">
       <div class="section-head">
         <div>
-          <div class="eyebrow">How we think</div>
-          <h2 class="reveal">Engineered for the real world.</h2>
+          <div class="eyebrow">Services</div>
+          <h2 class="reveal">Two ways to work with us.</h2>
         </div>
-        <p class="reveal">Three rules behind every Nakilab product, from the first sketch to the App Store.</p>
       </div>
-      <div class="grid3">
-        <article class="card reveal" style="--i:0">
-          <span class="num">01</span>
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg></div>
-          <h3>First principles</h3>
-          <p>We break a problem down to what is actually true, then rebuild the answer from there — not from what everyone else does.</p>
+      <div class="services">
+        <article class="card service reveal" style="--i:0">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.3 9 5.2M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg></div>
+          <div class="tag">Ready to use</div>
+          <h3>Our products</h3>
+          <p>AI tools we've built and launched. Sign up and start today.</p>
+          <div class="chips"><span>RingRingPaw</span><span>More coming</span></div>
+          <a class="btn btn-ghost" href="#products">Explore products
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
         </article>
-        <article class="card reveal" style="--i:1">
-          <span class="num">02</span>
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></svg></div>
-          <h3>Ship, then iterate</h3>
-          <p>A working product in real hands teaches more than any plan. We launch early and improve relentlessly.</p>
-        </article>
-        <article class="card reveal" style="--i:2">
-          <span class="num">03</span>
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-          <h3>Useful over impressive</h3>
-          <p>The best technology disappears into everyday life. If it doesn't help a real person, we don't ship it.</p>
+        <article class="card service custom reveal" style="--i:1">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg></div>
+          <div class="tag">Built for you</div>
+          <h3>Custom AI tools</h3>
+          <p>Tell us your problem. We design, build and ship the AI tool that solves it.</p>
+          <div class="chips"><span>AI assistants</span><span>Automation</span><span>Web &amp; iPhone apps</span></div>
+          <a class="btn btn-primary" href="#book">Book a consultation
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
         </article>
       </div>
     </div>
@@ -284,36 +357,53 @@ footer img { height: 16px; width: auto; opacity: .7; }
           <h2 class="reveal">Out of the lab, into the world.</h2>
         </div>
       </div>
-
       <article class="product-hero reveal">
         <div class="copy">
           <span class="pill"><i></i>In development · Web + iPhone</span>
           <h3>RingRingPaw</h3>
-          <p>A smart tag that brings lost pets home. Anyone who finds your pet scans the tag, reaches you instantly, and can choose to share where they are.</p>
+          <p>Smart tags that bring lost pets home.</p>
           <ul>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Scan to contact — no app needed for the finder</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Location shared only with the finder's consent</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Instant alert to the owner on every scan</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Scan to contact the owner</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Location only with consent</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Instant alerts on every scan</li>
           </ul>
           <a class="btn btn-primary" href="https://ringringpaw.nakilab.com">Visit RingRingPaw
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
         </div>
         <div class="stage" aria-hidden="true">
           <span class="ring"></span><span class="ring"></span><span class="ring"></span>
-          <div class="tag">
-            <svg viewBox="0 0 100 100" fill="#FF8A3D"><ellipse cx="50" cy="66" rx="21" ry="18"/><ellipse cx="23" cy="42" rx="9.5" ry="12.5"/><ellipse cx="40" cy="24" rx="9.5" ry="12.5"/><ellipse cx="60" cy="24" rx="9.5" ry="12.5"/><ellipse cx="77" cy="42" rx="9.5" ry="12.5"/></svg>
-          </div>
+          <div class="tagdev"><svg viewBox="0 0 100 100" fill="#FF8A3D"><ellipse cx="50" cy="66" rx="21" ry="18"/><ellipse cx="23" cy="42" rx="9.5" ry="12.5"/><ellipse cx="40" cy="24" rx="9.5" ry="12.5"/><ellipse cx="60" cy="24" rx="9.5" ry="12.5"/><ellipse cx="77" cy="42" rx="9.5" ry="12.5"/></svg></div>
           <div class="chip c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span>Luna's tag was scanned<small>just now</small></span></div>
           <div class="chip c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Finder shared location<small>0.4 km away</small></span></div>
         </div>
       </article>
+    </div>
+  </section>
 
-      <div class="next reveal">
+  <section style="padding-top:40px">
+    <div class="wrap">
+      <div class="section-head">
         <div>
-          <h3>Next mission — in the lab</h3>
-          <p>Have a problem you think AI could solve? It might become our next product.</p>
+          <div class="eyebrow">How we think</div>
+          <h2 class="reveal">Engineered for the real world.</h2>
         </div>
-        <a class="btn btn-ghost" href="#contact">Suggest an idea</a>
+      </div>
+      <div class="grid3">
+        <article class="card principle reveal" style="--i:0">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>First principles</h3>
+          <p>Start from what's true, not what's usual.</p>
+        </article>
+        <article class="card principle reveal" style="--i:1">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></svg></div>
+          <h3>Ship, then iterate</h3>
+          <p>Launch early. Improve every week.</p>
+        </article>
+        <article class="card principle reveal" style="--i:2">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+          <h3>Useful over impressive</h3>
+          <p>If it doesn't help a real person, it doesn't ship.</p>
+        </article>
       </div>
     </div>
   </section>
@@ -329,29 +419,61 @@ footer img { height: 16px; width: auto; opacity: .7; }
       <div class="founders">
         <article class="card founder reveal" style="--i:0">
           <div class="mono" aria-hidden="true">M</div>
-          <div>
-            <h3>Mehrdad</h3>
-            <div class="role">Co-Founder</div>
-          </div>
+          <div><h3>Mehrdad</h3><div class="role">Co-Founder</div></div>
         </article>
         <article class="card founder reveal" style="--i:1">
           <div class="mono" aria-hidden="true">N</div>
-          <div>
-            <h3>Navid</h3>
-            <div class="role">Co-Founder</div>
-          </div>
+          <div><h3>Navid</h3><div class="role">Co-Founder</div></div>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="closing" id="contact">
+  <section class="investors" id="investors">
     <div class="wrap">
-      <div class="eyebrow">Contact</div>
-      <h2 class="reveal">Make the world <span class="serif">a better place.</span></h2>
-      <p class="reveal">One useful tool at a time. Got a problem worth solving, or want to build with us? Say hello.</p>
-      <a class="btn btn-primary reveal" href="mailto:hello@nakilab.com">hello@nakilab.com
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      <div class="inv reveal">
+        <div>
+          <div class="eyebrow">Investors &amp; partners</div>
+          <h2>Building a portfolio of <span class="accent">useful AI.</span></h2>
+          <a class="btn btn-ghost" href="mailto:investors@nakilab.com?subject=Investor%20inquiry%20%E2%80%94%20Nakilab">Investor inquiries
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </div>
+        <ol>
+          <li>Products we own and grow</li>
+          <li>Custom builds that fund the lab</li>
+          <li>Every launch reuses what we've built</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="book" id="book">
+    <div class="wrap book-grid">
+      <div>
+        <div class="eyebrow">Book a consultation</div>
+        <h2 class="reveal">Let's build <span class="serif">what you need.</span></h2>
+        <p class="alt reveal">Or email us at <a href="mailto:hello@nakilab.com">hello@nakilab.com</a></p>
+      </div>
+      <form class="card reveal" id="book-form" novalidate>
+        <div class="row2">
+          <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required /></div>
+          <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required /></div>
+        </div>
+        <div class="field"><label for="f-type">What do you need?</label>
+          <select id="f-type" name="type">
+            <option>A custom AI tool</option>
+            <option>An AI assistant / chatbot</option>
+            <option>Automation for my business</option>
+            <option>A web or iPhone app</option>
+            <option>Using one of your products</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div class="field"><label for="f-msg">Tell us briefly</label><textarea id="f-msg" name="message" placeholder="The problem you want to solve…"></textarea></div>
+        <button class="btn btn-primary" type="submit">Request a consultation
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+        <p class="note">Free 30-minute call. We reply within 2 working days.</p>
+      </form>
     </div>
   </section>
 </main>
@@ -363,108 +485,374 @@ footer img { height: 16px; width: auto; opacity: .7; }
   </div>
 </footer>
 
+<nav class="switcher" aria-label="Hero options (preview)">
+  <span>Hero</span>
+  <a href="?v=a">A · Orbit</a>
+  <a href="?v=b">B · Monolith</a>
+  <a href="?v=c">C · Particles</a>
+</nav>
+
 <script>
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelector('.hero').dataset.v = window.HERO;
+  document.querySelectorAll('.switcher a').forEach(a => { if (a.getAttribute('href') === '?v=' + window.HERO) a.setAttribute('aria-current', 'page'); });
   document.getElementById('year').textContent = new Date().getFullYear();
   const start = () => document.documentElement.classList.add('loaded');
   requestAnimationFrame(() => requestAnimationFrame(start));
   setTimeout(start, 120); // rAF is paused in background tabs
 
-  /* ---- Hero: starfield + rotating dotted planet rising over the horizon ---- */
-  const cv = document.getElementById('space');
-  const ctx = cv.getContext('2d');
-  let W, H, stars = [], raf;
-  const globe = [];
-  const N_GLOBE = 2400;
-  for (let i = 0; i < N_GLOBE; i++) { // Fibonacci sphere: evenly spread points
-    const y = 1 - (i / (N_GLOBE - 1)) * 2, r = Math.sqrt(1 - y * y), t = i * 2.399963;
-    globe.push([Math.cos(t) * r, y, Math.sin(t) * r]);
-  }
-  function resize() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    W = cv.clientWidth; H = cv.clientHeight;
-    cv.width = W * dpr; cv.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    stars = Array.from({ length: Math.round(W * H / 3800) }, () => ({
-      x: Math.random() * W, y: Math.random() * H, z: Math.random() * .9 + .1, tw: Math.random() * 6.28
-    }));
-  }
-  let px = 0, py = 0, tx = 0, ty = 0;
-  addEventListener('pointermove', e => { tx = e.clientX / innerWidth - .5; ty = e.clientY / innerHeight - .5; }, { passive: true });
-  function frame(t) {
-    px += (tx - px) * .04; py += (ty - py) * .04;
-    const sy0 = scrollY;
-    ctx.clearRect(0, 0, W, H);
-    for (const s of stars) { // stars with depth parallax and twinkle
-      const a = .2 + .6 * s.z * (reduce ? 1 : (.6 + .4 * Math.sin(t * .0012 + s.tw)));
-      ctx.fillStyle = `rgba(200,220,255,${a})`;
-      const x = ((s.x - px * 30 * s.z) % W + W) % W;
-      const y = ((s.y - py * 20 * s.z - sy0 * .15 * s.z) % H + H) % H;
-      ctx.fillRect(x, y, s.z * 1.6, s.z * 1.6);
-    }
-    const R = Math.max(W * .62, 520);
-    const cx = W / 2 + px * 24, cy = H + R * .76 - Math.min(sy0 * .25, 200);
-    const rot = (reduce ? 0 : t * .00005) + px * .4, tilt = .35 + py * .1;
-    const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(tilt), st = Math.sin(tilt);
-    const g = ctx.createRadialGradient(cx, cy - R * .25, R * .2, cx, cy, R);
-    g.addColorStop(0, '#0B1630'); g.addColorStop(1, '#03050B');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.fill();
-    for (const [x0, y0, z0] of globe) {
-      const x1 = x0 * cr + z0 * sr, z1 = -x0 * sr + z0 * cr;
-      const y2 = y0 * ct - z1 * st, z2 = y0 * st + z1 * ct;
-      if (z2 < 0) continue;
-      const sx = cx + x1 * R, sy = cy + y2 * R;
-      if (sy > H + 4 || sy < -4) continue;
-      const limb = Math.max(0, 1 - (cy - sy) / R); // brighter toward the lit upper rim
-      ctx.fillStyle = `rgba(127,178,255,${Math.min(1, (.22 + z2 * .6) * (.55 + limb * .9))})`;
-      const s = 1 + z2 * 1.6;
-      ctx.fillRect(sx, sy, s, s);
-    }
-    ctx.save(); // atmosphere rim
-    ctx.shadowColor = 'rgba(96,160,255,.9)'; ctx.shadowBlur = 40;
-    ctx.strokeStyle = 'rgba(170,205,255,.8)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(cx, cy, R, Math.PI * 1.06, Math.PI * 1.94); ctx.stroke();
-    ctx.restore();
-    if (!reduce) raf = requestAnimationFrame(frame);
-  }
-  resize();
-  addEventListener('resize', () => { resize(); if (reduce) frame(0); });
-  if (reduce) frame(0);
-  else new IntersectionObserver(([e]) => { // only animate while the hero is visible
-    cancelAnimationFrame(raf);
-    if (e.isIntersecting) raf = requestAnimationFrame(frame);
-  }).observe(cv);
-
-  /* ---- Reveal on scroll ---- */
+  /* Reveal on scroll */
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), { rootMargin: '0px 0px -12% 0px' });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  /* ---- Manifesto: words light up as you scroll through it ---- */
+  /* Mission: words light up as you scroll */
   const big = document.querySelector('[data-words]');
-  const split = (text, cls) => text.split(/(\s+)/).map(p => /^\s+$/.test(p) || !p ? p : `<span class="${cls}">${p}</span>`).join('');
+  const split = (text, cls) => text.split(/(\s+)/).map(p => !p || /^\s+$/.test(p) ? p : `<span class="${cls}">${p}</span>`).join('');
   const acc = big.querySelector('[data-accent]');
-  const accHTML = split(acc.textContent, 'w accent'); acc.remove();
+  const accHTML = split(acc.textContent, 'w acc'); acc.remove();
   big.innerHTML = split(big.textContent.trim(), 'w') + ' ' + accHTML;
   const words = [...big.querySelectorAll('.w')];
-  function lightWords() {
+  const lightWords = () => {
     const r = big.getBoundingClientRect();
     const p = Math.min(1, Math.max(0, (innerHeight * .8 - r.top) / (r.height + innerHeight * .3)));
     const n = Math.round(p * words.length);
     words.forEach((w, i) => w.classList.toggle('lit', i < n));
-  }
+  };
   if (reduce) words.forEach(w => w.classList.add('lit'));
   else { addEventListener('scroll', () => requestAnimationFrame(lightWords), { passive: true }); lightWords(); }
 
-  /* ---- Card spotlight follows the pointer ---- */
+  /* Card spotlight follows the pointer */
   document.querySelectorAll('.card').forEach(c => c.addEventListener('pointermove', e => {
     const r = c.getBoundingClientRect();
     c.style.setProperty('--mx', e.clientX - r.left + 'px');
     c.style.setProperty('--my', e.clientY - r.top + 'px');
   }));
+
+  /* Floating hero cards drift with the pointer (option A) */
+  const fcards = [...document.querySelectorAll('.fcard')];
+  if (!reduce) addEventListener('pointermove', e => {
+    const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
+    fcards.forEach(c => { const d = +c.dataset.depth; c.style.translate = `${-x * 24 * d}px ${-y * 18 * d}px`; });
+  }, { passive: true });
+
+  /* Consultation form: no backend yet, so it opens a pre-filled email */
+  const form = document.getElementById('book-form');
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const f = new FormData(form);
+    if (!f.get('name') || !form.querySelector('#f-email').checkValidity() || !f.get('email')) {
+      (f.get('name') ? form.querySelector('#f-email') : form.querySelector('#f-name')).focus();
+      return;
+    }
+    const body = `Name: ${f.get('name')}\nEmail: ${f.get('email')}\nNeed: ${f.get('type')}\n\n${f.get('message') || ''}`;
+    location.href = `mailto:hello@nakilab.com?subject=${encodeURIComponent('Consultation request — ' + f.get('name'))}&body=${encodeURIComponent(body)}`;
+  });
 })();
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = document.getElementById('scene');
+const hero = canvas.parentElement;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = window.HERO === 'b' ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05070d);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+camera.position.set(0, 0, 6);
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.75, 0.5, 0.35);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+addEventListener('pointermove', e => { mouse.x = e.clientX / innerWidth - .5; mouse.y = e.clientY / innerHeight - .5; }, { passive: true });
+const isMobile = () => innerWidth < 900;
+const BLUE = new THREE.Color(0x7fb2ff), DEEP = new THREE.Color(0x1d3a6e);
+
+// Nakilab "K" mark, traced from the logo (x right, y down, ~492×376 box)
+const K_POLYS = [
+  [[16,14],[72,14],[350,360],[272,360],[16,70]],
+  [[16,124],[88,212],[88,318],[50,360],[16,360]],
+  [[230,158],[348,14],[444,14],[272,208]],
+  [[288,228],[330,180],[482,360],[390,360]],
+];
+const kPoint = ([x, y]) => [(x - 249) / 170, -(y - 187) / 170];
+function inPoly(px, py, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+const fib = (i, n) => { const y = 1 - (i / (n - 1)) * 2, r = Math.sqrt(1 - y * y), t = i * 2.399963; return [Math.cos(t) * r, y, Math.sin(t) * r]; };
+// cheap smooth "continents" field on the unit sphere
+const land = (x, y, z) => Math.sin(2.7 * x + 1.3) * Math.sin(2.3 * y + .4) * Math.sin(2.9 * z + 2.1) + .45 * Math.sin(6.1 * x + 3 * z) * Math.sin(5.3 * y + .7);
+
+const builders = { a: buildOrbit, b: buildMonolith, c: buildParticles };
+const tick = builders[window.HERO]();
+
+function resize() {
+  const w = hero.clientWidth, h = hero.clientHeight;
+  renderer.setSize(w, h, false);
+  composer.setSize(w, h);
+  bloom.resolution.set(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  tick.layout?.(w, h);
+}
+resize();
+addEventListener('resize', resize);
+
+const clock = new THREE.Clock();
+let running = false;
+function loop() {
+  if (!running) return;
+  const t = clock.getElapsedTime();
+  mouse.sx += (mouse.x - mouse.sx) * .05; mouse.sy += (mouse.y - mouse.sy) * .05;
+  tick(reduce ? 0 : t, mouse);
+  composer.render();
+  requestAnimationFrame(loop);
+}
+if (reduce) { tick(0, mouse); composer.render(); }
+else new IntersectionObserver(([e]) => {
+  running = e.isIntersecting;
+  if (running) requestAnimationFrame(loop);
+}).observe(hero);
+
+/* ===================== A · Orbit — dotted planet, orbit rings, data arcs ===================== */
+function buildOrbit() {
+  const world = new THREE.Group(); scene.add(world);
+  const R = 2.1;
+  // dark core hides the far side of the dot shell
+  world.add(new THREE.Mesh(new THREE.SphereGeometry(R * .985, 64, 64), new THREE.MeshBasicMaterial({ color: 0x050a16 })));
+  // dot shell: bright "land", faint "ocean"
+  const N = 14000, pos = new Float32Array(N * 3), col = new Float32Array(N * 3), landPts = [];
+  for (let i = 0; i < N; i++) {
+    const [x, y, z] = fib(i, N), l = land(x, y, z) > .12;
+    pos.set([x * R, y * R, z * R], i * 3);
+    const c = l ? BLUE : DEEP; col.set([c.r, c.g, c.b], i * 3);
+    if (l) landPts.push([x, y, z]);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  world.add(new THREE.Points(g, new THREE.PointsMaterial({ size: .022, vertexColors: true, transparent: true, opacity: 1 })));
+  // city lights
+  const cityG = new THREE.BufferGeometry(), cp = [];
+  for (let i = 0; i < 140; i++) { const p = landPts[(Math.random() * landPts.length) | 0]; cp.push(p[0] * R * 1.003, p[1] * R * 1.003, p[2] * R * 1.003); }
+  cityG.setAttribute('position', new THREE.Float32BufferAttribute(cp, 3));
+  const cityM = new THREE.PointsMaterial({ size: .05, color: 0xdfeaff, transparent: true });
+  world.add(new THREE.Points(cityG, cityM));
+  // atmosphere (fresnel glow)
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(R * 1.16, 64, 64), new THREE.ShaderMaterial({
+    side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false,
+    vertexShader: 'varying vec3 n; void main(){ n = normalize(normalMatrix*normal); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader: 'varying vec3 n; void main(){ float i = pow(clamp(-dot(n, vec3(0.,0.,1.)), 0., 1.), 2.5) * .9; gl_FragColor = vec4(.3,.55,1.,1.)*i; }'
+  }));
+  // data arcs between cities
+  const arcs = [];
+  const arcMat = new THREE.LineBasicMaterial({ color: 0xa8c8ff, transparent: true, blending: THREE.AdditiveBlending });
+  function newArc(a) {
+    const p1 = new THREE.Vector3(...landPts[(Math.random() * landPts.length) | 0]).multiplyScalar(R);
+    const p2 = new THREE.Vector3(...landPts[(Math.random() * landPts.length) | 0]).multiplyScalar(R);
+    const mid = p1.clone().add(p2).normalize().multiplyScalar(R * (1 + p1.distanceTo(p2) * .22));
+    const pts = new THREE.QuadraticBezierCurve3(p1, mid, p2).getPoints(60);
+    a.line.geometry.setFromPoints(pts); a.t = -Math.random() * 2; a.speed = .35 + Math.random() * .3;
+  }
+  for (let i = 0; i < 9; i++) { const a = { line: new THREE.Line(new THREE.BufferGeometry(), arcMat) }; newArc(a); world.add(a.line); arcs.push(a); }
+  // orbit rings with satellites (outside the spinning world so they keep their tilt)
+  const orbits = new THREE.Group(); scene.add(orbits); orbits.add(atmo);
+  const rings = [[2.7, .32, .3, .5], [3.3, -.28, -.32, .32], [3.9, .18, .2, .22]].map(([r, rx, rz, speed], i) => {
+    const ring = new THREE.Group(); ring.rotation.set(Math.PI / 2 + rx, 0, rz);
+    ring.add(new THREE.Mesh(new THREE.TorusGeometry(r, .0045, 8, 240), new THREE.MeshBasicMaterial({ color: 0x9cc2ff, transparent: true, opacity: .85 - i * .15, blending: THREE.AdditiveBlending })));
+    const sat = new THREE.Mesh(new THREE.SphereGeometry(.035, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    ring.add(sat); orbits.add(ring);
+    return { ring, sat, r, speed, off: i * 2.1 };
+  });
+  // background stars
+  const sg = new THREE.BufferGeometry(), sp = [];
+  for (let i = 0; i < 1600; i++) sp.push((Math.random() - .5) * 40, (Math.random() - .5) * 24, -8 - Math.random() * 12);
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+  const stars = new THREE.Points(sg, new THREE.PointsMaterial({ size: .04, color: 0xbcd2ff, transparent: true, opacity: .7 }));
+  scene.add(stars);
+
+  const f = (t, m) => {
+    world.rotation.y = t * .06 + m.sx * .5;
+    world.rotation.x = .25 + m.sy * .15;
+    orbits.rotation.x = m.sy * .12; orbits.rotation.y = m.sx * .25;
+    rings.forEach(o => { const a = t * o.speed + o.off; o.sat.position.set(Math.cos(a) * o.r, Math.sin(a) * o.r, 0); });
+    arcs.forEach(a => {
+      a.t += .016 * a.speed * (reduce ? 0 : 1);
+      const n = 61, head = Math.floor(a.t * n), tail = 22;
+      a.line.geometry.setDrawRange(Math.max(0, head - tail), Math.max(0, Math.min(head, n) - Math.max(0, head - tail)));
+      if (a.t > 1.5) newArc(a);
+    });
+    cityM.opacity = .75 + .25 * Math.sin(t * 2.3);
+    stars.position.x = -m.sx * .6; stars.position.y = m.sy * .4;
+    camera.position.y = -scrollY * .0015;
+  };
+  f.layout = (w, h) => {
+    const mob = w < 900;
+    const y = mob ? -3.0 : -2.9;
+    world.position.y = orbits.position.y = y;
+    camera.position.z = mob ? 9 : 6.4;
+  };
+  if (reduce) arcs.forEach(a => { a.t = .7; });
+  return f;
+}
+
+/* ===================== B · Monolith — the Nakilab K in 3D, glowing portal ===================== */
+function buildMonolith() {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), .04).texture;
+  scene.fog = new THREE.Fog(0x05070d, 7, 18);
+  const group = new THREE.Group(); scene.add(group);
+  const shapes = K_POLYS.map(poly => new THREE.Shape(poly.map(p => new THREE.Vector2(...kPoint(p)))));
+  const geo = new THREE.ExtrudeGeometry(shapes, { depth: .42, bevelEnabled: true, bevelThickness: .05, bevelSize: .035, bevelSegments: 4, curveSegments: 1 });
+  geo.center();
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0x1b2e5c, metalness: 1, roughness: .28, clearcoat: 1, clearcoatRoughness: .15, envMapIntensity: 1.4 });
+  const k = new THREE.Mesh(geo, mat); group.add(k);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({ color: 0x8fbaff, transparent: true, opacity: .55, blending: THREE.AdditiveBlending }));
+  group.add(edges);
+  // lights
+  scene.add(new THREE.AmbientLight(0x3355aa, .4));
+  const rim = new THREE.DirectionalLight(0x6fa3ff, 3); rim.position.set(-4, 3, -3); scene.add(rim);
+  const key = new THREE.PointLight(0x9cc4ff, 30, 12); scene.add(key);
+  // portal rings behind
+  const portal = new THREE.Group(); portal.position.z = -1.4; scene.add(portal);
+  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(2.05, .014, 16, 220), new THREE.MeshBasicMaterial({ color: 0xbcd6ff }));
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.4, .006, 16, 220), new THREE.MeshBasicMaterial({ color: 0x5b8fff, transparent: true, opacity: .6 }));
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(2.05, 96), new THREE.ShaderMaterial({
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+    vertexShader: 'varying vec2 u; void main(){ u = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader: 'varying vec2 u; void main(){ float d = distance(u, vec2(.5)); float a = smoothstep(.5,.0,d)*.16 + smoothstep(.4,.5,d)*smoothstep(.5,.47,d)*.35; gl_FragColor = vec4(.25,.5,1.,a); }'
+  }));
+  portal.add(disc, ring1, ring2);
+  // floor grid
+  const grid = new THREE.GridHelper(60, 90, 0x2a4a8a, 0x15264a);
+  grid.position.y = -1.75; grid.material.transparent = true; grid.material.opacity = .45; scene.add(grid);
+  // rising dust
+  const N = 900, dp = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) dp.set([(Math.random() - .5) * 12, Math.random() * 6 - 2, (Math.random() - .5) * 8 - 1], i * 3);
+  const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.BufferAttribute(dp, 3));
+  const dust = new THREE.Points(dg, new THREE.PointsMaterial({ size: .025, color: 0x9cc4ff, transparent: true, opacity: .7 })); scene.add(dust);
+
+  const f = (t, m) => {
+    group.rotation.y = Math.sin(t * .4) * .35 + m.sx * .7;
+    group.rotation.x = Math.sin(t * .3) * .06 + m.sy * .3;
+    group.position.y = f.baseY + Math.sin(t * .8) * .08;
+    key.position.set(Math.cos(t * .6) * 3 + f.baseX, 1.2, Math.sin(t * .6) * 3 + 1);
+    ring2.rotation.y = t * .3; ring2.rotation.x = Math.sin(t * .2) * .3;
+    ring1.scale.setScalar(1 + Math.sin(t * 1.2) * .01);
+    const a = dg.attributes.position.array;
+    for (let i = 0; i < N; i++) { a[i * 3 + 1] += .003; if (a[i * 3 + 1] > 4) a[i * 3 + 1] = -2; }
+    dg.attributes.position.needsUpdate = true;
+    camera.position.x = f.camX + m.sx * .5; camera.position.y = .2 - m.sy * .3 - scrollY * .0015;
+    camera.lookAt(f.camX, 0, 0);
+  };
+  f.layout = (w) => {
+    const mob = w < 900;
+    f.baseX = mob ? 0 : 1.75; f.baseY = mob ? 1.4 : 0; f.camX = 0;
+    group.position.x = f.baseX; group.scale.setScalar(mob ? .55 : .78);
+    portal.position.set(f.baseX, f.baseY, -1.4); portal.scale.setScalar(mob ? .55 : .8);
+    camera.position.z = mob ? 8 : 6;
+  };
+  return f;
+}
+
+/* ===================== C · Particles — world → K → paw, morphing ===================== */
+function buildParticles() {
+  const N = 16000;
+  const sphere = new Float32Array(N * 3), kk = new Float32Array(N * 3), paw = new Float32Array(N * 3), rnd = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const [x, y, z] = fib(i, N); const r = 1.35 * (land(x, y, z) > .12 ? 1.0 : .985);
+    sphere.set([x * r, y * r, z * r], i * 3); rnd[i] = Math.random();
+  }
+  // K: sample inside the traced polygons
+  for (let i = 0; i < N;) {
+    const px = 16 + Math.random() * 466, py = 14 + Math.random() * 346;
+    if (K_POLYS.some(p => inPoly(px, py, p))) { const [x, y] = kPoint([px, py]); kk.set([x * 1.05, y * 1.05, (Math.random() - .5) * .3], i * 3); i++; }
+  }
+  // Paw: main pad + four toes (ellipses)
+  const pads = [[0, -.32, .62, .52], [-.78, .38, .27, .36], [-.3, .9, .27, .36], [.3, .9, .27, .36], [.78, .38, .27, .36]];
+  for (let i = 0; i < N;) {
+    const [cx, cy, rx, ry] = pads[i % 5 === 0 ? 0 : (Math.random() < .55 ? 0 : 1 + ((Math.random() * 4) | 0))];
+    const a = Math.random() * 6.283, d = Math.sqrt(Math.random());
+    paw.set([cx + Math.cos(a) * rx * d, cy + Math.sin(a) * ry * d - .15, (Math.random() - .5) * .25], i * 3); i++;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(sphere.slice(), 3));
+  g.setAttribute('aS', new THREE.BufferAttribute(sphere, 3));
+  g.setAttribute('aK', new THREE.BufferAttribute(kk, 3));
+  g.setAttribute('aP', new THREE.BufferAttribute(paw, 3));
+  g.setAttribute('aR', new THREE.BufferAttribute(rnd, 1));
+  const uni = { uFrom: { value: 0 }, uTo: { value: 1 }, uT: { value: 0 }, uTime: { value: 0 }, uPx: { value: renderer.getPixelRatio() } };
+  const mat = new THREE.ShaderMaterial({
+    uniforms: uni, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: `
+      attribute vec3 aS; attribute vec3 aK; attribute vec3 aP; attribute float aR;
+      uniform float uFrom, uTo, uT, uTime, uPx; varying vec3 vC; varying float vA;
+      vec3 pick(float i){ return i < .5 ? aS : (i < 1.5 ? aK : aP); }
+      vec3 col(float i){ return i < .5 ? vec3(.45,.65,1.) : (i < 1.5 ? vec3(.75,.85,1.) : vec3(1.,.55,.25)); }
+      void main(){
+        float p = smoothstep(0., 1., clamp(uT * 1.6 - aR * .6, 0., 1.));
+        vec3 pos = mix(pick(uFrom), pick(uTo), p);
+        float burst = sin(p * 3.14159) * (.6 + aR);
+        pos += vec3(sin(aR * 40. + uTime), cos(aR * 33. + uTime * 1.3), sin(aR * 21. + uTime * .7)) * (.01 + burst * .22);
+        vC = mix(col(uFrom), col(uTo), p); vA = .55 + aR * .45;
+        vec4 mv = modelViewMatrix * vec4(pos, 1.);
+        gl_PointSize = (2.2 + aR * 2.4) * uPx * (3.2 / -mv.z);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `varying vec3 vC; varying float vA;
+      void main(){ float d = length(gl_PointCoord - .5); if (d > .5) discard; gl_FragColor = vec4(vC, smoothstep(.5, .0, d) * vA); }`
+  });
+  const pts = new THREE.Points(g, mat);
+  const group = new THREE.Group(); group.add(pts); scene.add(group);
+  // faint halo ring
+  const halo = new THREE.Mesh(new THREE.RingGeometry(1.9, 1.91, 160), new THREE.MeshBasicMaterial({ color: 0x5b8fff, transparent: true, opacity: .5, side: THREE.DoubleSide }));
+  group.add(halo);
+  const sg = new THREE.BufferGeometry(), sp = [];
+  for (let i = 0; i < 1400; i++) sp.push((Math.random() - .5) * 40, (Math.random() - .5) * 24, -8 - Math.random() * 12);
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+  const stars = new THREE.Points(sg, new THREE.PointsMaterial({ size: .04, color: 0xbcd2ff, transparent: true, opacity: .6 }));
+  scene.add(stars);
+  bloom.strength = .7;
+
+  const HOLD = 3.2, MORPH = 2.2, seq = [0, 1, 2];
+  const f = (t, m) => {
+    const cyc = HOLD + MORPH, k = Math.floor(t / cyc), local = t - k * cyc;
+    uni.uFrom.value = seq[k % 3]; uni.uTo.value = seq[(k + 1) % 3];
+    uni.uT.value = Math.max(0, (local - HOLD) / MORPH);
+    uni.uTime.value = t;
+    group.rotation.y = Math.sin(t * .35) * .45 + m.sx * .8;
+    group.rotation.x = m.sy * .4;
+    halo.rotation.z = t * .1; halo.rotation.x = 1.2 + Math.sin(t * .4) * .1;
+    stars.position.x = -m.sx * .6;
+    camera.position.y = -scrollY * .0015;
+  };
+  f.layout = (w) => {
+    const mob = w < 900;
+    group.position.set(mob ? 0 : 1.75, mob ? 1.15 : 0, 0);
+    group.scale.setScalar(mob ? .55 : .74);
+    camera.position.z = mob ? 8 : 6;
+  };
+  return f;
+}
 </script>
 </body>
 </html>
