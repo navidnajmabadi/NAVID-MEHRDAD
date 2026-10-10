@@ -1,4 +1,4 @@
-// PetFinder MVP — client-only demo storage layer.
+// RingRingPaw (formerly PetFinder) MVP — client-only demo storage layer.
 // NOTE: localStorage is a stand-in for a real backend. Data does not sync
 // across devices/browsers. This is intentional for a fast design prototype.
 

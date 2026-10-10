@@ -1,4 +1,4 @@
-# PetFinder — QR Pet ID MVP
+# RingRingPaw — QR Pet ID MVP (a Nakilab product)
 
 A fast, throwaway MVP to test the product concept: a pet tag with a QR code that,
 when scanned, shows the pet's info and the owner's contact details, and lets the
