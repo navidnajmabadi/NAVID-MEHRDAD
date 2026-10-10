@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Nakilab — Build the future you want to wake up to</title>
+<meta name="description" content="Nakilab is an AI product lab. Ready-to-use AI products and custom AI tools built for you — practical technology that makes the world better." />
+<meta property="og:title" content="Nakilab — AI product lab" />
+<meta property="og:description" content="Practical AI tools that make the world a better place." />
+<meta property="og:image" content="https://nakilab.com/assets/nakilab-logo.png" />
+<meta property="og:url" content="https://nakilab.com/" />
+<meta name="theme-color" content="#000000" />
+<meta name="color-scheme" content="dark" />
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<link rel="stylesheet" href="assets/site.css" />
+<style>
+/* ===== Particles theme: living dot fields ===== */
+canvas.dots { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.visual, .pvis { position: relative; }
+.visual canvas.dots { touch-action: pan-y; }
+.stage canvas.dots { z-index: 0; }
+.stage .chip { z-index: 1; }
+.flowbox { position: relative; width: 440px; max-width: 100%; height: 330px; margin: 0 auto; }
+.fl { position: absolute; transform: translate(-50%, -50%); font: 500 14px/1 var(--display); color: var(--text); padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line-hi); background: rgba(14,14,14,.85); white-space: nowrap; }
+.fl1 { left: 50%; top: 18%; }
+.fl2 { left: 18%; top: 72%; }
+.fl3 { left: 82%; top: 72%; }
+.fl-core { position: absolute; left: 50%; top: 50%; width: 92px; height: auto; transform: translate(-50%, -50%); opacity: .9; }
+.book-field { z-index: -1; opacity: .7; }
+
+</style>
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="nav" aria-label="Main">
+  <div class="nav-inner">
+    <a href="#top" aria-label="Nakilab home"><img src="assets/nakilab-logo-white.png" alt="Nakilab" width="250" height="47" /></a>
+    <ul>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#products">Products</a></li>
+      <li><a href="#founders">Founders</a></li>
+      <li><a href="#investors">Investors</a></li>
+    </ul>
+    <a class="btn btn-primary btn-sm" href="#book">Book a call</a>
+  </div>
+</nav>
+
+<main id="main">
+  <header class="hero" id="top" data-v="c">
+    <canvas id="scene" aria-hidden="true"></canvas>
+    
+    <div class="wrap copy">
+      <div class="eyebrow">Nakilab · AI product lab</div>
+      <h1>
+        <span class="line"><span>Build the future</span></span>
+        <span class="line"><span>you want to</span></span>
+        <span class="line"><span class="serif">wake up to.</span></span>
+      </h1>
+      <p class="lead">Practical AI tools that make life better.</p>
+      <div class="btns">
+        <a class="btn btn-primary" href="#services">See what we do
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        <a class="btn btn-ghost" href="#book">Book a consultation</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="mission" id="mission">
+    <div class="sticky">
+      <canvas id="mission-scene" role="img" aria-label="A sphere of light bursts into chaos, then the particles reassemble into the Nakilab K and shine"></canvas>
+      <div class="wrap">
+        <div class="eyebrow">Mission · First principles</div>
+        <ol class="steps">
+          <li class="on"><span>01</span>Break it down.</li>
+          <li><span>02</span>Rebuild it better.</li>
+          <li><span>03</span>Ship it.</li>
+        </ol>
+        <p class="mline">Technology that makes the world better.</p>
+      </div>
+      <div class="mprog" aria-hidden="true"><i></i></div>
+    </div>
+  </section>
+
+  <section id="services" style="padding-top:40px">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Services</div>
+          <h2 class="reveal">Two ways to work with us.</h2>
+        </div>
+      </div>
+      <div class="services">
+        <article class="card service reveal" style="--i:0" data-tilt>
+          <div class="visual" aria-hidden="true"><canvas class="dots" data-dots="cube" data-n="264" data-scale="1.2"></canvas></div>
+          <div class="tag">Ready to use</div>
+          <h3>Our products</h3>
+          <p>AI tools we've built and launched. Sign up and start today.</p>
+          <div class="chips"><span>RingRingPaw</span><span>More coming</span></div>
+          <a class="btn btn-ghost" href="#products">Explore products
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </article>
+        <article class="card service custom reveal" style="--i:1" data-tilt>
+          <div class="visual" aria-hidden="true"><canvas class="dots" data-dots="assemble" data-n="196" data-scale="1.2"></canvas></div>
+          <div class="tag">Built for you</div>
+          <h3>Custom AI tools</h3>
+          <p>Tell us your problem. We design, build and ship the AI tool that solves it.</p>
+          <div class="chips"><span>AI assistants</span><span>Automation</span><span>Web &amp; iPhone apps</span></div>
+          <a class="btn btn-primary" href="#book">Book a consultation
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="products">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Products</div>
+          <h2 class="reveal">Out of the lab, into the world.</h2>
+        </div>
+      </div>
+      <article class="product-hero reveal" data-tilt>
+        <div class="copy">
+          <span class="pill"><i></i>In development · Web + iPhone</span>
+          <h3>RingRingPaw</h3>
+          <p>Smart tags that bring lost pets home.</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Scan to contact the owner</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Location only with consent</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Instant alerts on every scan</li>
+          </ul>
+          <a class="btn btn-primary" href="https://ringringpaw.nakilab.com">Visit RingRingPaw
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+        </div>
+        <div class="stage" aria-hidden="true">
+          <canvas class="dots" data-dots="paw" data-n="700" data-color="255,150,80"></canvas>
+          <div class="chip c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span>Luna's tag was scanned<small>just now</small></span></div>
+          <div class="chip c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Finder shared location<small>0.4 km away</small></span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section style="padding-top:40px">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">How we think</div>
+          <h2 class="reveal">Engineered for the real world.</h2>
+        </div>
+      </div>
+      <div class="grid3">
+        <article class="card principle reveal" style="--i:0" data-tilt>
+          <div class="pvis" aria-hidden="true"><canvas class="dots" data-dots="split" data-n="300" data-scale="1.5"></canvas></div>
+          <h3>First principles</h3>
+          <p>Start from what's true, not what's usual.</p>
+        </article>
+        <article class="card principle reveal" style="--i:1" data-tilt>
+          <div class="pvis" aria-hidden="true"><canvas class="dots" data-dots="stream" data-n="240" data-scale="1.4"></canvas></div>
+          <h3>Ship, then iterate</h3>
+          <p>Launch early. Improve every week.</p>
+        </article>
+        <article class="card principle reveal" style="--i:2" data-tilt>
+          <div class="pvis" aria-hidden="true"><canvas class="dots" data-dots="heart" data-n="360" data-scale="1.5"></canvas></div>
+          <h3>Useful over impressive</h3>
+          <p>If it doesn't help a real person, it doesn't ship.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="founders" style="padding-top:40px">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Founders</div>
+          <h2 class="reveal">Two builders. One mission.</h2>
+        </div>
+      </div>
+      <div class="founders">
+        <article class="card founder reveal" style="--i:0" data-tilt>
+          <div class="mono" aria-hidden="true">M</div>
+          <div><h3>Mehrdad</h3><div class="role">Co-Founder</div></div>
+        </article>
+        <article class="card founder reveal" style="--i:1" data-tilt>
+          <div class="mono" aria-hidden="true">N</div>
+          <div><h3>Navid</h3><div class="role">Co-Founder</div></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="investors" id="investors">
+    <div class="wrap">
+      <div class="inv reveal">
+        <div>
+          <div class="eyebrow">Investors &amp; partners</div>
+          <h2>Building a portfolio of <span class="accent">useful AI.</span></h2>
+          <p>A flywheel: custom work funds the lab, products compound.</p>
+          <a class="btn btn-ghost" href="mailto:investors@nakilab.com?subject=Investor%20inquiry%20%E2%80%94%20Nakilab">Investor inquiries
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </div>
+        <div class="flowbox" role="img" aria-label="Particles flowing round a wheel through three engines: products, custom builds, and reuse and scale">
+          <canvas class="dots" data-dots="flow" data-n="420"></canvas>
+          <span class="fl fl1">Products</span><span class="fl fl2">Custom builds</span><span class="fl fl3">Reuse &amp; scale</span>
+          <img class="fl-core" src="assets/nakilab-logo-white.png" alt="" width="250" height="47" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="book" id="book">
+    <canvas class="dots book-field" data-dots="field" data-n="900" data-aspect="wide" aria-hidden="true"></canvas>
+    <div class="wrap book-grid">
+      <div>
+        <div class="eyebrow">Book a consultation</div>
+        <h2 class="reveal">Let's build <span class="serif">what you need.</span></h2>
+        <p class="alt reveal">Or email us at <a href="mailto:hello@nakilab.com">hello@nakilab.com</a></p>
+      </div>
+      <form class="card reveal" id="book-form" novalidate>
+        <div class="row2">
+          <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required /></div>
+          <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required /></div>
+        </div>
+        <div class="field"><label for="f-type">What do you need?</label>
+          <select id="f-type" name="type">
+            <option>A custom AI tool</option>
+            <option>An AI assistant / chatbot</option>
+            <option>Automation for my business</option>
+            <option>A web or iPhone app</option>
+            <option>Using one of your products</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div class="field"><label for="f-msg">Tell us briefly</label><textarea id="f-msg" name="message" placeholder="The problem you want to solve…"></textarea></div>
+        <button class="btn btn-primary" type="submit">Request a consultation
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+        <p class="note">Free 30-minute call. We reply within 2 working days.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="assets/nakilab-logo-white.png" alt="Nakilab" width="250" height="47" />
+    <span>© <span id="year">2026</span> Nakilab. Building what matters.</span>
+  </div>
+</footer>
+
+<nav class="switcher" aria-label="Design options (preview)">
+  <span>Option</span>
+  <a href="orbit.html">A · Orbit</a>
+  <a href="monolith.html">B · Monolith</a>
+  <a href="particles.html">C · Particles</a>
+</nav>
+
+<script src="assets/site.js" defer></script>
+<script type="module">
+  import { heroParticles, missionParticles } from './assets/three-kit.js';
+  heroParticles(document.getElementById('scene'));
+  missionParticles(document.getElementById('mission'), document.getElementById('mission-scene'));
+</script>
+<script type="module" src="assets/dotfx.js"></script>
+</body>
+</html>

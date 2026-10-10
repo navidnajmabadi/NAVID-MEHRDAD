@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Nakilab — Build the future you want to wake up to</title>
+<meta name="description" content="Nakilab is an AI product lab. Ready-to-use AI products and custom AI tools built for you — practical technology that makes the world better." />
+<meta property="og:title" content="Nakilab — AI product lab" />
+<meta property="og:description" content="Practical AI tools that make the world a better place." />
+<meta property="og:image" content="https://nakilab.com/assets/nakilab-logo.png" />
+<meta property="og:url" content="https://nakilab.com/" />
+<meta name="theme-color" content="#000000" />
+<meta name="color-scheme" content="dark" />
+<link rel="icon" type="image/png" href="assets/favicon.png" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<link rel="stylesheet" href="assets/site.css" />
+<style>
+/* ===== Orbit theme: planets, orbits, moons ===== */
+.sys { position: relative; width: 240px; height: 200px; transform-style: preserve-3d; }
+.sys-planet { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #d6e4ff, #3b82f6 28%, #0b1530 62%, #000 100%); box-shadow: 0 0 44px rgba(76,141,255,.5); }
+.sys-tilt { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d; transform: rotateZ(var(--t)); }
+.sys-orbit { position: absolute; left: calc(var(--r) / -2); top: calc(var(--r) / -2); width: var(--r); height: var(--r); border-radius: 50%; border: 1px dashed rgba(127,178,255,.4); transform-style: preserve-3d; animation: sysorb var(--d) linear infinite; }
+@keyframes sysorb { from { transform: rotateX(72deg) rotateZ(0); } to { transform: rotateX(72deg) rotateZ(360deg); } }
+.sys-moon { position: absolute; left: 50%; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.sys-moon > div { transform-style: preserve-3d; animation: sysun var(--d) linear infinite; }
+@keyframes sysun { from { transform: rotateZ(0); } to { transform: rotateZ(-360deg); } }
+.sys-moon i { position: absolute; width: 38px; height: 38px; left: -19px; top: -19px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #2c2c31, #050505 70%); border: 1px solid rgba(127,178,255,.55); box-shadow: 0 0 18px rgba(76,141,255,.45); color: var(--blue-hi); transform: rotateX(-72deg); }
+.sys-moon i.paw { color: var(--paw); }
+.sys-moon i svg { width: 18px; height: 18px; }
+.lto { width: 260px; height: 200px; overflow: hidden; }
+.lto-orb { fill: none; stroke: rgba(127,178,255,.45); stroke-dasharray: 3 5; }
+.lto-trail { fill: none; stroke: #bcd6ff; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 140; stroke-dashoffset: 140; animation: ltotrail 6s var(--ease) infinite; filter: drop-shadow(0 0 4px #4c8dff); }
+.lto-sat { offset-path: path("M130 160 C 132 120, 160 100, 228 82 A 105 34 0 1 0 25 70 A 105 34 0 0 0 228 82"); animation: ltosat 6s cubic-bezier(.45,0,.55,1) infinite; }
+@keyframes ltotrail { 0% { stroke-dashoffset: 140; opacity: 1; } 30% { stroke-dashoffset: 0; opacity: 1; } 60%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes ltosat { 0% { offset-distance: 0%; } 100% { offset-distance: 100%; } }
+.saturn { position: relative; width: 150px; height: 150px; transform-style: preserve-3d; }
+.saturn b { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #d6e4ff, #3b82f6 30%, #0b1530 68%, #000); box-shadow: 0 0 32px rgba(76,141,255,.5); }
+.saturn i { position: absolute; inset: 8px; border-radius: 50%; border: 2px solid rgba(127,178,255,.6); box-shadow: 0 0 20px rgba(76,141,255,.35); transform: rotateX(74deg) rotateY(-14deg); animation: sat 8s linear infinite; }
+.saturn i::before { content: ""; position: absolute; left: 50%; top: -5px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 2px var(--glow); }
+@keyframes sat { to { transform: rotateX(74deg) rotateY(-14deg) rotateZ(360deg); } }
+.stage-orbit { position: absolute; left: 50%; top: 50%; width: 360px; height: 360px; margin: -180px; border-radius: 50%; border: 1px dashed rgba(127,178,255,.3); transform: rotateX(70deg); animation: stageorb 18s linear infinite; }
+.stage-orbit::before { content: ""; position: absolute; left: 50%; top: -6px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: #fff; box-shadow: 0 0 14px 3px var(--glow); }
+@keyframes stageorb { to { transform: rotateX(70deg) rotateZ(360deg); } }
+.core-planet { background: radial-gradient(circle at 32% 28%, #d6e4ff, #3b82f6 26%, #0b1530 62%, #000 100%) !important; }
+.horizon { position: absolute; left: 50%; top: 100%; width: 1800px; height: 1800px; transform: translate(-50%, -16%); border-radius: 50%; z-index: -1; background: radial-gradient(circle at 50% 0%, #0b1530, #000 30%); border-top: 1px solid rgba(170,205,255,.8); box-shadow: 0 -30px 120px -20px rgba(76,141,255,.6); pointer-events: none; }
+
+</style>
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="nav" aria-label="Main">
+  <div class="nav-inner">
+    <a href="#top" aria-label="Nakilab home"><img src="assets/nakilab-logo-white.png" alt="Nakilab" width="250" height="47" /></a>
+    <ul>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#products">Products</a></li>
+      <li><a href="#founders">Founders</a></li>
+      <li><a href="#investors">Investors</a></li>
+    </ul>
+    <a class="btn btn-primary btn-sm" href="#book">Book a call</a>
+  </div>
+</nav>
+
+<main id="main">
+  <header class="hero" id="top" data-v="a">
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="float-cards" aria-hidden="true">
+      <div class="fcard f1" data-depth="1.2"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg></div>First principles<small>Real problems first</small></div>
+      <div class="fcard f2" data-depth=".7"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg></div>Web + iPhone<small>Shipped, not slides</small></div>
+      <div class="fcard f3" data-depth="1"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M9 13v2M15 13v2"/></svg></div>AI-native<small>Built in from day one</small></div>
+      <div class="fcard f4" data-depth=".6"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg></div>Built for good<small>Useful over impressive</small></div>
+    </div>
+    <div class="wrap copy">
+      <div class="eyebrow">Nakilab · AI product lab</div>
+      <h1>
+        <span class="line"><span>Build the future</span></span>
+        <span class="line"><span>you want to</span></span>
+        <span class="line"><span class="serif">wake up to.</span></span>
+      </h1>
+      <p class="lead">Practical AI tools that make life better.</p>
+      <div class="btns">
+        <a class="btn btn-primary" href="#services">See what we do
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        <a class="btn btn-ghost" href="#book">Book a consultation</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="mission" id="mission">
+    <div class="sticky">
+      <canvas id="mission-scene" role="img" aria-label="A planet dissolves into an orbiting belt, the belt condenses into the Nakilab K, and satellites launch around it"></canvas>
+      <div class="wrap">
+        <div class="eyebrow">Mission · First principles</div>
+        <ol class="steps">
+          <li class="on"><span>01</span>Break it down.</li>
+          <li><span>02</span>Rebuild it better.</li>
+          <li><span>03</span>Ship it.</li>
+        </ol>
+        <p class="mline">Technology that makes the world better.</p>
+      </div>
+      <div class="mprog" aria-hidden="true"><i></i></div>
+    </div>
+  </section>
+
+  <section id="services" style="padding-top:40px">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Services</div>
+          <h2 class="reveal">Two ways to work with us.</h2>
+        </div>
+      </div>
+      <div class="services">
+        <article class="card service reveal" style="--i:0" data-tilt>
+          <div class="visual" aria-hidden="true"><div class="sys">
+            <div class="sys-planet"></div>
+            <div class="sys-tilt" style="--t:-12deg"><div class="sys-orbit" style="--r:150px;--d:9s"><div class="sys-moon"><div><i class="paw"><svg viewBox="0 0 100 100" fill="currentColor"><ellipse cx="50" cy="66" rx="21" ry="18"/><ellipse cx="23" cy="42" rx="9.5" ry="12.5"/><ellipse cx="40" cy="24" rx="9.5" ry="12.5"/><ellipse cx="60" cy="24" rx="9.5" ry="12.5"/><ellipse cx="77" cy="42" rx="9.5" ry="12.5"/></svg></i></div></div></div></div>
+            <div class="sys-tilt" style="--t:14deg"><div class="sys-orbit" style="--r:210px;--d:14s"><div class="sys-moon"><div><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z"/></svg></i></div></div></div></div>
+          </div></div>
+          <div class="tag">Ready to use</div>
+          <h3>Our products</h3>
+          <p>AI tools we've built and launched. Sign up and start today.</p>
+          <div class="chips"><span>RingRingPaw</span><span>More coming</span></div>
+          <a class="btn btn-ghost" href="#products">Explore products
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </article>
+        <article class="card service custom reveal" style="--i:1" data-tilt>
+          <div class="visual" aria-hidden="true"><svg class="lto" viewBox="0 0 260 200">
+            <defs><linearGradient id="ltoPlanet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9cc2ff"/><stop offset=".05" stop-color="#16233f"/><stop offset=".4" stop-color="#000"/></linearGradient></defs>
+            <ellipse class="lto-orb" cx="130" cy="70" rx="105" ry="34"/>
+            <circle cx="130" cy="420" r="260" fill="url(#ltoPlanet)"/>
+            <path class="lto-trail" d="M130 160 C 132 120, 160 100, 228 82"/>
+            <g class="lto-sat"><circle r="4.5" fill="#fff"/><circle r="10" fill="#4C8DFF" opacity=".35"/></g>
+          </svg></div>
+          <div class="tag">Built for you</div>
+          <h3>Custom AI tools</h3>
+          <p>Tell us your problem. We design, build and ship the AI tool that solves it.</p>
+          <div class="chips"><span>AI assistants</span><span>Automation</span><span>Web &amp; iPhone apps</span></div>
+          <a class="btn btn-primary" href="#book">Book a consultation
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="products">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Products</div>
+          <h2 class="reveal">Out of the lab, into the world.</h2>
+        </div>
+      </div>
+      <article class="product-hero reveal" data-tilt>
+        <div class="copy">
+          <span class="pill"><i></i>In development · Web + iPhone</span>
+          <h3>RingRingPaw</h3>
+          <p>Smart tags that bring lost pets home.</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Scan to contact the owner</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Location only with consent</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Instant alerts on every scan</li>
+          </ul>
+          <a class="btn btn-primary" href="https://ringringpaw.nakilab.com">Visit RingRingPaw
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+        </div>
+        <div class="stage" aria-hidden="true">
+          <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+          <div class="stage-orbit"></div>
+          <div class="tagdev"><svg viewBox="0 0 100 100" fill="#FF8A3D"><ellipse cx="50" cy="66" rx="21" ry="18"/><ellipse cx="23" cy="42" rx="9.5" ry="12.5"/><ellipse cx="40" cy="24" rx="9.5" ry="12.5"/><ellipse cx="60" cy="24" rx="9.5" ry="12.5"/><ellipse cx="77" cy="42" rx="9.5" ry="12.5"/></svg></div>
+          <div class="chip c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span>Luna's tag was scanned<small>just now</small></span></div>
+          <div class="chip c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Finder shared location<small>0.4 km away</small></span></div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section style="padding-top:40px">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">How we think</div>
+          <h2 class="reveal">Engineered for the real world.</h2>
+        </div>
+      </div>
+      <div class="grid3">
+        <article class="card principle reveal" style="--i:0" data-tilt>
+          <div class="pvis" aria-hidden="true"><div class="atom"><b></b><b></b><b></b><em></em></div></div>
+          <h3>First principles</h3>
+          <p>Start from what's true, not what's usual.</p>
+        </article>
+        <article class="card principle reveal" style="--i:1" data-tilt>
+          <div class="pvis" aria-hidden="true">
+            <svg class="launch" viewBox="0 0 200 140">
+              <defs><linearGradient id="trailGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#3B82F6" stop-opacity="0"/><stop offset="1" stop-color="#BCD6FF"/></linearGradient></defs>
+              <path class="trail" d="M14 128 C 70 120, 120 90, 186 14"/>
+              <g class="rocket"><circle r="5" fill="#fff"/><circle r="11" fill="#4C8DFF" opacity=".35"/></g>
+            </svg>
+          </div>
+          <h3>Ship, then iterate</h3>
+          <p>Launch early. Improve every week.</p>
+        </article>
+        <article class="card principle reveal" style="--i:2" data-tilt>
+          <div class="pvis" aria-hidden="true"><div class="saturn"><b></b><i></i></div></div>
+          <h3>Useful over impressive</h3>
+          <p>If it doesn't help a real person, it doesn't ship.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="founders" style="padding-top:40px">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">Founders</div>
+          <h2 class="reveal">Two builders. One mission.</h2>
+        </div>
+      </div>
+      <div class="founders">
+        <article class="card founder reveal" style="--i:0" data-tilt>
+          <div class="mono" aria-hidden="true">M</div>
+          <div><h3>Mehrdad</h3><div class="role">Co-Founder</div></div>
+        </article>
+        <article class="card founder reveal" style="--i:1" data-tilt>
+          <div class="mono" aria-hidden="true">N</div>
+          <div><h3>Navid</h3><div class="role">Co-Founder</div></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="investors" id="investors">
+    <div class="wrap">
+      <div class="inv reveal">
+        <div>
+          <div class="eyebrow">Investors &amp; partners</div>
+          <h2>Building a portfolio of <span class="accent">useful AI.</span></h2>
+          <p>A flywheel: custom work funds the lab, products compound.</p>
+          <a class="btn btn-ghost" href="mailto:investors@nakilab.com?subject=Investor%20inquiry%20%E2%80%94%20Nakilab">Investor inquiries
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+        </div>
+        <div class="fly" role="img" aria-label="Flywheel: our products, custom builds, and reuse of what we build all power each other around the Nakilab lab">
+          <div class="plane">
+            <div class="track"></div><div class="comet"></div>
+            <div class="spin">
+              <div class="node" style="--a:0deg"><div class="counter"><div class="label"><span>Products</span><b></b></div></div></div>
+              <div class="node" style="--a:120deg"><div class="counter"><div class="label"><span>Custom builds</span><b></b></div></div></div>
+              <div class="node" style="--a:240deg"><div class="counter"><div class="label"><span>Reuse &amp; scale</span><b></b></div></div></div>
+            </div>
+          </div>
+          <div class="core core-planet"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="book" id="book">
+    <div class="horizon" aria-hidden="true"></div>
+    <div class="wrap book-grid">
+      <div>
+        <div class="eyebrow">Book a consultation</div>
+        <h2 class="reveal">Let's build <span class="serif">what you need.</span></h2>
+        <p class="alt reveal">Or email us at <a href="mailto:hello@nakilab.com">hello@nakilab.com</a></p>
+      </div>
+      <form class="card reveal" id="book-form" novalidate>
+        <div class="row2">
+          <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required /></div>
+          <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required /></div>
+        </div>
+        <div class="field"><label for="f-type">What do you need?</label>
+          <select id="f-type" name="type">
+            <option>A custom AI tool</option>
+            <option>An AI assistant / chatbot</option>
+            <option>Automation for my business</option>
+            <option>A web or iPhone app</option>
+            <option>Using one of your products</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div class="field"><label for="f-msg">Tell us briefly</label><textarea id="f-msg" name="message" placeholder="The problem you want to solve…"></textarea></div>
+        <button class="btn btn-primary" type="submit">Request a consultation
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+        <p class="note">Free 30-minute call. We reply within 2 working days.</p>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="assets/nakilab-logo-white.png" alt="Nakilab" width="250" height="47" />
+    <span>© <span id="year">2026</span> Nakilab. Building what matters.</span>
+  </div>
+</footer>
+
+<nav class="switcher" aria-label="Design options (preview)">
+  <span>Option</span>
+  <a href="orbit.html">A · Orbit</a>
+  <a href="monolith.html">B · Monolith</a>
+  <a href="particles.html">C · Particles</a>
+</nav>
+
+<script src="assets/site.js" defer></script>
+<script type="module">
+  import { heroOrbit, missionOrbit } from './assets/three-kit.js';
+  heroOrbit(document.getElementById('scene'));
+  missionOrbit(document.getElementById('mission'), document.getElementById('mission-scene'));
+</script>
+</body>
+</html>
