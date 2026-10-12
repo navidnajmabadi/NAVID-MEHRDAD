@@ -3,355 +3,281 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Nakilab — Build the future you want to wake up to</title>
-<meta name="description" content="Nakilab is an AI product lab. We build practical AI tools that make everyday life better — starting from first principles, shipped for real people." />
-<meta property="og:title" content="Nakilab — AI product lab" />
-<meta property="og:description" content="Practical AI tools that make the world a better place." />
+<title>Nakilab — We turn ideas into companies</title>
+<meta name="description" content="Nakilab is a startup studio powered by SI — Super Intelligence. Bring us your idea: we evaluate it, build it and launch it on our own infrastructure." />
+<meta property="og:title" content="Nakilab — We turn ideas into companies" />
+<meta property="og:description" content="A startup studio powered by SI — Super Intelligence. Submit your idea: we evaluate, build and launch it." />
 <meta property="og:image" content="https://nakilab.com/assets/nakilab-logo.png" />
 <meta property="og:url" content="https://nakilab.com/" />
-<meta name="theme-color" content="#05070D" />
+<meta name="theme-color" content="#000000" />
 <meta name="color-scheme" content="dark" />
 <link rel="icon" type="image/png" href="assets/favicon.png" />
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
-<style>
-:root {
-  --bg: #05070D;
-  --surface: rgba(255,255,255,.035);
-  --line: rgba(255,255,255,.09);
-  --line-hi: rgba(255,255,255,.18);
-  --text: #F3F6FC;
-  --muted: #9AA6BF;
-  --dim: #5B6782;
-  --blue: #3B82F6;
-  --blue-hi: #7FB2FF;
-  --glow: #4C8DFF;
-  --paw: #FF8A3D;
-  --display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --body: "DM Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --serif: "Instrument Serif", ui-serif, Georgia, serif;
-  --ease: cubic-bezier(.16,1,.3,1);
-  --wrap: 1200px;
-  --radius: 22px;
-}
-* { box-sizing: border-box; margin: 0; }
-html { background: var(--bg); }
-body { font-family: var(--body); color: var(--muted); background: var(--bg); line-height: 1.6; font-size: 17px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-img, svg, canvas { display: block; max-width: 100%; }
-a { color: inherit; }
-::selection { background: var(--blue); color: #fff; }
-.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
-h1, h2, h3 { font-family: var(--display); color: var(--text); font-weight: 600; line-height: 1.04; letter-spacing: -0.035em; }
-.serif { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
-.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 12px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
-.eyebrow::before { content: ""; width: 6px; height: 6px; border-radius: 1px; background: var(--blue); box-shadow: 0 0 12px var(--glow); }
-section { position: relative; padding: 140px 0; }
-:focus-visible { outline: 2px solid var(--blue-hi); outline-offset: 3px; border-radius: 8px; }
-.skip { position: absolute; left: -999px; top: 8px; background: #fff; color: #000; padding: 8px 12px; border-radius: 8px; z-index: 100; }
-.skip:focus { left: 8px; }
-
-/* ---------- Nav ---------- */
-.nav { position: fixed; inset: 16px 16px auto; z-index: 50; display: flex; justify-content: center; pointer-events: none; }
-.nav-inner { pointer-events: auto; width: 100%; max-width: 1160px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 8px 8px 22px; border-radius: 999px; background: rgba(8,11,20,.55); border: 1px solid var(--line); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); }
-.nav img { height: 20px; width: auto; }
-.nav ul { display: flex; gap: 32px; list-style: none; padding: 0; }
-.nav ul a { text-decoration: none; font-size: 14px; color: var(--muted); transition: color .2s; }
-.nav ul a:hover { color: var(--text); }
-
-/* ---------- Buttons ---------- */
-.btn { position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 24px; border-radius: 999px; font: 500 15px/1 var(--body); text-decoration: none; cursor: pointer; transition: transform .25s var(--ease), background .25s, border-color .25s, box-shadow .25s; }
-.btn svg { width: 16px; height: 16px; transition: transform .25s var(--ease); }
-.btn:hover svg { transform: translateX(3px); }
-.btn:active { transform: scale(.97); }
-.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset, 0 10px 40px -10px var(--glow); }
-.btn-primary:hover { background: #4F8FF7; box-shadow: 0 0 0 1px rgba(255,255,255,.2) inset, 0 12px 50px -8px var(--glow); }
-.btn-ghost { color: var(--text); border: 1px solid var(--line-hi); background: rgba(255,255,255,.02); }
-.btn-ghost:hover { border-color: rgba(255,255,255,.4); background: rgba(255,255,255,.05); }
-.btn-sm { min-height: 44px; padding: 0 18px; font-size: 14px; }
-
-/* ---------- Hero ---------- */
-.hero { min-height: 100svh; padding: 0; display: flex; align-items: center; overflow: hidden; isolation: isolate; }
-#space { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
-.hero::after { /* sunrise glow behind the planet's horizon */
-  content: ""; position: absolute; left: 50%; bottom: -8vh; width: 160vw; height: 60vh; transform: translateX(-50%); z-index: -1; pointer-events: none;
-  background: radial-gradient(50% 55% at 50% 100%, rgba(76,141,255,.45), rgba(59,130,246,.14) 45%, transparent 72%);
-}
-.hero .wrap { width: 100%; padding-top: 112px; padding-bottom: 24vh; text-align: center; }
-.hero h1 { font-size: clamp(44px, 7.4vw, 112px); margin: 28px auto 0; max-width: 13ch; }
-.hero h1 .serif { color: var(--blue-hi); }
-.hero h1 .line { display: block; overflow: hidden; padding-bottom: .06em; }
-.hero h1 .line > span { display: inline-block; }
-.hero .lead { max-width: 36rem; margin: 28px auto 40px; font-size: clamp(17px, 1.6vw, 20px); }
-.hero .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.scroll-cue { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font: 500 11px/1 var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
-.scroll-cue i { width: 1px; height: 44px; background: linear-gradient(var(--blue-hi), transparent); transform-origin: top; animation: cue 2.4s var(--ease) infinite; }
-@media (max-height: 860px) { .scroll-cue { display: none; } }
-@keyframes cue { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
-
-/* Intro choreography */
-.js .hero .eyebrow, .js .hero .lead, .js .hero .btns { opacity: 0; transform: translateY(18px); }
-.js .hero h1 .line > span { transform: translateY(110%); }
-.loaded .hero .eyebrow, .loaded .hero .lead, .loaded .hero .btns { opacity: 1; transform: none; transition: opacity 1s var(--ease), transform 1s var(--ease); }
-.loaded .hero h1 .line > span { transform: none; transition: transform 1.2s var(--ease); }
-.loaded .hero h1 .line:nth-child(2) > span { transition-delay: .08s; }
-.loaded .hero h1 .line:nth-child(3) > span { transition-delay: .16s; }
-.loaded .hero .lead { transition-delay: .35s; }
-.loaded .hero .btns { transition-delay: .45s; }
-
-/* ---------- Manifesto (words light up on scroll) ---------- */
-.manifesto { padding: 160px 0 120px; }
-.manifesto p.big { font-family: var(--display); font-weight: 500; font-size: clamp(30px, 4.6vw, 64px); line-height: 1.12; letter-spacing: -0.03em; max-width: 22ch; margin-top: 28px; color: var(--text); }
-.js .manifesto .w { color: #1F2840; transition: color .5s var(--ease); }
-.js .manifesto .w.lit { color: var(--text); }
-.js .manifesto .w.accent.lit { color: var(--blue-hi); }
-
-/* ---------- Cards ---------- */
-.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 64px; }
-.card { position: relative; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); padding: 32px; overflow: hidden; isolation: isolate; transition: border-color .3s; }
-.card::before { /* spotlight that follows the pointer */
-  content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .3s;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(76,141,255,.14), transparent 60%);
-}
-.card:hover { border-color: var(--line-hi); }
-.card:hover::before { opacity: 1; }
-.card .icon { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(160deg, rgba(76,141,255,.22), rgba(76,141,255,.04)); border: 1px solid rgba(127,178,255,.25); color: var(--blue-hi); margin-bottom: 40px; }
-.card .icon svg { width: 22px; height: 22px; }
-.card .num { position: absolute; top: 30px; right: 32px; font: 500 13px/1 var(--display); color: var(--dim); }
-.card h3 { font-size: 24px; letter-spacing: -0.02em; margin-bottom: 10px; }
-.section-head { display: flex; justify-content: space-between; align-items: end; gap: 24px 40px; flex-wrap: wrap; }
-.section-head h2 { font-size: clamp(36px, 5vw, 64px); max-width: 14ch; margin-top: 20px; }
-.section-head p { max-width: 26rem; }
-
-/* ---------- Products ---------- */
-.product-hero { display: grid; grid-template-columns: 1.05fr 1fr; margin-top: 64px; border-radius: 28px; border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01)); overflow: hidden; }
-.product-hero .copy { padding: 56px; display: flex; flex-direction: column; }
-.pill { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font: 500 12px/1 var(--display); letter-spacing: .04em; color: var(--paw); background: rgba(255,138,61,.1); border: 1px solid rgba(255,138,61,.22); }
-.pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--paw); box-shadow: 0 0 10px var(--paw); animation: blink 2s infinite; }
-@keyframes blink { 50% { opacity: .35; } }
-.product-hero h3 { font-size: clamp(40px, 5vw, 64px); margin: 24px 0 16px; }
-.product-hero ul { list-style: none; padding: 0; margin: 28px 0 40px; display: grid; gap: 14px; }
-.product-hero li { display: flex; gap: 12px; align-items: flex-start; color: var(--text); }
-.product-hero li svg { flex: none; width: 20px; height: 20px; color: var(--paw); margin-top: 3px; }
-.product-hero .btn { margin-top: auto; align-self: flex-start; }
-.stage { position: relative; min-height: 520px; background: radial-gradient(70% 60% at 50% 55%, rgba(255,138,61,.16), transparent 70%), radial-gradient(100% 100% at 50% 100%, rgba(76,141,255,.12), transparent 70%); overflow: hidden; }
-.stage .ring { position: absolute; left: 50%; top: 50%; width: 140px; height: 140px; margin: -70px 0 0 -70px; border-radius: 50%; border: 1.5px solid rgba(255,138,61,.55); opacity: 0; animation: ring 3.6s var(--ease) infinite; }
-.stage .ring:nth-child(2) { animation-delay: 1.2s; }
-.stage .ring:nth-child(3) { animation-delay: 2.4s; }
-@keyframes ring { 0% { transform: scale(.6); opacity: 0; } 15% { opacity: 1; } 100% { transform: scale(3.2); opacity: 0; } }
-.tag { position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 44px; background: linear-gradient(150deg, #1A2238, #0B0F1B); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 30px 80px -20px rgba(0,0,0,.8), 0 0 0 8px rgba(255,255,255,.02), inset 0 1px 0 rgba(255,255,255,.12); display: grid; place-items: center; animation: float 6s ease-in-out infinite; }
-.tag svg { width: 104px; height: 104px; }
-@keyframes float { 50% { transform: translateY(-10px) rotate(-2deg); } }
-.chip { position: absolute; display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: rgba(10,14,26,.72); border: 1px solid var(--line-hi); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 13px; line-height: 1.3; color: var(--text); box-shadow: 0 20px 40px -20px #000; white-space: nowrap; }
-.chip svg { width: 16px; height: 16px; flex: none; }
-.chip small { display: block; color: var(--muted); font-size: 11px; }
-.chip.c1 { left: 8%; top: 16%; animation: float 7s ease-in-out infinite .5s; }
-.chip.c1 svg { color: var(--paw); }
-.chip.c2 { right: 7%; bottom: 18%; animation: float 8s ease-in-out infinite 1.2s; }
-.chip.c2 svg { color: #4ADE80; }
-.next { margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 28px 32px; border-radius: var(--radius); border: 1px dashed var(--line-hi); }
-.next h3 { font-size: 22px; }
-.next p { margin-top: 4px; }
-
-/* ---------- Founders ---------- */
-.founders { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 64px; }
-.founder { display: flex; align-items: center; gap: 28px; padding: 36px; }
-.mono { position: relative; flex: none; width: 108px; height: 108px; border-radius: 50%; display: grid; place-items: center; font: 600 42px/1 var(--display); color: var(--text); background: radial-gradient(circle at 30% 25%, #1E2C4F, #070A13 70%); border: 1px solid var(--line-hi); }
-.mono::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 1px solid transparent; border-top-color: var(--blue-hi); border-right-color: rgba(127,178,255,.25); animation: spin 6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.founder h3 { font-size: 32px; }
-.founder .role { margin-top: 10px; font: 500 13px/1 var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--blue-hi); }
-
-/* ---------- Closing ---------- */
-.closing { text-align: center; overflow: hidden; padding: 180px 0 200px; isolation: isolate; }
-.closing::before { content: ""; position: absolute; left: 50%; top: 100%; width: 1400px; height: 1400px; transform: translate(-50%, -38%); border-radius: 50%; z-index: -1; background: radial-gradient(closest-side, rgba(76,141,255,.35), rgba(76,141,255,.08) 55%, transparent 70%); }
-.closing::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1100px; height: 1100px; transform: translate(-50%, -30%); border-radius: 50%; z-index: -1; border-top: 1px solid rgba(127,178,255,.5); box-shadow: 0 -20px 80px -30px var(--glow); }
-.closing h2 { font-size: clamp(42px, 7vw, 104px); max-width: 14ch; margin: 28px auto 0; }
-.closing h2 .serif { color: var(--blue-hi); }
-.closing p { max-width: 32rem; margin: 24px auto 40px; }
-footer { border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
-footer .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 28px; padding-bottom: 36px; }
-footer img { height: 16px; width: auto; opacity: .7; }
-
-/* ---------- Reveal ---------- */
-.js .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s var(--ease), transform .9s var(--ease); transition-delay: calc(var(--i, 0) * 70ms); }
-.js .reveal.in { opacity: 1; transform: none; }
-
-@media (max-width: 900px) {
-  section { padding: 96px 0; }
-  .nav ul { display: none; }
-  .grid3, .founders, .product-hero { grid-template-columns: 1fr; }
-  .product-hero .copy { padding: 32px 24px; }
-  .stage { min-height: 360px; order: -1; }
-  .founder { padding: 28px 24px; gap: 22px; }
-  .mono { width: 80px; height: 80px; font-size: 32px; }
-  .founder h3 { font-size: 26px; }
-  .card { padding: 28px 24px; }
-  .chip.c1 { left: 5%; top: 9%; }
-  .chip.c2 { right: 5%; bottom: 9%; }
-  .next { padding: 24px; }
-  footer .wrap { flex-direction: column; }
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-  .js .reveal, .js .hero .eyebrow, .js .hero .lead, .js .hero .btns { opacity: 1; transform: none; }
-  .js .hero h1 .line > span { transform: none; }
-  .stage .ring { display: none; }
-}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<link rel="stylesheet" href="assets/studio.css" />
 <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
 <nav class="nav" aria-label="Main">
-  <div class="nav-inner">
+  <div class="wrap">
     <a href="#top" aria-label="Nakilab home"><img src="assets/nakilab-logo-white.png" alt="Nakilab" width="250" height="47" /></a>
     <ul>
-      <li><a href="#mission">Mission</a></li>
-      <li><a href="#products">Products</a></li>
-      <li><a href="#founders">Founders</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#si">SI</a></li>
+      <li><a href="#investors">Investors</a></li>
     </ul>
-    <a class="btn btn-primary btn-sm" href="#contact">Let's talk</a>
+    <a class="btn small" href="#intake" data-type="have">Submit idea</a>
   </div>
 </nav>
 
 <main id="main">
-  <header class="hero" id="top">
-    <canvas id="space" aria-hidden="true"></canvas>
-    <div class="wrap">
-      <div class="eyebrow">Nakilab · AI product lab</div>
+  <!-- 1 · Who we are, in one screen -->
+  <header class="panel hero" id="top">
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="wrap copy">
+      <div class="label si-tag"><b>SI</b>Startup studio · Powered by Super Intelligence</div>
       <h1>
-        <span class="line"><span>Build the future</span></span>
-        <span class="line"><span>you want to</span></span>
-        <span class="line"><span class="serif">wake up to.</span></span>
+        <span class="line"><span>We turn ideas</span></span>
+        <span class="line"><span>into companies</span></span>
       </h1>
-      <p class="lead">We build practical AI tools that make everyday life better — for people, for the animals they love, and for the world we share.</p>
+      <p class="sub">Bring us your idea. We evaluate it, build it and launch it — with SI, Super Intelligence.</p>
       <div class="btns">
-        <a class="btn btn-primary" href="#products">Explore our work
+        <a class="btn solid" href="#intake" data-type="have">Submit your idea
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-        <a class="btn btn-ghost" href="#mission">Our mission</a>
+        <a class="btn" href="#projects">See projects</a>
       </div>
     </div>
-    <div class="scroll-cue" aria-hidden="true">Scroll<i></i></div>
+    <div class="scroll-cue" aria-hidden="true">SCROLL<i></i></div>
   </header>
 
-  <section class="manifesto" id="mission">
+  <!-- 2 · How it works -->
+  <section class="panel how" id="how">
     <div class="wrap">
-      <div class="eyebrow">Mission</div>
-      <p class="big" data-words>Start from first principles. Ask what people truly need, not what AI can show off. Then build it, ship it, and make it better every single week. <span data-accent>If it makes the world better, it's worth building — even when the odds say no.</span></p>
+      <div class="label">How it works</div>
+      <h2 class="reveal" style="margin-top:22px">From idea to launch</h2>
+      <div class="steps4">
+        <article class="step reveal" style="--i:0">
+          <div class="num">01</div>
+          <h3>Submit</h3>
+          <p>Tell us your idea in two minutes.</p>
+          <div class="vis" aria-hidden="true"><div class="slab"><i class="f"><b>?</b></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="t"></i><i class="bt"></i></div></div>
+        </article>
+        <article class="step reveal" style="--i:1">
+          <div class="num">02</div>
+          <h3>Evaluate</h3>
+          <p>SI tests the market, the risks and the numbers.</p>
+          <div class="vis" aria-hidden="true"><div class="layers"><i></i><i></i><i></i></div></div>
+        </article>
+        <article class="step reveal" style="--i:2">
+          <div class="num">03</div>
+          <h3>Build</h3>
+          <p>We design and build the product with you.</p>
+          <div class="vis" aria-hidden="true"><div class="pair"><div class="slab wire"><i class="f"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="t"></i><i class="bt"></i></div><div class="slab solid"><i class="f"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="t"></i><i class="bt"></i></div></div></div>
+        </article>
+        <article class="step reveal" style="--i:3">
+          <div class="num">04</div>
+          <h3>Launch</h3>
+          <p>It goes live on our infrastructure.</p>
+          <div class="vis" aria-hidden="true"><div class="rise"><div class="floorgrid"></div><div class="slab sm"><i class="f"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="t"></i><i class="bt"></i></div></div></div>
+        </article>
+      </div>
+      <div class="btns reveal"><a class="btn" href="#intake" data-type="have">Start now
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></div>
     </div>
   </section>
 
-  <section style="padding-top:40px">
-    <div class="wrap">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">How we think</div>
-          <h2 class="reveal">Engineered for the real world.</h2>
-        </div>
-        <p class="reveal">Three rules behind every Nakilab product, from the first sketch to the App Store.</p>
+  <!-- 3 · Method: pinned 3D scroll story -->
+  <section class="panel mission" id="method">
+    <div class="sticky">
+      <canvas id="mission-scene" role="img" aria-label="A block of metal cubes breaks apart and rebuilds itself into the Nakilab K, then lights up"></canvas>
+      <div class="wrap">
+        <div class="label">Our method · First principles</div>
+        <ol class="steps">
+          <li class="on"><span>01</span>Break it down.</li>
+          <li><span>02</span>Rebuild it better.</li>
+          <li><span>03</span>Launch it.</li>
+        </ol>
+        <p class="mline">The same method for every idea — including yours.</p>
       </div>
-      <div class="grid3">
-        <article class="card reveal" style="--i:0">
-          <span class="num">01</span>
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg></div>
-          <h3>First principles</h3>
-          <p>We break a problem down to what is actually true, then rebuild the answer from there — not from what everyone else does.</p>
-        </article>
-        <article class="card reveal" style="--i:1">
-          <span class="num">02</span>
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></svg></div>
-          <h3>Ship, then iterate</h3>
-          <p>A working product in real hands teaches more than any plan. We launch early and improve relentlessly.</p>
-        </article>
-        <article class="card reveal" style="--i:2">
-          <span class="num">03</span>
-          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
-          <h3>Useful over impressive</h3>
-          <p>The best technology disappears into everyday life. If it doesn't help a real person, we don't ship it.</p>
-        </article>
-      </div>
+      <div class="mprog" aria-hidden="true"><i></i></div>
     </div>
   </section>
 
-  <section id="products">
+  <!-- 4 · Projects. To add a project, copy one <article class="project"> block. -->
+  <section class="panel projects" id="projects">
     <div class="wrap">
-      <div class="section-head">
+      <div class="head">
         <div>
-          <div class="eyebrow">Products</div>
-          <h2 class="reveal">Out of the lab, into the world.</h2>
+          <div class="label">Projects</div>
+          <h2 class="reveal" style="margin-top:22px">Built by Nakilab</h2>
         </div>
       </div>
-
-      <article class="product-hero reveal">
-        <div class="copy">
-          <span class="pill"><i></i>In development · Web + iPhone</span>
-          <h3>RingRingPaw</h3>
-          <p>A smart tag that brings lost pets home. Anyone who finds your pet scans the tag, reaches you instantly, and can choose to share where they are.</p>
-          <ul>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Scan to contact — no app needed for the finder</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Location shared only with the finder's consent</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Instant alert to the owner on every scan</li>
-          </ul>
-          <a class="btn btn-primary" href="https://ringringpaw.nakilab.com">Visit RingRingPaw
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
-        </div>
-        <div class="stage" aria-hidden="true">
-          <span class="ring"></span><span class="ring"></span><span class="ring"></span>
-          <div class="tag">
-            <svg viewBox="0 0 100 100" fill="#FF8A3D"><ellipse cx="50" cy="66" rx="21" ry="18"/><ellipse cx="23" cy="42" rx="9.5" ry="12.5"/><ellipse cx="40" cy="24" rx="9.5" ry="12.5"/><ellipse cx="60" cy="24" rx="9.5" ry="12.5"/><ellipse cx="77" cy="42" rx="9.5" ry="12.5"/></svg>
+      <div class="plist">
+        <article class="project reveal">
+          <div class="copy">
+            <span class="status"><i></i>In development · Web + iPhone</span>
+            <h3>RingRingPaw</h3>
+            <p>Smart tags that bring lost pets home. Scan the tag, reach the owner, share location only with consent.</p>
+            <div class="btns">
+              <a class="btn solid" href="https://ringringpaw.nakilab.com">Visit
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+            </div>
           </div>
-          <div class="chip c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span>Luna's tag was scanned<small>just now</small></span></div>
-          <div class="chip c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Finder shared location<small>0.4 km away</small></span></div>
-        </div>
-      </article>
-
-      <div class="next reveal">
-        <div>
-          <h3>Next mission — in the lab</h3>
-          <p>Have a problem you think AI could solve? It might become our next product.</p>
-        </div>
-        <a class="btn btn-ghost" href="#contact">Suggest an idea</a>
-      </div>
-    </div>
-  </section>
-
-  <section id="founders" style="padding-top:40px">
-    <div class="wrap">
-      <div class="section-head">
-        <div>
-          <div class="eyebrow">Founders</div>
-          <h2 class="reveal">Two builders. One mission.</h2>
-        </div>
-      </div>
-      <div class="founders">
-        <article class="card founder reveal" style="--i:0">
-          <div class="mono" aria-hidden="true">M</div>
-          <div>
-            <h3>Mehrdad</h3>
-            <div class="role">Co-Founder</div>
+          <div class="stage" aria-hidden="true">
+            <div class="floorgrid"></div>
+            <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+            <div class="tagdev"><svg viewBox="0 0 100 100" fill="#FF8A3D"><ellipse cx="50" cy="66" rx="21" ry="18"/><ellipse cx="23" cy="42" rx="9.5" ry="12.5"/><ellipse cx="40" cy="24" rx="9.5" ry="12.5"/><ellipse cx="60" cy="24" rx="9.5" ry="12.5"/><ellipse cx="77" cy="42" rx="9.5" ry="12.5"/></svg></div>
+            <div class="chip c1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span>Luna's tag was scanned<small>just now</small></span></div>
+            <div class="chip c2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Finder shared location<small>0.4 km away</small></span></div>
           </div>
         </article>
-        <article class="card founder reveal" style="--i:1">
-          <div class="mono" aria-hidden="true">N</div>
-          <div>
-            <h3>Navid</h3>
-            <div class="role">Co-Founder</div>
+        <article class="project next reveal">
+          <div class="copy">
+            <div>
+              <div class="label">Next project</div>
+              <h3>Yours?</h3>
+            </div>
+            <a class="btn" href="#intake" data-type="have">Submit your idea
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
           </div>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="closing" id="contact">
+  <!-- 5 · SI -->
+  <section class="panel si" id="si">
+    <div class="floorgrid" aria-hidden="true" style="height:260px"></div>
     <div class="wrap">
-      <div class="eyebrow">Contact</div>
-      <h2 class="reveal">Make the world <span class="serif">a better place.</span></h2>
-      <p class="reveal">One useful tool at a time. Got a problem worth solving, or want to build with us? Say hello.</p>
-      <a class="btn btn-primary reveal" href="mailto:hello@nakilab.com">hello@nakilab.com
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      <div class="si-mark" aria-hidden="true"><div class="portal-css"></div><span class="letters">SI</span></div>
+      <h2 class="reveal">Super Intelligence</h2>
+      <p class="sub reveal">SI works at every step — researching the market, evaluating the idea, designing the product and running the launch. A small team that ships like a big one.</p>
+      <div class="caps reveal"><span>Research</span><span>Evaluate</span><span>Build</span><span>Launch</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · Need an idea -->
+  <section class="panel split" id="need-idea">
+    <div class="wrap">
+      <div>
+        <div class="label">No idea yet?</div>
+        <h2 class="reveal" style="margin-top:22px">We have ideas waiting</h2>
+        <p class="sub reveal">Tell us your skills, interests and budget. We'll match you with an idea from our lab.</p>
+        <div class="btns reveal"><a class="btn solid" href="#intake" data-type="need">Request an idea
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></div>
+      </div>
+      <div class="art" aria-hidden="true"><div class="floorgrid"></div><div class="layers big"><i></i><i></i><i></i></div></div>
+    </div>
+  </section>
+
+  <!-- 7 · Investors -->
+  <section class="panel split" id="investors">
+    <div class="wrap">
+      <div class="art" aria-hidden="true">
+        <div class="pillars">
+          <div class="portal-css"></div>
+          <div class="pillar" style="--i:0"><div class="slab" style="--w:52px;--h:100px;--d:18px"><i class="f"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="t"></i><i class="bt"></i></div><span>Ideas</span></div>
+          <div class="pillar" style="--i:1"><div class="slab" style="--w:52px;--h:150px;--d:18px"><i class="f"></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="t"></i><i class="bt"></i></div><span>Products</span></div>
+          <div class="pillar" style="--i:2"><div class="slab" style="--w:52px;--h:200px;--d:18px"><i class="f"><img src="assets/nakilab-mark-white.png" alt="" width="246" height="188" /></i><i class="b"></i><i class="l"></i><i class="r"></i><i class="t"></i><i class="bt"></i></div><span>Companies</span></div>
+          <div class="floorgrid"></div>
+        </div>
+      </div>
+      <div>
+        <div class="label">Investors &amp; partners</div>
+        <h2 class="reveal" style="margin-top:22px">Invest in what we launch</h2>
+        <p class="sub reveal">Every launch adds to a growing portfolio of SI-built companies.</p>
+        <div class="btns reveal"><a class="btn" href="#intake" data-type="invest">Investor inquiry
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · Founders -->
+  <section class="founders" aria-label="Founders">
+    <div class="wrap">
+      <div class="label">Founded by</div>
+      <ul>
+        <li><b>Mehrdad</b><span>Co-Founder</span></li>
+        <li><b>Navid</b><span>Co-Founder</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 9 · Intake -->
+  <section class="panel intake" id="intake">
+    <div class="portal-bg" aria-hidden="true"></div>
+    <div class="wrap">
+      <div>
+        <div class="label">Intake</div>
+        <h2 class="reveal" style="margin-top:22px">Submit your idea</h2>
+        <p class="sub reveal">Two minutes. We read every submission.</p>
+      </div>
+      <div id="intake-box">
+        <form class="intake-form reveal" id="intake-form" novalidate>
+          <fieldset class="seg">
+            <legend>I am here to</legend>
+            <label><input type="radio" name="type" value="have" checked />I have an idea</label>
+            <label><input type="radio" name="type" value="need" />I need an idea</label>
+            <label><input type="radio" name="type" value="invest" />Invest / partner</label>
+          </fieldset>
+          <div class="row2">
+            <div class="field"><label for="f-name">Name <span class="req" aria-hidden="true">*</span></label><input id="f-name" name="name" autocomplete="name" required maxlength="120" /><span class="err" id="e-name"></span></div>
+            <div class="field"><label for="f-email">Your email <span class="req" aria-hidden="true">*</span></label><input id="f-email" name="email" type="email" autocomplete="email" required maxlength="200" /><span class="err" id="e-email"></span></div>
+          </div>
+
+          <div data-for="have">
+            <div class="field"><label for="f-title">Idea name <span class="req" aria-hidden="true">*</span></label><input id="f-title" name="title" maxlength="160" placeholder="e.g. Smart tags for lost pets" /><span class="err" id="e-title"></span></div>
+            <div class="field"><label for="f-idea">Describe it <span class="req" aria-hidden="true">*</span></label><textarea id="f-idea" name="idea" maxlength="4000" placeholder="What problem does it solve, and for whom?"></textarea><span class="err" id="e-idea"></span></div>
+            <div class="row2">
+              <div class="field"><label for="f-stage">Stage</label>
+                <select id="f-stage" name="stage"><option>Just an idea</option><option>Prototype</option><option>Launched, need to grow</option></select></div>
+              <div class="field"><label for="f-country">Country</label><input id="f-country" name="country" autocomplete="country-name" maxlength="80" /></div>
+            </div>
+            <div class="field"><span class="flabel" id="l-help">What do you need?</span>
+              <div class="checks" role="group" aria-labelledby="l-help">
+                <label><input type="checkbox" name="help" value="Evaluation" checked />Evaluation</label>
+                <label><input type="checkbox" name="help" value="Build" />Build</label>
+                <label><input type="checkbox" name="help" value="Launch" />Launch</label>
+                <label><input type="checkbox" name="help" value="Funding" />Funding</label>
+              </div>
+            </div>
+          </div>
+
+          <div data-for="need" hidden>
+            <div class="field"><label for="f-skills">Your skills <span class="req" aria-hidden="true">*</span></label><input id="f-skills" name="skills" maxlength="300" placeholder="e.g. sales, design, operations" /><span class="err" id="e-skills"></span></div>
+            <div class="field"><label for="f-interests">Industries you care about</label><input id="f-interests" name="interests" maxlength="300" placeholder="e.g. pets, health, education" /></div>
+            <div class="row2">
+              <div class="field"><label for="f-budget">Budget</label>
+                <select id="f-budget" name="budget"><option>Prefer not to say</option><option>Under $5k</option><option>$5k – $25k</option><option>$25k – $100k</option><option>$100k+</option></select></div>
+              <div class="field"><label for="f-time">Time per week</label>
+                <select id="f-time" name="time"><option>A few hours</option><option>Part-time</option><option>Full-time</option></select></div>
+            </div>
+          </div>
+
+          <div data-for="invest" hidden>
+            <div class="field"><label for="f-org">Organisation</label><input id="f-org" name="org" autocomplete="organization" maxlength="160" /></div>
+            <div class="field"><label for="f-msg">Message <span class="req" aria-hidden="true">*</span></label><textarea id="f-msg" name="message" maxlength="4000" placeholder="What are you interested in?"></textarea><span class="err" id="e-message"></span></div>
+          </div>
+
+          <div class="hp" aria-hidden="true"><label for="f-website">Leave empty</label><input id="f-website" name="website" tabindex="-1" autocomplete="off" /></div>
+          <label class="consent"><input type="checkbox" name="consent" id="f-consent" />Nakilab may contact me about this submission.</label>
+          <span class="err" id="e-consent" style="font-size:13px;color:#fca5a5"></span>
+          <button class="btn solid" type="submit">Submit
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+          <p class="form-status" role="alert" id="form-status"></p>
+        </form>
+      </div>
     </div>
   </section>
 </main>
@@ -359,112 +285,21 @@ footer img { height: 16px; width: auto; opacity: .7; }
 <footer>
   <div class="wrap">
     <img src="assets/nakilab-logo-white.png" alt="Nakilab" width="250" height="47" />
-    <span>© <span id="year">2026</span> Nakilab. Building what matters.</span>
+    <ul>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#si">SI</a></li>
+      <li><a href="#intake" data-type="have">Submit idea</a></li>
+    </ul>
+    <span>© <span id="year">2026</span> Nakilab</span>
   </div>
 </footer>
 
-<script>
-(() => {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.getElementById('year').textContent = new Date().getFullYear();
-  const start = () => document.documentElement.classList.add('loaded');
-  requestAnimationFrame(() => requestAnimationFrame(start));
-  setTimeout(start, 120); // rAF is paused in background tabs
-
-  /* ---- Hero: starfield + rotating dotted planet rising over the horizon ---- */
-  const cv = document.getElementById('space');
-  const ctx = cv.getContext('2d');
-  let W, H, stars = [], raf;
-  const globe = [];
-  const N_GLOBE = 2400;
-  for (let i = 0; i < N_GLOBE; i++) { // Fibonacci sphere: evenly spread points
-    const y = 1 - (i / (N_GLOBE - 1)) * 2, r = Math.sqrt(1 - y * y), t = i * 2.399963;
-    globe.push([Math.cos(t) * r, y, Math.sin(t) * r]);
-  }
-  function resize() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    W = cv.clientWidth; H = cv.clientHeight;
-    cv.width = W * dpr; cv.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    stars = Array.from({ length: Math.round(W * H / 3800) }, () => ({
-      x: Math.random() * W, y: Math.random() * H, z: Math.random() * .9 + .1, tw: Math.random() * 6.28
-    }));
-  }
-  let px = 0, py = 0, tx = 0, ty = 0;
-  addEventListener('pointermove', e => { tx = e.clientX / innerWidth - .5; ty = e.clientY / innerHeight - .5; }, { passive: true });
-  function frame(t) {
-    px += (tx - px) * .04; py += (ty - py) * .04;
-    const sy0 = scrollY;
-    ctx.clearRect(0, 0, W, H);
-    for (const s of stars) { // stars with depth parallax and twinkle
-      const a = .2 + .6 * s.z * (reduce ? 1 : (.6 + .4 * Math.sin(t * .0012 + s.tw)));
-      ctx.fillStyle = `rgba(200,220,255,${a})`;
-      const x = ((s.x - px * 30 * s.z) % W + W) % W;
-      const y = ((s.y - py * 20 * s.z - sy0 * .15 * s.z) % H + H) % H;
-      ctx.fillRect(x, y, s.z * 1.6, s.z * 1.6);
-    }
-    const R = Math.max(W * .62, 520);
-    const cx = W / 2 + px * 24, cy = H + R * .76 - Math.min(sy0 * .25, 200);
-    const rot = (reduce ? 0 : t * .00005) + px * .4, tilt = .35 + py * .1;
-    const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(tilt), st = Math.sin(tilt);
-    const g = ctx.createRadialGradient(cx, cy - R * .25, R * .2, cx, cy, R);
-    g.addColorStop(0, '#0B1630'); g.addColorStop(1, '#03050B');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.fill();
-    for (const [x0, y0, z0] of globe) {
-      const x1 = x0 * cr + z0 * sr, z1 = -x0 * sr + z0 * cr;
-      const y2 = y0 * ct - z1 * st, z2 = y0 * st + z1 * ct;
-      if (z2 < 0) continue;
-      const sx = cx + x1 * R, sy = cy + y2 * R;
-      if (sy > H + 4 || sy < -4) continue;
-      const limb = Math.max(0, 1 - (cy - sy) / R); // brighter toward the lit upper rim
-      ctx.fillStyle = `rgba(127,178,255,${Math.min(1, (.22 + z2 * .6) * (.55 + limb * .9))})`;
-      const s = 1 + z2 * 1.6;
-      ctx.fillRect(sx, sy, s, s);
-    }
-    ctx.save(); // atmosphere rim
-    ctx.shadowColor = 'rgba(96,160,255,.9)'; ctx.shadowBlur = 40;
-    ctx.strokeStyle = 'rgba(170,205,255,.8)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(cx, cy, R, Math.PI * 1.06, Math.PI * 1.94); ctx.stroke();
-    ctx.restore();
-    if (!reduce) raf = requestAnimationFrame(frame);
-  }
-  resize();
-  addEventListener('resize', () => { resize(); if (reduce) frame(0); });
-  if (reduce) frame(0);
-  else new IntersectionObserver(([e]) => { // only animate while the hero is visible
-    cancelAnimationFrame(raf);
-    if (e.isIntersecting) raf = requestAnimationFrame(frame);
-  }).observe(cv);
-
-  /* ---- Reveal on scroll ---- */
-  const io = new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-  }), { rootMargin: '0px 0px -12% 0px' });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-  /* ---- Manifesto: words light up as you scroll through it ---- */
-  const big = document.querySelector('[data-words]');
-  const split = (text, cls) => text.split(/(\s+)/).map(p => /^\s+$/.test(p) || !p ? p : `<span class="${cls}">${p}</span>`).join('');
-  const acc = big.querySelector('[data-accent]');
-  const accHTML = split(acc.textContent, 'w accent'); acc.remove();
-  big.innerHTML = split(big.textContent.trim(), 'w') + ' ' + accHTML;
-  const words = [...big.querySelectorAll('.w')];
-  function lightWords() {
-    const r = big.getBoundingClientRect();
-    const p = Math.min(1, Math.max(0, (innerHeight * .8 - r.top) / (r.height + innerHeight * .3)));
-    const n = Math.round(p * words.length);
-    words.forEach((w, i) => w.classList.toggle('lit', i < n));
-  }
-  if (reduce) words.forEach(w => w.classList.add('lit'));
-  else { addEventListener('scroll', () => requestAnimationFrame(lightWords), { passive: true }); lightWords(); }
-
-  /* ---- Card spotlight follows the pointer ---- */
-  document.querySelectorAll('.card').forEach(c => c.addEventListener('pointermove', e => {
-    const r = c.getBoundingClientRect();
-    c.style.setProperty('--mx', e.clientX - r.left + 'px');
-    c.style.setProperty('--my', e.clientY - r.top + 'px');
-  }));
-})();
+<script src="assets/studio.js" defer></script>
+<script type="module">
+  import { heroMonolith, missionVoxels } from './assets/three-kit.js';
+  heroMonolith(document.getElementById('scene'));
+  missionVoxels(document.getElementById('method'), document.getElementById('mission-scene'));
 </script>
 </body>
 </html>

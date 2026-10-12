@@ -1,14 +1,21 @@
 # Nakilab — nakilab.com
 
-One-page portfolio site for Nakilab, the AI product lab of Navid & Mehrdad.
+Startup studio site: "We turn ideas into companies", powered by SI — Super Intelligence.
 
-Static HTML — no build step. `index.html` + `assets/` deploy as-is to the
-`public_html` of nakilab.com on Hostinger (served through Cloudflare).
+Static HTML + one small PHP endpoint. No build step.
 
-Preview locally:
+- `index.html` — the one-page site (SpaceX-style full-screen panels)
+- `assets/studio.css`, `assets/studio.js` — styles and page behaviour (intake form)
+- `assets/three-kit.js` — three.js scenes: the 3D K hero and the scroll "method" story
+- `api/intake.php` — stores intake submissions in a private SQLite file outside the
+  web root (`domains/nakilab.com/intake-data/intake.sqlite` on Hostinger)
+
+To add a project, copy an `<article class="project">` block in the Projects section.
+
+Preview locally (PHP needed for the form):
 
 ```bash
-python3 -m http.server 8000
+NAKILAB_INTAKE_DIR=/tmp/nakilab-intake php -S localhost:8090
 ```
 
 Other branches in this repo:
