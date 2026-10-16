@@ -2,6 +2,8 @@
 // Nakilab intake: stores idea / idea-request / investor submissions in the Nakilab database.
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/lib/db.php';
+require_once dirname(__DIR__) . '/lib/mailer.php';
+require_once dirname(__DIR__) . '/lib/emails.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Robots-Tag: noindex');
@@ -72,9 +74,10 @@ try {
 
     $ins = $db->prepare('INSERT INTO submissions (created_at, type, name, email, details, ip_hash) VALUES (?, ?, ?, ?, ?, ?)');
     $ins->execute([nk_now(), $type, $name, $email, json_encode($details, JSON_UNESCAPED_UNICODE), $ipHash]);
+    $id = (int) $db->lastInsertId();
     [$cols, $vals] = nk_submission_column_values($details);
     if ($cols) {
-        $vals[] = (int) $db->lastInsertId();
+        $vals[] = $id;
         $db->prepare("UPDATE submissions SET $cols WHERE id = ?")->execute($vals);
     }
 } catch (Throwable $e) {
@@ -82,4 +85,35 @@ try {
     reply(500, ['ok' => false, 'error' => 'Server error. Please try again later.']);
 }
 
-reply(200, ['ok' => true]);
+// Answer the visitor right away, then send the emails in the background of this request.
+http_response_code(200);
+echo json_encode(['ok' => true]);
+if (function_exists('litespeed_finish_request')) litespeed_finish_request();
+elseif (function_exists('fastcgi_finish_request')) fastcgi_finish_request();
+ignore_user_abort(true);
+
+if (nk_mail_configured()) {
+    $log = [];
+    try {
+        [$subj, $text, $html] = nk_email_confirmation($type, $name, $details);
+        nk_send_mail($email, $name, $subj, $text, $html, ['reply_to' => nk_config('mail')['from_email'] ?? null, 'reply_to_name' => 'Nakilab']);
+        $log[] = 'confirmation sent';
+    } catch (Throwable $e) {
+        error_log('intake mail (confirmation): ' . $e->getMessage());
+        $log[] = 'confirmation FAILED';
+    }
+    $alertTo = (string) (nk_config('mail')['alert_to'] ?? '');
+    if ($alertTo !== '') {
+        try {
+            [$subj, $text, $html] = nk_email_alert($id, $type, $name, $email, $details);
+            nk_send_mail($alertTo, 'Nakilab', $subj, $text, $html, ['reply_to' => $email, 'reply_to_name' => $name]);
+            $log[] = 'team alert sent';
+        } catch (Throwable $e) {
+            error_log('intake mail (alert): ' . $e->getMessage());
+            $log[] = 'team alert FAILED';
+        }
+    }
+    try {
+        $db->prepare('UPDATE submissions SET email_log = ? WHERE id = ?')->execute([gmdate('Y-m-d H:i') . ' UTC: ' . implode(', ', $log), $id]);
+    } catch (Throwable $e) { error_log('intake email_log: ' . $e->getMessage()); }
+}

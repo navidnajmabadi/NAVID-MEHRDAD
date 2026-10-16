@@ -106,6 +106,11 @@ function nk_add_submission_columns(PDO $db): void {
     $have = nk_driver() === 'mysql'
         ? array_column($db->query('SHOW COLUMNS FROM submissions')->fetchAll(), 'Field')
         : array_column($db->query('PRAGMA table_info(submissions)')->fetchAll(), 'name');
+    if (!in_array('email_log', $have, true)) {
+        $db->exec(nk_driver() === 'mysql'
+            ? "ALTER TABLE submissions ADD COLUMN email_log VARCHAR(255) NULL AFTER status"
+            : "ALTER TABLE submissions ADD COLUMN email_log TEXT NULL");
+    }
     if (in_array('message', $have, true)) return;
     $after = 'email';
     foreach (NK_SUB_COLUMNS as [$col, $type]) {
