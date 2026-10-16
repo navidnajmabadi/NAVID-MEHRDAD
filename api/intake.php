@@ -72,6 +72,11 @@ try {
 
     $ins = $db->prepare('INSERT INTO submissions (created_at, type, name, email, details, ip_hash) VALUES (?, ?, ?, ?, ?, ?)');
     $ins->execute([nk_now(), $type, $name, $email, json_encode($details, JSON_UNESCAPED_UNICODE), $ipHash]);
+    [$cols, $vals] = nk_submission_column_values($details);
+    if ($cols) {
+        $vals[] = (int) $db->lastInsertId();
+        $db->prepare("UPDATE submissions SET $cols WHERE id = ?")->execute($vals);
+    }
 } catch (Throwable $e) {
     error_log('intake: ' . $e->getMessage());
     reply(500, ['ok' => false, 'error' => 'Server error. Please try again later.']);

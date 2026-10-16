@@ -83,6 +83,59 @@ function nk_migrate(PDO $db): void {
             author TEXT NOT NULL DEFAULT 'Nakilab', status TEXT NOT NULL DEFAULT 'draft', publish_at TEXT NULL,
             created_at TEXT NOT NULL, updated_at TEXT NOT NULL, created_by TEXT NOT NULL DEFAULT '')");
     }
+    nk_add_submission_columns($db);
+}
+
+// Form field → its own readable column in `submissions` (so each answer shows separately in phpMyAdmin).
+// `details` keeps the full original JSON as well.
+const NK_SUB_COLUMNS = [
+    'title'     => ['idea_title', 'VARCHAR(160)'],
+    'idea'      => ['idea_description', 'TEXT'],
+    'stage'     => ['stage', 'VARCHAR(60)'],
+    'country'   => ['country', 'VARCHAR(80)'],
+    'help'      => ['help_needed', 'VARCHAR(120)'],
+    'skills'    => ['skills', 'VARCHAR(300)'],
+    'interests' => ['interests', 'VARCHAR(300)'],
+    'budget'    => ['budget', 'VARCHAR(40)'],
+    'time'      => ['time_per_week', 'VARCHAR(40)'],
+    'org'       => ['organisation', 'VARCHAR(160)'],
+    'message'   => ['message', 'TEXT'],
+];
+
+function nk_add_submission_columns(PDO $db): void {
+    $have = nk_driver() === 'mysql'
+        ? array_column($db->query('SHOW COLUMNS FROM submissions')->fetchAll(), 'Field')
+        : array_column($db->query('PRAGMA table_info(submissions)')->fetchAll(), 'name');
+    if (in_array('message', $have, true)) return;
+    $after = 'email';
+    foreach (NK_SUB_COLUMNS as [$col, $type]) {
+        if (!in_array($col, $have, true)) {
+            $db->exec(nk_driver() === 'mysql'
+                ? "ALTER TABLE submissions ADD COLUMN $col $type NULL AFTER $after"
+                : "ALTER TABLE submissions ADD COLUMN $col TEXT NULL");
+        }
+        $after = $col;
+    }
+    // Fill the new columns for rows saved before they existed
+    $rows = $db->query('SELECT id, details FROM submissions')->fetchAll();
+    foreach ($rows as $r) {
+        [$sql, $vals] = nk_submission_column_values(json_decode((string) $r['details'], true) ?: []);
+        if (!$sql) continue;
+        $vals[] = (int) $r['id'];
+        $db->prepare("UPDATE submissions SET $sql WHERE id = ?")->execute($vals);
+    }
+}
+
+/** @return array{0:string,1:array} "col = ?, …" and its values, from a details array */
+function nk_submission_column_values(array $details): array {
+    $set = []; $vals = [];
+    foreach (NK_SUB_COLUMNS as $key => [$col]) {
+        if (!array_key_exists($key, $details)) continue;
+        $v = $details[$key];
+        $set[] = "$col = ?";
+        $vals[] = is_array($v) ? implode(', ', $v) : (string) $v;
+    }
+    return [implode(', ', $set), $vals];
 }
 
 function nk_h(?string $s): string { return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
