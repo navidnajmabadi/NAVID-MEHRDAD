@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteBase /blog/
+RewriteRule ^rss\.xml$ rss.php [L]
+RewriteRule ^post\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9-]+)/?$ post.php?slug=$1 [L,QSA]

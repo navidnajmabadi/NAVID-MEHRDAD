@@ -297,3 +297,54 @@ footer a:hover { color: #fff; }
   .mission .mline { opacity: 1; transform: none; }
   .stage .ring { display: none; }
 }
+
+/* ---------- Blog ---------- */
+.page-blog main { padding-top: 76px; }
+.blog-head { padding: 96px 0 56px; border-bottom: 1px solid var(--line); }
+.blog-head h1 { font-size: clamp(44px, 6.4vw, 92px); margin-top: 22px; max-width: 16ch; }
+.blog-list { padding: 56px 0 120px; }
+.post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.post-card { display: flex; flex-direction: column; gap: 14px; padding: 32px; min-height: 280px; border: 1px solid var(--line); background: var(--panel); text-decoration: none; transition: border-color .25s, background .25s; }
+.post-card:hover { border-color: rgba(255,255,255,.4); background: #0f0f11; }
+.post-card.featured { grid-column: 1 / -1; min-height: 340px; justify-content: flex-end; background: radial-gradient(60% 120% at 100% 0%, rgba(76,141,255,.16), transparent 60%), var(--panel); }
+.post-card .meta, .post-head .meta { font: 600 12px/1 var(--font); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.post-card h2 { font-size: clamp(24px, 2.2vw, 32px); line-height: 1.1; }
+.post-card.featured h2 { font-size: clamp(32px, 4vw, 56px); max-width: 20ch; }
+.post-card p { color: var(--muted); max-width: 46rem; }
+.post-card .more { margin-top: auto; display: inline-flex; align-items: center; gap: 10px; font: 600 13px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: #fff; }
+.post-card .more svg { width: 16px; height: 16px; transition: transform .25s var(--ease); }
+.post-card:hover .more svg { transform: translateX(4px); }
+.blog-empty { padding: 80px 0; display: grid; gap: 18px; justify-items: start; }
+.blog-empty h2 { font-size: clamp(32px, 4vw, 52px); }
+.pager { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 48px; font: 600 12px/1 var(--font); letter-spacing: .14em; text-transform: uppercase; }
+.wrap.narrow { max-width: 780px; }
+.post-head { padding: 96px 0 48px; border-bottom: 1px solid var(--line); margin-bottom: 56px; }
+.post-head .back { text-decoration: none; }
+.post-head .back:hover { color: #fff; }
+.post-head h1 { font-size: clamp(36px, 5vw, 68px); line-height: 1.04; margin: 24px 0 24px; text-transform: none; letter-spacing: -.01em; }
+.prose { font-size: 19px; line-height: 1.75; color: #d4d4d8; }
+.prose > * + * { margin-top: 1.1em; }
+.prose h2, .prose h3, .prose h4 { text-transform: none; letter-spacing: -.005em; line-height: 1.2; margin-top: 2em; }
+.prose h2 { font-size: 32px; }
+.prose h3 { font-size: 24px; }
+.prose h4 { font-size: 20px; }
+.prose a { color: #fff; text-underline-offset: 3px; }
+.prose strong { color: #fff; font-weight: 600; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose li + li { margin-top: .4em; }
+.prose blockquote { border-left: 2px solid var(--blue-hi); padding-left: 20px; color: #fff; font-size: 21px; }
+.prose code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; padding: 2px 6px; background: rgba(255,255,255,.07); }
+.prose pre { padding: 20px; background: var(--panel); border: 1px solid var(--line); overflow-x: auto; }
+.prose pre code { padding: 0; background: none; }
+.prose hr { border: 0; border-top: 1px solid var(--line); margin: 2.4em 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 40px; }
+.tags span { font: 600 11px/1 var(--font); letter-spacing: .16em; text-transform: uppercase; padding: 10px 12px; border: 1px solid var(--line-hi); color: var(--muted); }
+.post-cta { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 72px; margin-bottom: 120px; padding-top: 40px; padding-bottom: 40px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.post-cta h2 { font-size: clamp(26px, 3vw, 38px); margin-top: 14px; }
+@media (max-width: 1000px) { .post-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) {
+  .post-grid { grid-template-columns: 1fr; }
+  .post-card { padding: 24px; min-height: 0; }
+  .blog-head, .post-head { padding: 64px 0 40px; }
+  .prose { font-size: 18px; }
+}

@@ -1,0 +1,5 @@
+# Pass the Authorization header through to PHP (Apache/LiteSpeed strip it by default)
+RewriteEngine On
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+DirectoryIndex index.php

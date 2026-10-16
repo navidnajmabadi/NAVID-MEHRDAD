@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /api/
+Disallow: /mcp/
+Sitemap: https://nakilab.com/sitemap.xml

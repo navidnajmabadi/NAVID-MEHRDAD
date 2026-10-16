@@ -1,0 +1,7 @@
+# Nakilab — root rules
+RedirectMatch 404 /\.git
+RewriteEngine On
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+<FilesMatch "\.(md|sql|sqlite)$">
+  Require all denied
+</FilesMatch>

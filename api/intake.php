@@ -1,7 +1,7 @@
 <?php
-// Nakilab intake: stores idea / idea-request / investor submissions in a private SQLite file
-// that lives OUTSIDE the public web root (…/domains/nakilab.com/intake-data/intake.sqlite).
+// Nakilab intake: stores idea / idea-request / investor submissions in the Nakilab database.
 declare(strict_types=1);
+require_once dirname(__DIR__) . '/lib/db.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('X-Robots-Tag: noindex');
@@ -15,10 +15,10 @@ function reply(int $code, array $body): void {
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') reply(405, ['ok' => false, 'error' => 'Method not allowed.']);
 
-// Same-site requests only (localhost is allowed only in local testing, when NAKILAB_INTAKE_DIR is set)
+// Same-site requests only (localhost is allowed only in local testing, when NAKILAB_CONFIG_DIR is set)
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowed = '#^https://([a-z0-9-]+\.)*nakilab\.com$#i';
-if (getenv('NAKILAB_INTAKE_DIR')) $allowed = '#^(https://([a-z0-9-]+\.)*nakilab\.com|http://localhost(:\d+)?)$#i';
+if (getenv('NAKILAB_CONFIG_DIR')) $allowed = '#^(https://([a-z0-9-]+\.)*nakilab\.com|http://localhost(:\d+)?)$#i';
 if ($origin !== '' && !preg_match($allowed, $origin)) reply(403, ['ok' => false, 'error' => 'Forbidden.']);
 
 $raw = file_get_contents('php://input', false, null, 0, 32768);
@@ -58,34 +58,20 @@ if ($type === 'have') {
     $details['help'] = array_values(array_intersect($allowed, is_array($in['help'] ?? null) ? $in['help'] : []));
 }
 
-$dataDir = getenv('NAKILAB_INTAKE_DIR') ?: dirname((string) $_SERVER['DOCUMENT_ROOT']) . '/intake-data';
-if (!is_dir($dataDir) && !mkdir($dataDir, 0700, true)) reply(500, ['ok' => false, 'error' => 'Server error. Please try again later.']);
-
 try {
-    $db = new PDO('sqlite:' . $dataDir . '/intake.sqlite', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-    $db->exec('PRAGMA busy_timeout = 3000');
-    $db->exec('CREATE TABLE IF NOT EXISTS submissions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        created_at TEXT NOT NULL DEFAULT (datetime(\'now\')),
-        type TEXT NOT NULL,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        details TEXT NOT NULL,
-        ip_hash TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT \'new\'
-    )');
+    $db = nk_db();
 
     // Hash the IP with a private salt: enough to rate-limit, without storing the address itself
-    $saltFile = $dataDir . '/.salt';
+    $saltFile = nk_config_dir() . '/.salt';
     if (!is_file($saltFile)) file_put_contents($saltFile, bin2hex(random_bytes(32)), LOCK_EX);
     $ipHash = hash('sha256', trim((string) file_get_contents($saltFile)) . ($_SERVER['REMOTE_ADDR'] ?? ''));
 
-    $recent = $db->prepare("SELECT COUNT(*) FROM submissions WHERE ip_hash = ? AND created_at > datetime('now', '-10 minutes')");
-    $recent->execute([$ipHash]);
+    $recent = $db->prepare('SELECT COUNT(*) FROM submissions WHERE ip_hash = ? AND created_at > ?');
+    $recent->execute([$ipHash, gmdate('Y-m-d H:i:s', time() - 600)]);
     if ((int) $recent->fetchColumn() >= 5) reply(429, ['ok' => false, 'error' => 'Too many submissions. Please try again in a few minutes.']);
 
-    $ins = $db->prepare('INSERT INTO submissions (type, name, email, details, ip_hash) VALUES (?, ?, ?, ?, ?)');
-    $ins->execute([$type, $name, $email, json_encode($details, JSON_UNESCAPED_UNICODE), $ipHash]);
+    $ins = $db->prepare('INSERT INTO submissions (created_at, type, name, email, details, ip_hash) VALUES (?, ?, ?, ?, ?, ?)');
+    $ins->execute([nk_now(), $type, $name, $email, json_encode($details, JSON_UNESCAPED_UNICODE), $ipHash]);
 } catch (Throwable $e) {
     error_log('intake: ' . $e->getMessage());
     reply(500, ['ok' => false, 'error' => 'Server error. Please try again later.']);
