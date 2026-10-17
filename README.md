@@ -49,23 +49,23 @@ Geolocation and camera flows need a secure context; use `localhost` or HTTPS.
 
 ## Deploy to Hostinger (static v1)
 
-**Nothing auto-deploys today.** Branch `PetFinder` is cloned on the server at:
+Branch `PetFinder` is cloned on the server at:
 
 `/home/u233722910/domains/nakilab.com/public_html/ringringpaw`
 
 → https://ringringpaw.nakilab.com
 
-After merging to `PetFinder`, update the site with SSH `git pull` from a machine
-that has the Hostinger key (Navid’s Mac: `~/.ssh/nakilab_hostinger`):
+**Auto-deploy (chosen):** `.github/workflows/deploy-ringringpaw.yml` runs on push to
+`PetFinder` and SSHs a `git pull`. Enable it by adding a **separate** deploy key and
+repo secret `HOSTINGER_SSH_KEY` — steps in Project `docs/hostinger-deploy.md`
+(**Your steps**). This is **not** hPanel Git.
+
+**Manual fallback** (Mac key `~/.ssh/nakilab_hostinger`):
 
 ```bash
 ssh -i ~/.ssh/nakilab_hostinger -p 65002 u233722910@46.202.198.223 \
   "cd domains/nakilab.com/public_html/ringringpaw && git pull --ff-only"
 ```
-
-This is **not** hPanel Git. Optional GitHub Action automation (SSH pull on push)
-is documented in Project `docs/hostinger-deploy.md` but **not enabled** until Navid
-approves a separate deploy key + workflow.
 
 **Server-only `.htaccess`:** the live clone keeps an untracked `.htaccess` (blocks
 `/.git`). Do not delete it; do not commit a conflicting one without care.
