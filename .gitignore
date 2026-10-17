@@ -1,1 +1,7 @@
 dist/
+config.php
+config.local.php
+uploads/pets/*
+!uploads/pets/.gitkeep
+!uploads/pets/.htaccess
+.DS_Store
