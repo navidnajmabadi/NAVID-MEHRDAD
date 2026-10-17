@@ -1,0 +1,20 @@
+# RingRingPaw — web root hardening (safe to keep in git)
+DirectoryIndex index.php index.html
+
+# Block git metadata if the clone lives in the web root
+RedirectMatch 404 /\.git
+
+<IfModule mod_authz_core.c>
+  <FilesMatch "^(config\.php|config\.local\.php|config\.example\.php)$">
+    Require all denied
+  </FilesMatch>
+  <FilesMatch "^\.">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+# Deny PHP in uploads (belt + suspenders; also see uploads/pets/.htaccess)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^uploads/.*\.(?i:php|phtml|phar)$ - [F,L]
+</IfModule>

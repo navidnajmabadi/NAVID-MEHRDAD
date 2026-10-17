@@ -1,7 +1,5 @@
-# RingRingPaw v1 is a public UX prototype (client-only). Keep crawlers light.
 User-agent: *
-Disallow: /admin.html
-Disallow: /dashboard.html
-Disallow: /register.html
 Allow: /
-Allow: /pet.html
+
+# Public scan pages are intentional; noindex optional on app chrome via meta tags.
+Sitemap:
