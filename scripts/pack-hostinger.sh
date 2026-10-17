@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Pack the static files that belong in ringringpaw.nakilab.com public_html.
+# Emergency zip only — normal deploy is SSH git pull on PetFinder (see README).
+# Packs static files for public_html/ringringpaw (excludes server-only .htaccess).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/dist/ringringpaw-hostinger.zip"
