@@ -8,6 +8,6 @@ rm -f "$OUT"
 cd "$ROOT"
 zip -9 "$OUT" \
   index.html register.html pet.html dashboard.html admin.html \
-  app.js style.css .htaccess robots.txt
+  app.js style.css robots.txt
 echo "Wrote $OUT"
 unzip -l "$OUT"

@@ -14,12 +14,11 @@ so the flow can be tried fast in a single browser. It is not multi-device and
 not secure; it exists to validate the UX and interaction model before investing
 in real infrastructure (auth, database, live sync).
 
-For a real deployment you'd add:
-- A backend/database (e.g. Supabase) so a scan on one phone reaches the owner's
-  dashboard on a different phone in real time
-- Real authentication (hashed passwords or magic links) instead of the
-  plaintext localStorage demo used here
-- A live channel (WebSocket / Supabase Realtime) instead of localStorage polling
+For a real deployment on this stack you'd add:
+- **Hostinger PHP + MySQL** (secrets outside the web root, same pattern as nakilab.com)
+  so a scan on one phone reaches the owner's dashboard on another
+- Real authentication (hashed passwords or sessions) instead of plaintext localStorage
+- Server-stored scan/location events instead of localStorage polling
 
 ## Flow
 
@@ -48,38 +47,33 @@ Then visit `http://localhost:8000`.
 
 Geolocation and camera flows need a secure context; use `localhost` or HTTPS.
 
-## Deploy to Hostinger (static v1) — Git first
+## Deploy to Hostinger (static v1)
 
-**Preferred (prior workflow):** connect this repo in hPanel → **Advanced → Git**
-on the **ringringpaw.nakilab.com** website, pick the deploy branch, deploy to that
-site’s `public_html`. Then:
+**Nothing auto-deploys today.** Branch `PetFinder` is cloned on the server at:
 
+`/home/u233722910/domains/nakilab.com/public_html/ringringpaw`
+
+→ https://ringringpaw.nakilab.com
+
+After merging to `PetFinder`, update the site with SSH `git pull` from a machine
+that has the Hostinger key (Navid’s Mac: `~/.ssh/nakilab_hostinger`):
+
+```bash
+ssh -i ~/.ssh/nakilab_hostinger -p 65002 u233722910@46.202.198.223 \
+  "cd domains/nakilab.com/public_html/ringringpaw && git pull --ff-only"
 ```
-PR → merge into <deploy-branch> → GitHub webhook → Hostinger auto-updates the site
-```
 
-No FTP. Repo: `navidnajmabadi/NAVID-MEHRDAD`. Confirm the Git link targets the
-**subdomain** document root, not root `nakilab.com` (that site uses other branches).
+This is **not** hPanel Git. Optional GitHub Action automation (SSH pull on push)
+is documented in Project `docs/hostinger-deploy.md` but **not enabled** until Navid
+approves a separate deploy key + workflow.
 
-Files that matter at the deploy-branch root:
+**Server-only `.htaccess`:** the live clone keeps an untracked `.htaccess` (blocks
+`/.git`). Do not delete it; do not commit a conflicting one without care.
 
-| File | Purpose |
-|------|---------|
-| `index.html` | Landing |
-| `register.html` | Owner registration |
-| `pet.html` | Finder scan page |
-| `dashboard.html` | Owner dashboard |
-| `admin.html` | QR batch generator |
-| `app.js` | Client store + helpers |
-| `style.css` | Styles |
-| `.htaccess` | Hide `.md` / `.git`, HTTPS nudge, noindex header |
-| `robots.txt` | Light crawl rules |
-
-`.htaccess` blocks public `README.md` after Git checkout. Full hPanel steps and
-open questions (which branch / already linked?) are in Project
-`docs/ringringpaw-go-live.md`.
-
-**Fallback only** (Git broken): `./scripts/pack-hostinger.sh` → zip into File Manager.
+Files at the branch root that matter for the site: `index.html`, `register.html`,
+`pet.html`, `dashboard.html`, `admin.html`, `app.js`, `style.css`, `robots.txt`.
 
 QR links use `location.origin`, so tags generated on the live HTTPS host encode
 `https://ringringpaw.nakilab.com/pet.html?id=…` automatically.
+
+**Fallback only:** `./scripts/pack-hostinger.sh` → File Manager zip (not the normal path).
