@@ -35,21 +35,28 @@ In **phpMyAdmin** (or MySQL CLI):
 
 ### 3. Place config outside web root
 
+**Preferred (no Mac SSH):** GitHub Action **Setup RingRingPaw config**  
+(`.github/workflows/setup-ringringpaw-config.yml`, `workflow_dispatch`).
+
+1. Repo **Settings → Secrets and variables → Actions** — add:
+   | Secret | Required | Notes |
+   |--------|----------|--------|
+   | `HOSTINGER_SSH_KEY` | yes | Already used by Deploy RingRingPaw |
+   | `RRP_DB_NAME` | yes | MySQL database name from step 1 |
+   | `RRP_DB_USER` | yes | MySQL user |
+   | `RRP_DB_PASS` | yes | MySQL password |
+   | `RRP_MAIL_FROM` | no | Defaults to `noreply@nakilab.com` |
+2. **Actions → Setup RingRingPaw config → Run workflow**  
+   Writes `/home/u233722910/domains/nakilab.com/config/ringringpaw.php` (never committed to git; password not logged).
+
+**Manual fallback** (Mac SSH / File Manager):
+
 ```bash
-# On server (SSH from Navid’s Mac), or use File Manager:
 mkdir -p /home/u233722910/domains/nakilab.com/config
 cp /home/u233722910/domains/nakilab.com/public_html/ringringpaw/config.example.php \
    /home/u233722910/domains/nakilab.com/config/ringringpaw.php
-# Then edit ringringpaw.php — set db name/user/pass, mail_from, app_url
+# Edit db name/user/pass, mail_from, app_url
 ```
-
-Edit `/home/u233722910/domains/nakilab.com/config/ringringpaw.php`:
-
-- `db.name`, `db.user`, `db.pass` — from step 1  
-- `app_url` → `https://ringringpaw.nakilab.com`  
-- `mail_from` → an address Hostinger allows (e.g. `noreply@nakilab.com`)  
-- Optional: enable `smtp` if `mail()` is unreliable  
-- Optional: VAPID keys for future Web Push (email + inbox work without them)
 
 **Never commit** `config/ringringpaw.php` or any real passwords.
 
