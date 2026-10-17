@@ -4,6 +4,9 @@ A fast, throwaway MVP to test the product concept: a pet tag with a QR code that
 when scanned, shows the pet's info and the owner's contact details, and lets the
 finder optionally share their live location with the owner to help reunite them.
 
+**Live (static v1):** https://ringringpaw.nakilab.com  
+Parent studio: https://nakilab.com/
+
 ## Status: design/capability prototype
 
 This build has **no backend** — it's intentionally client-only (`localStorage`)
@@ -33,7 +36,7 @@ For a real deployment you'd add:
    notifications and, if the finder opted in, a live map of their location
    until it expires or the finder stops sharing.
 
-## Run it
+## Run it locally
 
 No build step — just open `index.html` in a browser, or serve the folder:
 
@@ -42,3 +45,41 @@ python3 -m http.server 8000
 ```
 
 Then visit `http://localhost:8000`.
+
+Geolocation and camera flows need a secure context; use `localhost` or HTTPS.
+
+## Deploy to Hostinger (static v1) — Git first
+
+**Preferred (prior workflow):** connect this repo in hPanel → **Advanced → Git**
+on the **ringringpaw.nakilab.com** website, pick the deploy branch, deploy to that
+site’s `public_html`. Then:
+
+```
+PR → merge into <deploy-branch> → GitHub webhook → Hostinger auto-updates the site
+```
+
+No FTP. Repo: `navidnajmabadi/NAVID-MEHRDAD`. Confirm the Git link targets the
+**subdomain** document root, not root `nakilab.com` (that site uses other branches).
+
+Files that matter at the deploy-branch root:
+
+| File | Purpose |
+|------|---------|
+| `index.html` | Landing |
+| `register.html` | Owner registration |
+| `pet.html` | Finder scan page |
+| `dashboard.html` | Owner dashboard |
+| `admin.html` | QR batch generator |
+| `app.js` | Client store + helpers |
+| `style.css` | Styles |
+| `.htaccess` | Hide `.md` / `.git`, HTTPS nudge, noindex header |
+| `robots.txt` | Light crawl rules |
+
+`.htaccess` blocks public `README.md` after Git checkout. Full hPanel steps and
+open questions (which branch / already linked?) are in Project
+`docs/ringringpaw-go-live.md`.
+
+**Fallback only** (Git broken): `./scripts/pack-hostinger.sh` → zip into File Manager.
+
+QR links use `location.origin`, so tags generated on the live HTTPS host encode
+`https://ringringpaw.nakilab.com/pet.html?id=…` automatically.
