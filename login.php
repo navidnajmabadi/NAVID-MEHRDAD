@@ -3,8 +3,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/layout.php';
 
-if (rrp_current_owner()) {
-    rrp_redirect('dashboard.php');
+try {
+    if (rrp_current_owner()) {
+        rrp_redirect('dashboard.php');
+    }
+} catch (Throwable $e) {
+    error_log('login current_owner: ' . $e->getMessage());
 }
 
 $next = $_GET['next'] ?? 'dashboard.php';
@@ -14,14 +18,19 @@ if (!is_string($next) || !preg_match('#^[a-z0-9_\-./]+\.php(\?.*)?$#i', $next)) 
 
 $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!rrp_verify_csrf($_POST['csrf'] ?? null)) {
-        $error = 'Session expired. Try again.';
-    } else {
-        $result = rrp_login($_POST['email'] ?? '', $_POST['password'] ?? '');
-        if ($result['ok']) {
-            rrp_redirect($next);
+    try {
+        if (!rrp_verify_csrf($_POST['csrf'] ?? null)) {
+            $error = 'Session expired. Try again.';
+        } else {
+            $result = rrp_login($_POST['email'] ?? '', $_POST['password'] ?? '');
+            if (!empty($result['ok'])) {
+                rrp_redirect($next);
+            }
+            $error = $result['error'] ?? 'Login failed.';
         }
-        $error = $result['error'] ?? 'Login failed.';
+    } catch (Throwable $e) {
+        error_log('login POST: ' . $e->getMessage());
+        $error = rrp_safe_db_error($e, 'Could not log in');
     }
 }
 

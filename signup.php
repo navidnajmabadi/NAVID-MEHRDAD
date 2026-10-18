@@ -3,21 +3,30 @@ declare(strict_types=1);
 require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/layout.php';
 
-if (rrp_current_owner()) {
-    rrp_redirect('dashboard.php');
+try {
+    if (rrp_current_owner()) {
+        rrp_redirect('dashboard.php');
+    }
+} catch (Throwable $e) {
+    error_log('signup current_owner: ' . $e->getMessage());
 }
 
 $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!rrp_verify_csrf($_POST['csrf'] ?? null)) {
-        $error = 'Session expired. Try again.';
-    } else {
-        $result = rrp_register_owner($_POST);
-        if ($result['ok']) {
-            rrp_flash_set('ok', 'Welcome! Add your first pet to get a QR tag.');
-            rrp_redirect('pet-form.php');
+    try {
+        if (!rrp_verify_csrf($_POST['csrf'] ?? null)) {
+            $error = 'Session expired. Try again.';
+        } else {
+            $result = rrp_register_owner($_POST);
+            if (!empty($result['ok'])) {
+                rrp_flash_set('ok', 'Welcome! Add your first pet to get a QR tag.');
+                rrp_redirect('pet-form.php');
+            }
+            $error = $result['error'] ?? 'Could not create account.';
         }
-        $error = $result['error'] ?? 'Could not create account.';
+    } catch (Throwable $e) {
+        error_log('signup POST: ' . $e->getMessage());
+        $error = rrp_safe_db_error($e, 'Could not create account');
     }
 }
 

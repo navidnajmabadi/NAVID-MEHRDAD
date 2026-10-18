@@ -7,9 +7,14 @@ function rrp_current_owner(): ?array
     if (empty($_SESSION['owner_id'])) {
         return null;
     }
-    $stmt = rrp_db()->prepare('SELECT id, name, email, phone, address, status, created_at FROM owners WHERE id = ? LIMIT 1');
-    $stmt->execute([(int) $_SESSION['owner_id']]);
-    $owner = $stmt->fetch();
+    try {
+        $stmt = rrp_db()->prepare('SELECT id, name, email, phone, address, status, created_at FROM owners WHERE id = ? LIMIT 1');
+        $stmt->execute([(int) $_SESSION['owner_id']]);
+        $owner = $stmt->fetch();
+    } catch (Throwable $e) {
+        error_log('rrp_current_owner: ' . $e->getMessage());
+        return null;
+    }
     if (!$owner || $owner['status'] !== 'active') {
         unset($_SESSION['owner_id']);
         return null;
@@ -29,19 +34,24 @@ function rrp_require_owner(): array
 function rrp_login(string $email, string $password): array
 {
     $email = strtolower(trim($email));
-    $stmt = rrp_db()->prepare('SELECT * FROM owners WHERE email = ? LIMIT 1');
-    $stmt->execute([$email]);
-    $owner = $stmt->fetch();
-    if (!$owner || !password_verify($password, $owner['password_hash'])) {
-        return ['ok' => false, 'error' => 'Email or password is incorrect.'];
+    try {
+        $stmt = rrp_db()->prepare('SELECT * FROM owners WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+        $owner = $stmt->fetch();
+        if (!$owner || !password_verify($password, $owner['password_hash'])) {
+            return ['ok' => false, 'error' => 'Email or password is incorrect.'];
+        }
+        if ($owner['status'] !== 'active') {
+            return ['ok' => false, 'error' => 'This account is suspended.'];
+        }
+        rrp_start_session();
+        session_regenerate_id(true);
+        $_SESSION['owner_id'] = (int) $owner['id'];
+        return ['ok' => true, 'owner' => $owner];
+    } catch (Throwable $e) {
+        error_log('rrp_login: ' . $e->getMessage());
+        return ['ok' => false, 'error' => rrp_safe_db_error($e, 'Could not log in')];
     }
-    if ($owner['status'] !== 'active') {
-        return ['ok' => false, 'error' => 'This account is suspended.'];
-    }
-    rrp_start_session();
-    session_regenerate_id(true);
-    $_SESSION['owner_id'] = (int) $owner['id'];
-    return ['ok' => true, 'owner' => $owner];
 }
 
 function rrp_logout(): void
@@ -84,10 +94,15 @@ function rrp_register_owner(array $data): array
         session_regenerate_id(true);
         $_SESSION['owner_id'] = $id;
         return ['ok' => true, 'owner_id' => $id];
-    } catch (PDOException $e) {
-        if ((int) $e->errorInfo[1] === 1062) {
+    } catch (Throwable $e) {
+        error_log('rrp_register_owner: ' . $e->getMessage());
+        if ($e instanceof PDOException && (int) ($e->errorInfo[1] ?? 0) === 1062) {
             return ['ok' => false, 'error' => 'An account with that email already exists.'];
         }
-        throw $e;
+        $prev = $e->getPrevious();
+        if ($prev instanceof PDOException && (int) ($prev->errorInfo[1] ?? 0) === 1062) {
+            return ['ok' => false, 'error' => 'An account with that email already exists.'];
+        }
+        return ['ok' => false, 'error' => rrp_safe_db_error($e, 'Could not create account')];
     }
 }
