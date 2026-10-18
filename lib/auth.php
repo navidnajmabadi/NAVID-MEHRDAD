@@ -90,6 +90,8 @@ function rrp_register_owner(array $data): array
         );
         $stmt->execute([$name, $email, $phone, $address, $hash]);
         $id = (int) rrp_db()->lastInsertId();
+        // Best-effort Nominatim geocode for LOST HELP ME radius (cached).
+        rrp_owner_apply_geocode($id, $address);
         rrp_start_session();
         session_regenerate_id(true);
         $_SESSION['owner_id'] = $id;
@@ -104,5 +106,42 @@ function rrp_register_owner(array $data): array
             return ['ok' => false, 'error' => 'An account with that email already exists.'];
         }
         return ['ok' => false, 'error' => rrp_safe_db_error($e, 'Could not create account')];
+    }
+}
+
+/**
+ * Update owner profile fields used by LOST HELP ME (address → re-geocode).
+ * @return array{ok:bool, error?:string}
+ */
+function rrp_update_owner_profile(int $ownerId, array $data): array
+{
+    $name = trim((string) ($data['name'] ?? ''));
+    $phone = trim((string) ($data['phone'] ?? ''));
+    $address = trim((string) ($data['address'] ?? ''));
+
+    if ($name === '' || $phone === '' || $address === '') {
+        return ['ok' => false, 'error' => 'Name, phone, and address are required.'];
+    }
+
+    try {
+        $prev = rrp_db()->prepare('SELECT address FROM owners WHERE id = ? LIMIT 1');
+        $prev->execute([$ownerId]);
+        $old = $prev->fetch();
+        if (!$old) {
+            return ['ok' => false, 'error' => 'Account not found.'];
+        }
+
+        $stmt = rrp_db()->prepare(
+            'UPDATE owners SET name = ?, phone = ?, address = ? WHERE id = ?'
+        );
+        $stmt->execute([$name, $phone, $address, $ownerId]);
+
+        if (rrp_geocode_normalize_address($address) !== rrp_geocode_normalize_address((string) $old['address'])) {
+            rrp_owner_apply_geocode($ownerId, $address);
+        }
+
+        return ['ok' => true];
+    } catch (Throwable $e) {
+        return ['ok' => false, 'error' => rrp_safe_db_error($e, 'Could not update profile')];
     }
 }

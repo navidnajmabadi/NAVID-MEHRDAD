@@ -4,16 +4,54 @@ require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/layout.php';
 
 $owner = rrp_require_owner();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = (string) ($_POST['action'] ?? '');
+    if (rrp_verify_csrf($_POST['csrf'] ?? null)) {
+        if ($action === 'delete_pet') {
+            rrp_delete_pet((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0));
+            rrp_flash_set('ok', 'Pet removed.');
+            rrp_redirect('dashboard.php');
+        }
+        if ($action === 'lost_trigger') {
+            $result = rrp_trigger_lost((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0));
+            if (!empty($result['ok'])) {
+                $n = (int) ($result['recipients'] ?? 0);
+                rrp_flash_set(
+                    'ok',
+                    $n > 0
+                        ? "LOST HELP ME sent to {$n} nearby owner" . ($n === 1 ? '' : 's') . '.'
+                        : 'LOST HELP ME started. No nearby owners within 25 km yet — alerts will still escalate on schedule if helpers join.'
+                );
+            } else {
+                rrp_flash_set('error', $result['error'] ?? 'Could not start alert.');
+            }
+            rrp_redirect('dashboard.php');
+        }
+        if ($action === 'lost_found') {
+            $result = rrp_mark_lost_found((int) $owner['id'], (int) ($_POST['alert_id'] ?? 0));
+            if (!empty($result['ok'])) {
+                $alert = rrp_lost_by_id((int) ($_POST['alert_id'] ?? 0));
+                $petName = $alert['pet_name'] ?? 'your pet';
+                rrp_redirect('rescued.php?pet=' . rawurlencode($petName));
+            }
+            rrp_flash_set('error', $result['error'] ?? 'Could not mark found.');
+            rrp_redirect('dashboard.php');
+        }
+    }
+}
+
 $pets = rrp_pets_by_owner((int) $owner['id']);
 $scans = rrp_scans_for_owner((int) $owner['id']);
 $notes = rrp_notifications_for_owner((int) $owner['id']);
+$myLost = rrp_lost_for_owner((int) $owner['id']);
+$nearbyLost = rrp_lost_inbox_for_owner((int) $owner['id']);
 rrp_mark_notifications_read((int) $owner['id']);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete_pet') {
-    if (rrp_verify_csrf($_POST['csrf'] ?? null)) {
-        rrp_delete_pet((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0));
-        rrp_flash_set('ok', 'Pet removed.');
-        rrp_redirect('dashboard.php');
+$openLostByPet = [];
+foreach ($myLost as $la) {
+    if ($la['status'] === 'open') {
+        $openLostByPet[(int) $la['pet_id']] = $la;
     }
 }
 
@@ -30,15 +68,35 @@ rrp_layout_head('Dashboard — Ring Ring Paw', ['extra_head' => $extra]);
   </div>
 
   <h1>Hi, <?= rrp_h($owner['name']) ?></h1>
-  <p class="lede">Your pets, QR tags, scan alerts, and live map when a finder shares location.</p>
+  <p class="lede">Your pets, QR tags, LOST HELP ME, scan alerts, and live map when a finder shares location.</p>
   <?php rrp_render_flash(); ?>
 
   <div class="nav-links">
     <?php if (count($pets) < RRP_MAX_PETS): ?>
       <a class="btn btn-primary" href="pet-form.php">Add pet</a>
     <?php endif; ?>
+    <a class="btn btn-ghost" href="account.php">Account</a>
+    <a class="btn btn-ghost" href="support.php">Support</a>
     <a class="btn btn-ghost" href="#scans">Scans</a>
   </div>
+
+  <?php if ($nearbyLost): ?>
+  <section class="panel panel-lost" aria-labelledby="nearbyHeading">
+    <h2 id="nearbyHeading">Nearby LOST alerts</h2>
+    <p class="meta">Owners within ~25 km of your registered address need a hand.</p>
+    <?php foreach ($nearbyLost as $la): ?>
+      <a class="lost-teaser" href="lost-alert.php?id=<?= (int) $la['id'] ?>">
+        <?php if (!empty($la['image_path'])): ?>
+          <img src="<?= rrp_h($la['image_path']) ?>" alt="" width="56" height="56" />
+        <?php endif; ?>
+        <span>
+          <strong><?= rrp_h($la['pet_name']) ?></strong>
+          <span class="meta">~<?= rrp_h((string) $la['distance_km']) ?> km · magic word <?= rrp_h($la['magic_word'] ?: '—') ?></span>
+        </span>
+      </a>
+    <?php endforeach; ?>
+  </section>
+  <?php endif; ?>
 
   <section class="panel" aria-labelledby="petsHeading">
     <h2 id="petsHeading">Your pets (<?= count($pets) ?>/<?= RRP_MAX_PETS ?>)</h2>
@@ -46,6 +104,7 @@ rrp_layout_head('Dashboard — Ring Ring Paw', ['extra_head' => $extra]);
       <p class="empty">No pets yet. Add one to generate a QR collar tag.</p>
     <?php else: ?>
       <?php foreach ($pets as $pet): ?>
+        <?php $open = $openLostByPet[(int) $pet['id']] ?? null; ?>
         <div class="panel panel-soft" style="margin-top:12px;margin-bottom:0">
           <div class="pet-card">
             <?php if (!empty($pet['image_path'])): ?>
@@ -55,11 +114,28 @@ rrp_layout_head('Dashboard — Ring Ring Paw', ['extra_head' => $extra]);
             <?php endif; ?>
             <div>
               <strong><?= rrp_h($pet['name']) ?></strong>
+              <?php if ($open): ?><span class="pill pill-lost">LOST</span><?php endif; ?>
               <div class="meta"><?= rrp_h(rrp_pet_type_label($pet)) ?><?= $pet['breed'] ? ' · ' . rrp_h($pet['breed']) : '' ?><?= $pet['color'] ? ' · ' . rrp_h($pet['color']) : '' ?></div>
               <div class="row" style="margin-top:10px">
                 <a class="btn btn-secondary" href="tag.php?id=<?= (int) $pet['id'] ?>">QR tag</a>
                 <a class="btn btn-ghost" href="pet-form.php?id=<?= (int) $pet['id'] ?>">Edit</a>
               </div>
+              <?php if ($open): ?>
+                <form method="post" style="margin-top:10px">
+                  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+                  <input type="hidden" name="action" value="lost_found" />
+                  <input type="hidden" name="alert_id" value="<?= (int) $open['id'] ?>" />
+                  <button type="submit" class="btn btn-primary btn-block">Mark Found — Yoho rescued</button>
+                </form>
+                <p class="field-hint">Pings: <?= (int) $open['ping_count'] ?>/<?= count(RRP_LOST_PING_OFFSETS) ?> · next <?= rrp_h((string) ($open['next_ping_at'] ?? 'done')) ?> UTC</p>
+              <?php else: ?>
+                <form method="post" style="margin-top:10px" onsubmit="return confirm('Broadcast LOST HELP ME to nearby Ring Ring Paw owners (~25 km from your address)?');">
+                  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+                  <input type="hidden" name="action" value="lost_trigger" />
+                  <input type="hidden" name="pet_id" value="<?= (int) $pet['id'] ?>" />
+                  <button type="submit" class="btn btn-danger btn-block btn-lost">LOST HELP ME</button>
+                </form>
+              <?php endif; ?>
               <form method="post" style="margin-top:8px" onsubmit="return confirm('Remove this pet and its QR tag?');">
                 <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
                 <input type="hidden" name="action" value="delete_pet" />
@@ -76,7 +152,7 @@ rrp_layout_head('Dashboard — Ring Ring Paw', ['extra_head' => $extra]);
   <section class="panel" id="inbox" aria-labelledby="inboxHeading">
     <h2 id="inboxHeading">Inbox</h2>
     <?php if (!$notes): ?>
-      <p class="empty">No alerts yet. You’ll get an email and an inbox note when someone scans a tag.</p>
+      <p class="empty">No alerts yet. You’ll get an email and an inbox note on scans and nearby LOST HELP ME.</p>
     <?php else: ?>
       <?php foreach ($notes as $n): ?>
         <div class="panel panel-soft" style="margin-top:10px;margin-bottom:0">
@@ -85,6 +161,9 @@ rrp_layout_head('Dashboard — Ring Ring Paw', ['extra_head' => $extra]);
             <?php if (empty($n['read_at'])): ?><span class="pill pill-unread">New</span><?php endif; ?>
           </div>
           <p class="meta" style="white-space:pre-wrap;margin:6px 0 0"><?= rrp_h($n['body']) ?></p>
+          <?php if (!empty($n['lost_alert_id'])): ?>
+            <p style="margin:8px 0 0"><a href="lost-alert.php?id=<?= (int) $n['lost_alert_id'] ?>">Open alert</a></p>
+          <?php endif; ?>
           <p class="meta" style="margin:6px 0 0"><?= rrp_h($n['created_at']) ?> UTC</p>
         </div>
       <?php endforeach; ?>
