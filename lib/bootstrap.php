@@ -171,6 +171,15 @@ function rrp_app_url(string $path = ''): string
     return $base . '/' . ltrim($path, '/');
 }
 
+/**
+ * Absolute URL for static assets / shared layout links.
+ * Safe from /admin/* pages where relative "assets/…" would 404.
+ */
+function rrp_asset(string $path): string
+{
+    return rrp_app_url(ltrim($path, '/'));
+}
+
 function rrp_h(?string $value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

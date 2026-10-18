@@ -617,6 +617,22 @@ button.btn {
 
 .admin-table th { color: var(--color-muted); font-weight: 600; }
 
+.setup-steps {
+  margin: 8px 0 0;
+  padding-left: 1.25rem;
+  color: var(--color-fg);
+}
+
+.setup-steps li { margin: 8px 0; }
+
+.setup-steps code,
+.panel code {
+  font-size: 0.9em;
+  background: var(--color-bg-wash);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
 @media (min-width: 768px) {
   .landing-hero { padding-top: 64px; }
   .cta-group { flex-direction: row; width: auto; }
