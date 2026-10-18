@@ -9,12 +9,15 @@ function rrp_config_paths(): array
 {
     $root = dirname(__DIR__);
     return [
-        // Absolute Hostinger paths first (docroot may be either parent domain or subdomain site).
+        // Absolute Hostinger paths first (preferred: outside public_html).
         '/home/u233722910/domains/nakilab.com/config/ringringpaw.php',
         '/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php',
         // Relative fallbacks if the clone lives under public_html/.../ringringpaw
         $root . '/../../config/ringringpaw.php',
         $root . '/../config/ringringpaw.php',
+        // Temporary: config/ inside the app/docroot (Navid File Browser layout).
+        // Prefer outside-web-root long-term; .htaccess must deny /config/ over HTTP.
+        $root . '/config/ringringpaw.php',
         // Local override (gitignored)
         $root . '/config.local.php',
         // Fallback for local docker/dev only
@@ -53,10 +56,10 @@ function rrp_load_config(): array
     header('Content-Type: text/plain; charset=utf-8');
     echo "RingRingPaw is not configured yet.\n\n";
     echo "Create MySQL DB, import sql/001_schema.sql, then place config at ONE of:\n";
-    echo "  /home/u233722910/domains/nakilab.com/config/ringringpaw.php\n";
+    echo "  /home/u233722910/domains/nakilab.com/config/ringringpaw.php  (preferred)\n";
     echo "  /home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php\n";
+    echo "  {app}/config/ringringpaw.php  (temporary in-docroot; HTTP blocked)\n";
     echo "(copy from config.example.php — never commit real passwords).\n";
-    echo "If the subdomain is its own hPanel site, prefer the ringringpaw.nakilab.com path.\n";
     exit;
 }
 

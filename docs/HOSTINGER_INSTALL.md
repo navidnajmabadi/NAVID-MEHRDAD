@@ -12,7 +12,7 @@ Do this **once** on Hostinger. Agents cannot SSH. After merge to `PetFinder`, au
 | Schema file (in repo) | `sql/001_schema.sql` |
 | Config template (in repo) | `config.example.php` |
 
-hPanel may list **ringringpaw.nakilab.com** as its own website (separate docroot). The app checks **both** absolute config paths above, then relative `../../config/` fallbacks. Put `ringringpaw.php` in **either** config directory (outside `public_html`). Never inside the web root.
+hPanel may list **ringringpaw.nakilab.com** as its own website (separate docroot). The app checks both absolute paths above, then relative fallbacks, then **`{app_root}/config/ringringpaw.php`** (temporary if File Browser put `config/` next to `tag.php` — blocked from HTTP by `.htaccess`). **Long-term correct:** keep secrets **outside** `public_html` at one of the absolute paths.
 
 ## Navid — one-time steps
 
