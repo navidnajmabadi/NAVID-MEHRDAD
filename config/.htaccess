@@ -1,0 +1,6 @@
+# Deny all HTTP access to this directory (live secrets if present here).
+# Long-term: keep ringringpaw.php OUTSIDE public_html instead.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+Deny from all

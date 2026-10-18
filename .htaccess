@@ -14,7 +14,9 @@ RedirectMatch 404 /\.git
 </IfModule>
 
 # Deny PHP in uploads (belt + suspenders; also see uploads/pets/.htaccess)
+# Block HTTP access to in-docroot config/ (secrets must not be downloadable)
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteRule ^uploads/.*\.(?i:php|phtml|phar)$ - [F,L]
+  RewriteRule ^config(/|$) - [F,L]
 </IfModule>
