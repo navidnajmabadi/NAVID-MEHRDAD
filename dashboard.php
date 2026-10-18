@@ -127,6 +127,16 @@ rrp_layout_head('Dashboard — Ring Ring Paw', ['extra_head' => $extra]);
                   <input type="hidden" name="alert_id" value="<?= (int) $open['id'] ?>" />
                   <button type="submit" class="btn btn-primary btn-block">Mark Found — Yoho rescued</button>
                 </form>
+                <?php
+                  $recipStmt = rrp_db()->prepare('SELECT COUNT(*) FROM lost_alert_recipients WHERE lost_alert_id = ?');
+                  $recipStmt->execute([(int) $open['id']]);
+                  $recipN = (int) $recipStmt->fetchColumn();
+                ?>
+                <?php if ($recipN === 0): ?>
+                  <p class="field-hint" style="color:var(--color-danger)">No nearby owners within 25 km yet (geocode/address). <a href="lost-alert.php?id=<?= (int) $open['id'] ?>">Alert details</a></p>
+                <?php else: ?>
+                  <p class="field-hint"><?= $recipN ?> nearby owner<?= $recipN === 1 ? '' : 's' ?> notified · <a href="lost-alert.php?id=<?= (int) $open['id'] ?>">View alert</a></p>
+                <?php endif; ?>
                 <p class="field-hint">Pings: <?= (int) $open['ping_count'] ?>/<?= count(RRP_LOST_PING_OFFSETS) ?> · next <?= rrp_h((string) ($open['next_ping_at'] ?? 'done')) ?> UTC</p>
               <?php else: ?>
                 <form method="post" style="margin-top:10px" onsubmit="return confirm('Broadcast LOST HELP ME to nearby Ring Ring Paw owners (~25 km from your address)?');">

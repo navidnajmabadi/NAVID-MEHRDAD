@@ -11,12 +11,12 @@ function rrp_admin_nav(string $active = 'home'): void
         'coupons' => ['coupons.php', 'Coupons'],
         'logs' => ['logs.php', 'Logs'],
     ];
-    echo '<nav class="admin-nav" aria-label="Admin">';
+    echo '<nav class="admin-nav" aria-label="Admin">' . "\n";
     foreach ($items as $key => [$href, $label]) {
         $cls = $key === $active ? ' class="is-active"' : '';
-        echo '<a href="' . rrp_h($href) . '"' . $cls . '>' . rrp_h($label) . '</a>';
+        echo '  <a href="' . rrp_h($href) . '"' . $cls . '>' . rrp_h($label) . '</a>' . "\n";
     }
-    echo '<a href="logout.php">Log out</a>';
+    echo '  <a href="logout.php">Log out</a>' . "\n";
     echo '</nav>';
 }
 

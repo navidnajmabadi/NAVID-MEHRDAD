@@ -8,9 +8,15 @@ $alertId = (int) ($_GET['id'] ?? 0);
 $alert = $alertId > 0 ? rrp_lost_by_id($alertId) : null;
 
 $allowed = false;
+$isOwner = false;
+$recipientCount = 0;
 if ($alert) {
-    if ((int) $alert['owner_id'] === (int) $owner['id']) {
+    $isOwner = (int) $alert['owner_id'] === (int) $owner['id'];
+    if ($isOwner) {
         $allowed = true;
+        $cnt = rrp_db()->prepare('SELECT COUNT(*) FROM lost_alert_recipients WHERE lost_alert_id = ?');
+        $cnt->execute([$alertId]);
+        $recipientCount = (int) $cnt->fetchColumn();
     } else {
         $chk = rrp_db()->prepare(
             'SELECT 1 FROM lost_alert_recipients WHERE lost_alert_id = ? AND recipient_owner_id = ? LIMIT 1'
@@ -66,9 +72,20 @@ rrp_layout_head($alert ? ('Help find ' . $alert['pet_name'] . ' — Ring Ring Pa
     </div>
     <?php endif; ?>
 
+    <?php if ($isOwner): ?>
+      <?php if ($recipientCount === 0): ?>
+        <div class="flash flash-error" role="status">
+          No nearby owners within <?= rrp_h((string) $alert['radius_km']) ?> km yet.
+          Other Ring Ring Paw accounts need a geocoded address near yours. Check <a href="account.php">Account</a> that your address mapped correctly; the alert stays open and will reach helpers who join nearby later.
+        </div>
+      <?php else: ?>
+        <p class="meta">Notified <?= (int) $recipientCount ?> nearby owner<?= $recipientCount === 1 ? '' : 's' ?> (within ~<?= rrp_h((string) $alert['radius_km']) ?> km).</p>
+      <?php endif; ?>
+    <?php endif; ?>
+
     <?php if ($alert['status'] === 'found'): ?>
       <div class="flash flash-ok">Yoho rescued — this pet was marked Found. Thank you!</div>
-    <?php elseif ($alert['status'] === 'open' && (int) $alert['owner_id'] === (int) $owner['id']): ?>
+    <?php elseif ($alert['status'] === 'open' && $isOwner): ?>
       <form method="post" action="dashboard.php" class="stack-actions">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
         <input type="hidden" name="action" value="lost_found" />
