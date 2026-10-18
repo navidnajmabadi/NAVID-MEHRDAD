@@ -80,6 +80,23 @@ rrp_layout_head('Dashboard — Ring Ring Paw', ['extra_head' => $extra]);
     <a class="btn btn-ghost" href="#scans">Scans</a>
   </div>
 
+  <section class="panel panel-soft" id="pushBanner" aria-labelledby="pushHeading">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+      <h2 id="pushHeading" data-push-title style="margin:0;font-size:1.05rem">Phone notifications</h2>
+      <span class="pill pill-ended" data-push-badge>…</span>
+    </div>
+    <p class="meta" data-push-hint style="margin:8px 0 0">Checking push status…</p>
+    <?php if (!rrp_vapid_configured()): ?>
+      <p class="field-hint" style="margin-top:8px">
+        Server VAPID keys are empty — email and inbox still work.
+        Admin: add keys to <code>domains/…/config/ringringpaw.php</code> (see docs/WEB_PUSH.md).
+      </p>
+    <?php endif; ?>
+    <button type="button" class="btn btn-secondary" id="pushEnableBtn" data-push-enable style="margin-top:12px" hidden>
+      Enable notifications
+    </button>
+  </section>
+
   <?php if ($nearbyLost): ?>
   <section class="panel panel-lost" aria-labelledby="nearbyHeading">
     <h2 id="nearbyHeading">Nearby LOST alerts</h2>

@@ -1,10 +1,20 @@
 (function () {
   "use strict";
 
+  function swUrl() {
+    var el = document.querySelector('meta[name="rrp-sw"]');
+    return el ? el.getAttribute("content") : "sw.js";
+  }
+
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("sw.js").catch(function () {});
-    });
+    navigator.serviceWorker
+      .register(swUrl())
+      .then(function () {
+        if (window.RRPPush && typeof window.RRPPush.ensure === "function") {
+          window.RRPPush.ensure();
+        }
+      })
+      .catch(function () {});
   }
 
   var deferredPrompt = null;
@@ -26,10 +36,29 @@
     banner.classList.add("show");
   }
 
+  function afterInstall() {
+    if (window.RRPPush && typeof window.RRPPush.ensure === "function") {
+      // iOS/Android may need a tick after A2HS before standalone + push APIs settle.
+      setTimeout(function () {
+        window.RRPPush.ensure().then(function () {
+          var pushBanner = document.getElementById("pushBanner");
+          if (pushBanner && window.RRPPush.renderBanner) {
+            window.RRPPush.renderBanner(pushBanner);
+          }
+        });
+      }, 800);
+    }
+  }
+
   window.addEventListener("beforeinstallprompt", function (e) {
     e.preventDefault();
     deferredPrompt = e;
     showBanner();
+  });
+
+  window.addEventListener("appinstalled", function () {
+    if (banner) banner.classList.remove("show");
+    afterInstall();
   });
 
   // iOS Safari has no beforeinstallprompt — show gentle hint.
@@ -40,7 +69,7 @@
 
   if (isIos && !isStandalone && banner && installText && !dismissed()) {
     installText.textContent =
-      "On iPhone: Share → Add to Home Screen to install Ring Ring Paw.";
+      "On iPhone: Share → Add to Home Screen to install Ring Ring Paw (needed for notifications).";
     if (installBtn) installBtn.style.display = "none";
     showBanner();
   }
@@ -52,6 +81,7 @@
       deferredPrompt.userChoice.finally(function () {
         deferredPrompt = null;
         if (banner) banner.classList.remove("show");
+        afterInstall();
       });
     });
   }
@@ -63,5 +93,40 @@
       } catch (e) {}
       if (banner) banner.classList.remove("show");
     });
+  }
+
+  // Dashboard push banner wiring
+  var pushBanner = document.getElementById("pushBanner");
+  var pushEnable = document.getElementById("pushEnableBtn");
+  if (pushBanner && window.RRPPush) {
+    window.RRPPush.renderBanner(pushBanner);
+    if (pushEnable) {
+      pushEnable.addEventListener("click", function () {
+        pushEnable.disabled = true;
+        window.RRPPush.enable().then(function (res) {
+          window.RRPPush.renderBanner(pushBanner);
+          var hint = pushBanner.querySelector("[data-push-hint]");
+          if (!res || !res.ok) {
+            if (hint) {
+              if (res && res.error === "ios_not_installed") {
+                hint.textContent =
+                  (res.status && res.status.hint) ||
+                  "Install via Share → Add to Home Screen first.";
+              } else if (res && res.error === "permission_denied") {
+                hint.textContent = isIos
+                  ? "Notifications blocked. Settings → Notifications → Ring Ring Paw → Allow."
+                  : "Notifications blocked. Allow notifications for this site in browser settings, then try again.";
+              } else if (res && res.error === "vapid_not_configured") {
+                hint.textContent =
+                  "Server push keys are empty. Email and inbox still work. Ask admin to add VAPID keys.";
+              } else {
+                hint.textContent = "Could not enable push. Email and inbox still work.";
+              }
+            }
+          }
+          pushEnable.disabled = false;
+        });
+      });
+    }
   }
 })();

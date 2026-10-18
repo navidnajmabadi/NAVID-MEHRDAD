@@ -9,8 +9,9 @@ Do this **once** on Hostinger. Agents cannot SSH. After merge to `PetFinder`, au
 | Web root (possible) | `/home/u233722910/domains/nakilab.com/public_html/ringringpaw` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/public_html` |
 | Site URL | https://ringringpaw.nakilab.com |
 | **Config (secrets) — either works** | `/home/u233722910/domains/nakilab.com/config/ringringpaw.php` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php` |
-| Schema files (in repo) | `sql/001_schema.sql` then `sql/002_lost_admin.sql` |
+| Schema files (in repo) | `sql/001_schema.sql` → `sql/002_lost_admin.sql` → `sql/003_push_subscriptions.sql` |
 | LOST + Admin setup | [`LOST_ADMIN.md`](./LOST_ADMIN.md) |
+| Web Push (PWA) | [`WEB_PUSH.md`](./WEB_PUSH.md) |
 | Config template (in repo) | `config.example.php` |
 
 hPanel may list **ringringpaw.nakilab.com** as its own website (separate docroot). The app checks both absolute paths above, then relative fallbacks, then **`{app_root}/config/ringringpaw.php`** (temporary if File Browser put `config/` next to `tag.php` — blocked from HTTP by `.htaccess`). **Long-term correct:** keep secrets **outside** `public_html` at one of the absolute paths.
@@ -31,8 +32,8 @@ In **hPanel → Databases → MySQL Databases**:
 In **phpMyAdmin** (or MySQL CLI):
 
 1. Select the new database.
-2. Import / run `sql/001_schema.sql`, then **`sql/002_lost_admin.sql`** (LOST HELP ME + Admin).  
-   Path after deploy: `…/ringringpaw/sql/`. Full cron/admin steps: [`LOST_ADMIN.md`](./LOST_ADMIN.md).
+2. Import / run `sql/001_schema.sql`, then **`sql/002_lost_admin.sql`** (LOST HELP ME + Admin), then **`sql/003_push_subscriptions.sql`** (Web Push columns).  
+   Path after deploy: `…/ringringpaw/sql/`. Full cron/admin steps: [`LOST_ADMIN.md`](./LOST_ADMIN.md). Push: [`WEB_PUSH.md`](./WEB_PUSH.md).
 
 ### 3. Place config outside web root
 
@@ -53,7 +54,8 @@ cp /path/to/config.example.php \
    /home/u233722910/domains/nakilab.com/config/ringringpaw.php
 ```
 
-Edit the file: `db.name` / `db.user` / `db.pass`, `app_url` → `https://ringringpaw.nakilab.com`, `mail_from` (e.g. `noreply@nakilab.com`).
+Edit the file: `db.name` / `db.user` / `db.pass`, `app_url` → `https://ringringpaw.nakilab.com`, `mail_from` (e.g. `noreply@nakilab.com`).  
+For home-screen notifications: generate VAPID keys (`php scripts/generate-vapid.php`) and paste into `vapid` — see [`WEB_PUSH.md`](./WEB_PUSH.md).
 
 **Never commit** real `ringringpaw.php` or passwords.
 
@@ -77,11 +79,11 @@ If the host still serves old `index.html` over `index.php`, remove or rename `in
 
 ## Notification reality (Hostinger)
 
-| Channel | Phase 1 status |
-|---------|----------------|
+| Channel | Status |
+|---------|--------|
 | **Email** | Primary — PHP `mail()` or SMTP from config |
 | **In-app inbox** | Primary — dashboard Inbox |
-| **Web Push** | Subscriptions can be saved; full VAPID push needs a PHP push library (Composer). Documented as follow-up. |
+| **Web Push** | Full send via pure-PHP VAPID (`lib/webpush.php`) when `vapid` keys are set — see [`WEB_PUSH.md`](./WEB_PUSH.md). No Composer required. |
 | **SMS** | Out of scope |
 
 ## Health check

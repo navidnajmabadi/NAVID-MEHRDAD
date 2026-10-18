@@ -194,7 +194,12 @@ function rrp_mark_lost_found(int $ownerId, int $alertId): array
     foreach ($recip->fetchAll() as $r) {
         rrp_notify_owner_inbox((int) $r['id'], 'lost_found', $title, $body, null, $alertId);
         rrp_send_mail((string) $r['email'], $title, $body . "\n\n" . rrp_app_url('dashboard.php'));
-        rrp_try_web_push((int) $r['id'], $title, $alert['pet_name'] . ' is safe.');
+        rrp_try_web_push(
+            (int) $r['id'],
+            $title,
+            $alert['pet_name'] . ' is safe.',
+            rrp_app_url('dashboard.php')
+        );
     }
 
     return ['ok' => true];
@@ -253,7 +258,12 @@ function rrp_lost_send_ping(array $alert, bool $isImmediate = false): void
     foreach ($rows as $r) {
         rrp_notify_owner_inbox((int) $r['id'], 'lost_help', $title, $body, null, $alertId);
         rrp_send_mail((string) $r['email'], $title, $body);
-        rrp_try_web_push((int) $r['id'], $title, "Help find {$alert['pet_name']} nearby.");
+        rrp_try_web_push(
+            (int) $r['id'],
+            $title,
+            "Help find {$alert['pet_name']} nearby — open the alert.",
+            $viewUrl
+        );
         $updR = rrp_db()->prepare(
             'UPDATE lost_alert_recipients SET
                 notified_at = COALESCE(notified_at, UTC_TIMESTAMP()),

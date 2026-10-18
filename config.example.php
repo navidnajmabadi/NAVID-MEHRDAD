@@ -44,8 +44,10 @@ return [
     // Live location TTL (seconds) when finder shares live.
     'live_ttl_seconds' => 30 * 60,
 
-    // Optional Web Push (VAPID). Leave empty to skip push; email + inbox still work.
-    // Generate keys once (e.g. https://vapidkeys.com) and paste here.
+    // Web Push (VAPID) for installed PWA notifications.
+    // Leave keys empty to skip push (no crash; email + inbox still work).
+    // Generate: php scripts/generate-vapid.php  OR https://vapidkeys.com
+    // Full steps: docs/WEB_PUSH.md
     'vapid' => [
         'subject' => 'mailto:you@nakilab.com',
         'public_key' => '',

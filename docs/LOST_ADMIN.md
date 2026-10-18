@@ -106,4 +106,4 @@ Signup, pet CRUD, QR scan, call, location share, owner inbox — still work.
 |---------|----------------|
 | Email | Yes |
 | In-app inbox | Yes |
-| Web Push | Optional stub (same as Phase 1) |
+| Web Push | Yes when VAPID is set — installs PWA + permission; see [`WEB_PUSH.md`](./WEB_PUSH.md) |

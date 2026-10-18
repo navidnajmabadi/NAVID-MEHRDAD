@@ -22,6 +22,8 @@ $out = [
         'owners_table' => false,
         'lost_alerts_table' => false,
         'admin_users_table' => false,
+        'push_subscriptions_table' => false,
+        'vapid_configured' => false,
     ],
     'hint' => null,
     'error' => null,
@@ -61,12 +63,17 @@ try {
     $out['checks']['lost_alerts_table'] = (bool) $stmt->fetchColumn();
     $stmt = $pdo->query("SHOW TABLES LIKE 'admin_users'");
     $out['checks']['admin_users_table'] = (bool) $stmt->fetchColumn();
+    $stmt = $pdo->query("SHOW TABLES LIKE 'push_subscriptions'");
+    $out['checks']['push_subscriptions_table'] = (bool) $stmt->fetchColumn();
+    $out['checks']['vapid_configured'] = rrp_vapid_configured();
 
     $out['ok'] = true;
     if (!$out['checks']['lost_alerts_table'] || !$out['checks']['admin_users_table']) {
         $out['hint'] = 'Phase 1 OK. Import sql/002_lost_admin.sql for LOST HELP ME + Admin tables.';
+    } elseif (!$out['checks']['vapid_configured']) {
+        $out['hint'] = 'DB OK. Add vapid keys to ringringpaw.php for PWA push (docs/WEB_PUSH.md). Email + inbox still work.';
     } else {
-        $out['hint'] = 'Config + DB + owners + lost/admin tables OK.';
+        $out['hint'] = 'Config + DB + owners + lost/admin + VAPID OK.';
     }
     echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {

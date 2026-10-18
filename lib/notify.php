@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Owner notifications: in-app inbox + email. Web Push is best-effort when VAPID is set.
+ * Owner notifications: in-app inbox + email. Web Push when VAPID is configured.
  */
 function rrp_notify_scan(array $pet, array $owner, int $scanId, string $mode = 'none'): void
 {
@@ -25,7 +25,12 @@ function rrp_notify_scan(array $pet, array $owner, int $scanId, string $mode = '
     $stmt->execute([(int) $owner['id'], $scanId, 'scan', $title, $body]);
 
     rrp_send_mail((string) $owner['email'], $title, $body);
-    rrp_try_web_push((int) $owner['id'], $title, "Open dashboard to see details for {$petName}.");
+    rrp_try_web_push(
+        (int) $owner['id'],
+        $title,
+        "Open dashboard to see details for {$petName}.",
+        rrp_app_url('dashboard.php')
+    );
     rrp_mark_scan_notified($scanId);
 }
 
@@ -48,29 +53,100 @@ function rrp_mark_notifications_read(int $ownerId): void
     $stmt->execute([$ownerId]);
 }
 
-function rrp_save_push_subscription(int $ownerId, string $endpoint, string $p256dh, string $auth): void
+function rrp_save_push_subscription(
+    int $ownerId,
+    string $endpoint,
+    string $p256dh,
+    string $auth,
+    ?string $userAgent = null
+): void {
+    $hash = hash('sha256', $endpoint);
+    $ua = $userAgent !== null ? substr($userAgent, 0, 512) : null;
+
+    // Prefer new columns from sql/003; fall back if migration not applied yet.
+    try {
+        $del = rrp_db()->prepare('DELETE FROM push_subscriptions WHERE endpoint_hash = ? OR (owner_id = ? AND endpoint = ?)');
+        $del->execute([$hash, $ownerId, $endpoint]);
+        $ins = rrp_db()->prepare(
+            'INSERT INTO push_subscriptions (owner_id, endpoint, endpoint_hash, p256dh, auth, user_agent, fail_count)
+             VALUES (?, ?, ?, ?, ?, ?, 0)'
+        );
+        $ins->execute([$ownerId, $endpoint, $hash, $p256dh, $auth, $ua]);
+    } catch (Throwable $e) {
+        error_log('rrp_save_push_subscription migrate-fallback: ' . $e->getMessage());
+        $del = rrp_db()->prepare('DELETE FROM push_subscriptions WHERE owner_id = ? AND endpoint = ?');
+        $del->execute([$ownerId, $endpoint]);
+        $ins = rrp_db()->prepare(
+            'INSERT INTO push_subscriptions (owner_id, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)'
+        );
+        $ins->execute([$ownerId, $endpoint, $p256dh, $auth]);
+    }
+}
+
+function rrp_delete_push_subscription_by_endpoint(string $endpoint): void
 {
-    $del = rrp_db()->prepare('DELETE FROM push_subscriptions WHERE owner_id = ? AND endpoint = ?');
-    $del->execute([$ownerId, $endpoint]);
-    $ins = rrp_db()->prepare(
-        'INSERT INTO push_subscriptions (owner_id, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)'
+    $hash = hash('sha256', $endpoint);
+    try {
+        $stmt = rrp_db()->prepare('DELETE FROM push_subscriptions WHERE endpoint_hash = ? OR endpoint = ?');
+        $stmt->execute([$hash, $endpoint]);
+    } catch (Throwable $e) {
+        $stmt = rrp_db()->prepare('DELETE FROM push_subscriptions WHERE endpoint = ?');
+        $stmt->execute([$endpoint]);
+    }
+}
+
+function rrp_push_subscriptions_for_owner(int $ownerId): array
+{
+    $stmt = rrp_db()->prepare(
+        'SELECT id, owner_id, endpoint, p256dh, auth FROM push_subscriptions WHERE owner_id = ?'
     );
-    $ins->execute([$ownerId, $endpoint, $p256dh, $auth]);
+    $stmt->execute([$ownerId]);
+    return $stmt->fetchAll();
 }
 
 /**
- * Minimal Web Push attempt without Composer.
- * Requires openssl + curl. If VAPID keys are empty or crypto fails, silently skip
- * (email + inbox remain the reliable Hostinger path).
+ * Best-effort Web Push to all stored subscriptions for an owner.
+ * Never throws — email + inbox remain the reliable path when VAPID is empty or crypto fails.
  */
-function rrp_try_web_push(int $ownerId, string $title, string $body): void
+function rrp_try_web_push(int $ownerId, string $title, string $body, ?string $url = null): void
 {
-    $vapid = rrp_load_config()['vapid'] ?? [];
-    if (empty($vapid['public_key']) || empty($vapid['private_key'])) {
+    if (!rrp_vapid_configured()) {
         return;
     }
-    // Full Web Push encryption needs a library (e.minishlink/web-push).
-    // Documented fallback: email + in-app inbox. Stub hook for future Composer install.
-    // We store subscriptions so Phase 1.1 can send once a push lib is available.
-    unset($ownerId, $title, $body);
+
+    $subs = rrp_push_subscriptions_for_owner($ownerId);
+    if (!$subs) {
+        return;
+    }
+
+    foreach ($subs as $sub) {
+        try {
+            $result = rrp_webpush_send($sub, $title, $body, $url);
+            if (!empty($result['gone'])) {
+                rrp_delete_push_subscription_by_endpoint((string) $sub['endpoint']);
+                continue;
+            }
+            if (!empty($result['ok'])) {
+                try {
+                    $upd = rrp_db()->prepare(
+                        'UPDATE push_subscriptions SET last_success_at = UTC_TIMESTAMP(), fail_count = 0 WHERE id = ?'
+                    );
+                    $upd->execute([(int) $sub['id']]);
+                } catch (Throwable $e) {
+                    // Column may be missing pre-003
+                }
+            } else {
+                try {
+                    $upd = rrp_db()->prepare(
+                        'UPDATE push_subscriptions SET fail_count = LEAST(fail_count + 1, 255) WHERE id = ?'
+                    );
+                    $upd->execute([(int) $sub['id']]);
+                } catch (Throwable $e) {
+                    // ignore
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('rrp_try_web_push: ' . $e->getMessage());
+        }
+    }
 }

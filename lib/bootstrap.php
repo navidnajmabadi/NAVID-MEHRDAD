@@ -246,6 +246,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/pets.php';
 require_once __DIR__ . '/scans.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/webpush.php';
 require_once __DIR__ . '/notify.php';
 require_once __DIR__ . '/geocode.php';
 require_once __DIR__ . '/lost.php';

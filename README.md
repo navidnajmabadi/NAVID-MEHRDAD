@@ -14,8 +14,9 @@ Scan a collar QR → see pet + owner phone → optional live location → owner 
 - **LOST HELP ME** — geocode address (Nominatim + cache), notify owners within ~25 km, escalate t0 / +1h / +3h / +8h, **Yoho rescued** on Found
 - **Admin** — stats, accounts/suspend, geo map, tickets, coupons stub, logs
 - Secrets outside web root — see `docs/HOSTINGER_INSTALL.md` + `docs/LOST_ADMIN.md`
+- **Web Push** on installed PWA (VAPID) — see `docs/WEB_PUSH.md`
 
-**Later:** payments / Stripe, metal tags, full Web Push send.
+**Later:** payments / Stripe, metal tags.
 
 ## Install on Hostinger
 
@@ -25,11 +26,12 @@ Scan a collar QR → see pet + owner phone → optional live location → owner 
 Summary:
 
 1. Create MySQL DB + user in hPanel  
-2. Import `sql/001_schema.sql` then `sql/002_lost_admin.sql`  
-3. Copy `config.example.php` → live `ringringpaw.php` (include `cron_secret` + `admin_setup_secret`)  
+2. Import `sql/001_schema.sql` → `sql/002_lost_admin.sql` → `sql/003_push_subscriptions.sql`  
+3. Copy `config.example.php` → live `ringringpaw.php` (include `cron_secret` + `admin_setup_secret` + optional `vapid`)  
 4. Merge/push to `PetFinder` (auto `git pull`)  
 5. Create Navid + Mehrdad via `/admin/setup.php`  
-6. Schedule cron URL every 5–10 minutes (see LOST_ADMIN.md)
+6. Schedule cron URL every 5–10 minutes (see LOST_ADMIN.md)  
+7. Optional: generate VAPID keys and enable PWA push (`docs/WEB_PUSH.md`)
 
 ## Local run
 
@@ -52,5 +54,5 @@ Manual fallback: see `docs/HOSTINGER_INSTALL.md`.
 |---------|--------|
 | Email (`mail()` or SMTP) | Primary |
 | In-app inbox | Primary |
-| Web Push | Subscriptions stored; full send needs VAPID + push lib later |
+| Web Push (installed PWA) | Pure PHP VAPID when keys set — `docs/WEB_PUSH.md` |
 | SMS | Out of scope |
