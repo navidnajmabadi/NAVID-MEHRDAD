@@ -20,6 +20,8 @@ $out = [
         'db_user' => null,
         'pdo_connect' => false,
         'owners_table' => false,
+        'lost_alerts_table' => false,
+        'admin_users_table' => false,
     ],
     'hint' => null,
     'error' => null,
@@ -55,8 +57,17 @@ try {
         exit;
     }
 
+    $stmt = $pdo->query("SHOW TABLES LIKE 'lost_alerts'");
+    $out['checks']['lost_alerts_table'] = (bool) $stmt->fetchColumn();
+    $stmt = $pdo->query("SHOW TABLES LIKE 'admin_users'");
+    $out['checks']['admin_users_table'] = (bool) $stmt->fetchColumn();
+
     $out['ok'] = true;
-    $out['hint'] = 'Config + DB + owners table OK.';
+    if (!$out['checks']['lost_alerts_table'] || !$out['checks']['admin_users_table']) {
+        $out['hint'] = 'Phase 1 OK. Import sql/002_lost_admin.sql for LOST HELP ME + Admin tables.';
+    } else {
+        $out['hint'] = 'Config + DB + owners + lost/admin tables OK.';
+    }
     echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
     $out['error'] = rrp_safe_db_error($e, 'Health check failed');

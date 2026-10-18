@@ -9,7 +9,8 @@ Do this **once** on Hostinger. Agents cannot SSH. After merge to `PetFinder`, au
 | Web root (possible) | `/home/u233722910/domains/nakilab.com/public_html/ringringpaw` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/public_html` |
 | Site URL | https://ringringpaw.nakilab.com |
 | **Config (secrets) — either works** | `/home/u233722910/domains/nakilab.com/config/ringringpaw.php` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php` |
-| Schema file (in repo) | `sql/001_schema.sql` |
+| Schema files (in repo) | `sql/001_schema.sql` then `sql/002_lost_admin.sql` |
+| LOST + Admin setup | [`LOST_ADMIN.md`](./LOST_ADMIN.md) |
 | Config template (in repo) | `config.example.php` |
 
 hPanel may list **ringringpaw.nakilab.com** as its own website (separate docroot). The app checks both absolute paths above, then relative fallbacks, then **`{app_root}/config/ringringpaw.php`** (temporary if File Browser put `config/` next to `tag.php` — blocked from HTTP by `.htaccess`). **Long-term correct:** keep secrets **outside** `public_html` at one of the absolute paths.
@@ -30,8 +31,8 @@ In **hPanel → Databases → MySQL Databases**:
 In **phpMyAdmin** (or MySQL CLI):
 
 1. Select the new database.
-2. Import / run the contents of `sql/001_schema.sql` from the repo  
-   (after deploy: `/home/u233722910/domains/nakilab.com/public_html/ringringpaw/sql/001_schema.sql`).
+2. Import / run `sql/001_schema.sql`, then **`sql/002_lost_admin.sql`** (LOST HELP ME + Admin).  
+   Path after deploy: `…/ringringpaw/sql/`. Full cron/admin steps: [`LOST_ADMIN.md`](./LOST_ADMIN.md).
 
 ### 3. Place config outside web root
 

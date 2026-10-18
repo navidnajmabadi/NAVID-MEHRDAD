@@ -51,4 +51,22 @@ return [
         'public_key' => '',
         'private_key' => '',
     ],
+
+    // LOST HELP ME broadcast radius (km) from owner's registered address.
+    'lost_radius_km' => 25,
+
+    // Shared secret for Hostinger cron hitting cron/lost-escalate.php?key=...
+    // Generate a long random string and keep it only in this config file.
+    'cron_secret' => 'CHANGE_ME_CRON_SECRET_LONG_RANDOM',
+
+    // Admin bootstrap (admin/setup.php) — only used when admin_users is empty.
+    // Set to a long random string; remove or blank after creating Navid + Mehrdad.
+    'admin_setup_secret' => 'CHANGE_ME_ADMIN_SETUP_SECRET',
+
+    // Geocoding: OpenStreetMap Nominatim (free). Cache in geocode_cache table.
+    // Must send a valid User-Agent identifying the app + contact (Nominatim policy).
+    'geocode' => [
+        'provider' => 'nominatim',
+        'user_agent' => 'RingRingPaw/1 (https://ringringpaw.nakilab.com; noreply@nakilab.com)',
+    ],
 ];

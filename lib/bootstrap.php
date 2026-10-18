@@ -229,3 +229,8 @@ require_once __DIR__ . '/pets.php';
 require_once __DIR__ . '/scans.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/notify.php';
+require_once __DIR__ . '/geocode.php';
+require_once __DIR__ . '/lost.php';
+require_once __DIR__ . '/admin.php';
+require_once __DIR__ . '/tickets.php';
+require_once __DIR__ . '/coupons.php';
