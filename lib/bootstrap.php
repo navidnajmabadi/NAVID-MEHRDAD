@@ -9,9 +9,12 @@ function rrp_config_paths(): array
 {
     $root = dirname(__DIR__);
     return [
-        // Hostinger: domains/nakilab.com/config/ringringpaw.php
-        // (public_html/ringringpaw → ../../config/)
+        // Absolute Hostinger paths first (docroot may be either parent domain or subdomain site).
+        '/home/u233722910/domains/nakilab.com/config/ringringpaw.php',
+        '/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php',
+        // Relative fallbacks if the clone lives under public_html/.../ringringpaw
         $root . '/../../config/ringringpaw.php',
+        $root . '/../config/ringringpaw.php',
         // Local override (gitignored)
         $root . '/config.local.php',
         // Fallback for local docker/dev only
@@ -49,9 +52,11 @@ function rrp_load_config(): array
     http_response_code(503);
     header('Content-Type: text/plain; charset=utf-8');
     echo "RingRingPaw is not configured yet.\n\n";
-    echo "Create MySQL DB, import sql/001_schema.sql, then place config at:\n";
+    echo "Create MySQL DB, import sql/001_schema.sql, then place config at ONE of:\n";
     echo "  /home/u233722910/domains/nakilab.com/config/ringringpaw.php\n";
+    echo "  /home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php\n";
     echo "(copy from config.example.php — never commit real passwords).\n";
+    echo "If the subdomain is its own hPanel site, prefer the ringringpaw.nakilab.com path.\n";
     exit;
 }
 

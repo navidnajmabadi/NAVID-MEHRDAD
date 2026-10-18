@@ -2,11 +2,12 @@
 /**
  * RingRingPaw config template.
  *
- * On Hostinger, copy this file OUTSIDE the web root to:
+ * On Hostinger, copy this file OUTSIDE the web root to ONE of:
  *   /home/u233722910/domains/nakilab.com/config/ringringpaw.php
+ *   /home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php
  *
- * The app loads it via lib/bootstrap.php (looks for ../../config/ringringpaw.php
- * relative to public_html/ringringpaw). Never commit a real copy with passwords.
+ * lib/bootstrap.php checks both absolute paths (subdomain may be its own site),
+ * then relative ../../config/ fallbacks. Never commit a real copy with passwords.
  */
 declare(strict_types=1);
 
