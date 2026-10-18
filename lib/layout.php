@@ -18,13 +18,13 @@ function rrp_layout_head(string $title, array $opts = []): void
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="RingRingPaw" />
 <link rel="canonical" href="<?= rrp_h($canonical) ?>" />
-<link rel="manifest" href="manifest.webmanifest" />
-<link rel="icon" type="image/jpeg" href="assets/logo.jpg" />
-<link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+<link rel="manifest" href="<?= rrp_h(rrp_asset('manifest.webmanifest')) ?>" />
+<link rel="icon" type="image/jpeg" href="<?= rrp_h(rrp_asset('assets/logo.jpg')) ?>" />
+<link rel="apple-touch-icon" href="<?= rrp_h(rrp_asset('assets/icons/icon-192.png')) ?>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="assets/css/app.css" />
+<link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/app.css')) ?>" />
 <title><?= rrp_h($title) ?></title>
 <?= $extra ?>
 </head>
@@ -36,9 +36,9 @@ function rrp_layout_foot(array $opts = []): void
 {
     $scripts = $opts['scripts'] ?? [];
     ?>
-<script src="assets/js/app.js" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/app.js')) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
-<script src="<?= rrp_h($src) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
+<script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>
 </body>
 </html>

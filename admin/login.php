@@ -29,13 +29,14 @@ rrp_layout_head('Admin login — Ring Ring Paw', ['body_class' => 'admin-body'])
 ?>
 <div class="shell">
   <div class="app-top">
-    <a class="app-brand" href="../index.php">
-      <img src="../assets/logo.jpg" alt="" width="40" height="40" />
+    <a class="app-brand" href="<?= rrp_h(rrp_asset('index.php')) ?>">
+      <img src="<?= rrp_h(rrp_asset('assets/logo.jpg')) ?>" alt="" width="40" height="40" />
       <span>Ring Ring Paw</span>
     </a>
   </div>
   <h1>Admin</h1>
   <p class="lede">Navid &amp; Mehrdad ops console. Separate from owner accounts.</p>
+  <p class="meta" style="margin:-8px 0 16px">First time? Create admins at <a href="setup.php">admin setup</a> (needs <code>admin_setup_secret</code> in config).</p>
   <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
   <form method="post" class="panel" novalidate>
     <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />

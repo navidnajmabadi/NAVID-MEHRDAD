@@ -32,10 +32,10 @@ function rrp_admin_shell_start(string $title, string $active = 'home'): void
 <div class="shell shell-wide">
   <div class="app-top">
     <a class="app-brand" href="index.php">
-      <img src="../assets/logo.jpg" alt="" width="40" height="40" />
+      <img src="<?= rrp_h(rrp_asset('assets/logo.jpg')) ?>" alt="" width="40" height="40" />
       <span>RRP Admin</span>
     </a>
-    <a href="../index.php">Site</a>
+    <a href="<?= rrp_h(rrp_asset('index.php')) ?>">Site</a>
   </div>
     <?php
     rrp_admin_nav($active);
