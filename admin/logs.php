@@ -16,9 +16,9 @@ rrp_admin_shell_start('Logs', 'logs');
   <p class="lede">Recent scans, lost alerts, and admin actions.</p>
 
   <div class="nav-links">
-    <a href="?tab=scans"<?= $tab === 'scans' ? ' style="text-decoration:underline"' : '' ?>>Scans</a>
-    <a href="?tab=lost"<?= $tab === 'lost' ? ' style="text-decoration:underline"' : '' ?>>Lost alerts</a>
-    <a href="?tab=admin"<?= $tab === 'admin' ? ' style="text-decoration:underline"' : '' ?>>Admin actions</a>
+    <a href="?tab=scans"<?= $tab === 'scans' ? ' class="is-active" style="text-decoration:underline"' : '' ?>>Scans</a>
+    <a href="?tab=lost"<?= $tab === 'lost' ? ' class="is-active" style="text-decoration:underline"' : '' ?>>Lost alerts</a>
+    <a href="?tab=admin"<?= $tab === 'admin' ? ' class="is-active" style="text-decoration:underline"' : '' ?>>Admin actions</a>
   </div>
 
   <?php if ($tab === 'lost'): ?>
@@ -32,6 +32,9 @@ rrp_admin_shell_start('Logs', 'logs');
           · recipients <?= (int) $la['recipient_count'] ?>
           · <?= rrp_h($la['started_at']) ?> UTC
         </div>
+        <?php if ((int) $la['recipient_count'] === 0): ?>
+          <p class="field-hint" style="margin:6px 0 0;color:var(--color-danger)">No nearby owners within 25 km (other owners need geocoded addresses near this one).</p>
+        <?php endif; ?>
       </div>
     <?php endforeach; ?>
     <?php if (!$lost): ?><p class="empty">No lost alerts yet.</p><?php endif; ?>

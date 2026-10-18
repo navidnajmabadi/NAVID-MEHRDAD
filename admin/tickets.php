@@ -28,7 +28,7 @@ rrp_admin_shell_start('Tickets', 'tickets');
 
   <div class="nav-links">
     <?php foreach (['all', 'open', 'in_progress', 'resolved', 'closed'] as $s): ?>
-      <a href="?status=<?= rrp_h($s) ?>"<?= $status === $s ? ' style="text-decoration:underline"' : '' ?>><?= rrp_h($s) ?></a>
+      <a href="?status=<?= rrp_h($s) ?>"<?= $status === $s ? ' class="is-active" style="text-decoration:underline"' : '' ?>><?= rrp_h($s) ?></a>
     <?php endforeach; ?>
   </div>
 
