@@ -79,13 +79,65 @@ function rrp_db(): PDO
         $cfg['charset'] ?? 'utf8mb4'
     );
 
-    $pdo = new PDO($dsn, $cfg['user'], $cfg['pass'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
+    try {
+        $pdo = new PDO($dsn, $cfg['user'], $cfg['pass'], [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]);
+    } catch (PDOException $e) {
+        throw new RuntimeException(rrp_safe_db_error($e, 'Database connection failed'), 0, $e);
+    }
 
     return $pdo;
+}
+
+/**
+ * User-safe DB error text: SQLSTATE / driver code / hint — never password or DSN secrets.
+ */
+function rrp_safe_db_error(Throwable $e, string $fallback = 'Database error'): string
+{
+    $sqlState = '';
+    $driverCode = '';
+    if ($e instanceof PDOException) {
+        $sqlState = (string) ($e->errorInfo[0] ?? $e->getCode());
+        $driverCode = (string) ($e->errorInfo[1] ?? '');
+    } elseif ($e->getPrevious() instanceof PDOException) {
+        $prev = $e->getPrevious();
+        $sqlState = (string) ($prev->errorInfo[0] ?? $prev->getCode());
+        $driverCode = (string) ($prev->errorInfo[1] ?? '');
+    }
+
+    $hint = '';
+    $code = (int) $driverCode;
+    if ($code === 1049 || $sqlState === '42000') {
+        $hint = ' Check that config db.name matches a real MySQL database.';
+    } elseif ($code === 1045) {
+        $hint = ' Check db.user / db.pass in ringringpaw.php.';
+    } elseif ($code === 1146) {
+        $hint = ' Table missing — import sql/001_schema.sql into the same DB as config.';
+    } elseif ($code === 2002 || $code === 2003) {
+        $hint = ' Cannot reach MySQL host.';
+    }
+
+    $parts = [$fallback];
+    if ($sqlState !== '') {
+        $parts[] = 'SQLSTATE ' . $sqlState;
+    }
+    if ($driverCode !== '') {
+        $parts[] = 'code ' . $driverCode;
+    }
+    return implode(' — ', $parts) . '.' . $hint;
+}
+
+function rrp_config_path_in_use(): ?string
+{
+    foreach (rrp_config_paths() as $path) {
+        if (is_readable($path)) {
+            return $path;
+        }
+    }
+    return null;
 }
 
 function rrp_start_session(): void

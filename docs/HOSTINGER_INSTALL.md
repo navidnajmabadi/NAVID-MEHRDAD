@@ -83,6 +83,11 @@ If the host still serves old `index.html` over `index.php`, remove or rename `in
 | **Web Push** | Subscriptions can be saved; full VAPID push needs a PHP push library (Composer). Documented as follow-up. |
 | **SMS** | Out of scope |
 
+## Health check
+
+After deploy: open https://ringringpaw.nakilab.com/health.php  
+JSON should show `ok: true`, `pdo_connect: true`, `owners_table: true`, and `db_name` matching the DB where you imported `sql/001_schema.sql`. If `owners_table` is false, schema was imported into a **different** database than config.
+
 ## Smoke-test checklist
 
 1. Open https://ringringpaw.nakilab.com — branded landing (logo, headline, CTA).  
