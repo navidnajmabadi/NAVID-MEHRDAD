@@ -6,13 +6,13 @@ Do this **once** on Hostinger. Agents cannot SSH. After merge to `PetFinder`, au
 
 | What | Exact path |
 |------|------------|
-| Web root (git clone) | `/home/u233722910/domains/nakilab.com/public_html/ringringpaw` |
+| Web root (possible) | `/home/u233722910/domains/nakilab.com/public_html/ringringpaw` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/public_html` |
 | Site URL | https://ringringpaw.nakilab.com |
-| **Config (secrets)** | `/home/u233722910/domains/nakilab.com/config/ringringpaw.php` |
+| **Config (secrets) — either works** | `/home/u233722910/domains/nakilab.com/config/ringringpaw.php` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php` |
 | Schema file (in repo) | `sql/001_schema.sql` |
 | Config template (in repo) | `config.example.php` |
 
-Same pattern as nakilab.com: secrets live in `domains/nakilab.com/config/`, never inside `public_html`.
+hPanel may list **ringringpaw.nakilab.com** as its own website (separate docroot). The app checks **both** absolute config paths above, then relative `../../config/` fallbacks. Put `ringringpaw.php` in **either** config directory (outside `public_html`). Never inside the web root.
 
 ## Navid — one-time steps
 
@@ -35,23 +35,26 @@ In **phpMyAdmin** (or MySQL CLI):
 
 ### 3. Place config outside web root
 
+Put the live file at **one** of these (both are checked by `lib/bootstrap.php`):
+
+1. `/home/u233722910/domains/nakilab.com/config/ringringpaw.php`
+2. `/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php` ← use this if the subdomain is its **own** hPanel website
+
 ```bash
-# On server (SSH from Navid’s Mac), or use File Manager:
+# Example if subdomain is its own site:
+mkdir -p /home/u233722910/domains/ringringpaw.nakilab.com/config
+cp /path/to/config.example.php \
+   /home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php
+
+# Or under the parent domain (also fine — app checks both):
 mkdir -p /home/u233722910/domains/nakilab.com/config
-cp /home/u233722910/domains/nakilab.com/public_html/ringringpaw/config.example.php \
+cp /path/to/config.example.php \
    /home/u233722910/domains/nakilab.com/config/ringringpaw.php
-# Then edit ringringpaw.php — set db name/user/pass, mail_from, app_url
 ```
 
-Edit `/home/u233722910/domains/nakilab.com/config/ringringpaw.php`:
+Edit the file: `db.name` / `db.user` / `db.pass`, `app_url` → `https://ringringpaw.nakilab.com`, `mail_from` (e.g. `noreply@nakilab.com`).
 
-- `db.name`, `db.user`, `db.pass` — from step 1  
-- `app_url` → `https://ringringpaw.nakilab.com`  
-- `mail_from` → an address Hostinger allows (e.g. `noreply@nakilab.com`)  
-- Optional: enable `smtp` if `mail()` is unreliable  
-- Optional: VAPID keys for future Web Push (email + inbox work without them)
-
-**Never commit** `config/ringringpaw.php` or any real passwords.
+**Never commit** real `ringringpaw.php` or passwords.
 
 ### 4. Deploy code
 
@@ -90,7 +93,7 @@ If the host still serves old `index.html` over `index.php`, remove or rename `in
 6. Phone B taps **Share once** or **Share live** → Phone A dashboard shows scan + **Leaflet map** (live updates ~4s while sharing).  
 7. Confirm second account cannot see first account’s pets.  
 8. Confirm max 5 pets enforced.  
-9. Confirm `config.example.php` has no real passwords; live secrets only under `config/ringringpaw.php`.
+9. Confirm `config.example.php` has no real passwords; live secrets only under one of the two absolute `…/config/ringringpaw.php` paths above.
 
 ## Local PHP check (optional)
 
