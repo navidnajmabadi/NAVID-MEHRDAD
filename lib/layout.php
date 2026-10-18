@@ -24,7 +24,7 @@ function rrp_layout_head(string $title, array $opts = []): void
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/app.css')) ?>" />
+<link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/app.css', true)) ?>" />
 <title><?= rrp_h($title) ?></title>
 <?= $extra ?>
 </head>
@@ -36,7 +36,7 @@ function rrp_layout_foot(array $opts = []): void
 {
     $scripts = $opts['scripts'] ?? [];
     ?>
-<script src="<?= rrp_h(rrp_asset('assets/js/app.js')) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/app.js', true)) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
 <script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>

@@ -174,10 +174,19 @@ function rrp_app_url(string $path = ''): string
 /**
  * Absolute URL for static assets / shared layout links.
  * Safe from /admin/* pages where relative "assets/…" would 404.
+ * When $versioned is true, appends ?v=filemtime so Hostinger CDN/browser
+ * caches (max-age up to 7d) pick up CSS/JS after deploy.
  */
-function rrp_asset(string $path): string
+function rrp_asset(string $path, bool $versioned = false): string
 {
-    return rrp_app_url(ltrim($path, '/'));
+    $path = ltrim($path, '/');
+    $url = rrp_app_url($path);
+    if (!$versioned) {
+        return $url;
+    }
+    $file = dirname(__DIR__) . '/' . $path;
+    $v = is_file($file) ? (string) filemtime($file) : (string) time();
+    return $url . (str_contains($url, '?') ? '&' : '?') . 'v=' . rawurlencode($v);
 }
 
 function rrp_h(?string $value): string
