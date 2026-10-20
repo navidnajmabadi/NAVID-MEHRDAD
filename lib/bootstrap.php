@@ -194,6 +194,15 @@ function rrp_h(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function rrp_clip(string $value, int $max = 80): string
+{
+    $value = trim(preg_replace('/\s+/', ' ', $value) ?? $value);
+    if (strlen($value) <= $max) {
+        return $value;
+    }
+    return rtrim(substr($value, 0, max(1, $max - 1))) . '…';
+}
+
 function rrp_json(array $payload, int $status = 200): void
 {
     http_response_code($status);

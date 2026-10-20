@@ -30,44 +30,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-rrp_layout_head('Create account — Ring Ring Paw');
+rrp_layout_head('Create account — siPaw', [
+    'description' => 'Create your siPaw account. Home is one scan away.',
+    'body_class' => 'page-auth',
+]);
+rrp_app_start(['nav' => false]);
 ?>
-<div class="shell">
-  <div class="app-top">
-    <a class="app-brand" href="index.php">
-      <img src="assets/logo.jpg" alt="" width="40" height="40" />
-      <span>Ring Ring Paw</span>
-    </a>
-    <a href="login.php">Log in</a>
-  </div>
-
-  <h1>Create your account</h1>
-  <p class="lede">Name, address, phone, and email — so a finder can reach you when your pet’s tag is scanned.</p>
-
-  <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
-
-  <form method="post" class="panel" novalidate>
-    <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
-    <label for="name">Your name</label>
-    <input id="name" name="name" required autocomplete="name" value="<?= rrp_h($_POST['name'] ?? '') ?>" />
-
-    <label for="address">Address</label>
-    <input id="address" name="address" required autocomplete="street-address" value="<?= rrp_h($_POST['address'] ?? '') ?>" />
-    <p class="field-hint">Used later for nearby help alerts. Kept private from finders on the scan page.</p>
-
-    <label for="phone">Phone</label>
-    <input id="phone" name="phone" type="tel" required autocomplete="tel" value="<?= rrp_h($_POST['phone'] ?? '') ?>" />
-
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" required autocomplete="email" value="<?= rrp_h($_POST['email'] ?? '') ?>" />
-
-    <label for="password">Password</label>
-    <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" />
-    <p class="field-hint">At least 8 characters. Stored hashed — never plain text.</p>
-
-    <div class="stack-actions">
-      <button type="submit" class="btn btn-primary btn-block">Create account</button>
-    </div>
-  </form>
+<div class="auth-hero">
+  <?php rrp_logo_endorsed(); ?>
+  <p class="tagline">Home is one scan away.</p>
+  <p class="sub" style="font-size:14px">Name, address, phone, and email — so a finder can reach you.</p>
 </div>
-<?php rrp_layout_foot(); ?>
+
+<?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
+
+<form method="post" class="auth-form" novalidate>
+  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+  <div class="field">
+    <label for="name">Your name</label>
+    <div class="in"><input id="name" name="name" required autocomplete="name" value="<?= rrp_h($_POST['name'] ?? '') ?>" /></div>
+  </div>
+  <div class="field">
+    <label for="address">Address</label>
+    <div class="in"><input id="address" name="address" required autocomplete="street-address" value="<?= rrp_h($_POST['address'] ?? '') ?>" /></div>
+    <small>Used for nearby help alerts. Kept private from finders.</small>
+  </div>
+  <div class="field">
+    <label for="phone">Phone</label>
+    <div class="in"><input id="phone" name="phone" type="tel" required autocomplete="tel" value="<?= rrp_h($_POST['phone'] ?? '') ?>" /></div>
+  </div>
+  <div class="field">
+    <label for="email">Email</label>
+    <div class="in"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg><input id="email" name="email" type="email" required autocomplete="email" value="<?= rrp_h($_POST['email'] ?? '') ?>" /></div>
+  </div>
+  <div class="field">
+    <label for="password">Password</label>
+    <div class="in"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" /></div>
+    <small>At least 8 characters.</small>
+  </div>
+  <button class="btn primary" type="submit">Create account</button>
+  <p class="sub" style="font-size:14px;text-align:center;margin-top:6px">
+    Already have an account? <a class="link" href="login.php">Log in</a>
+  </p>
+</form>
+<?php
+rrp_app_end(['nav' => false, 'push' => false]);

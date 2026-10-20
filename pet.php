@@ -14,7 +14,6 @@ if ($pet) {
     $owner = $stmt->fetch() ?: null;
 
     if ($owner && $owner['status'] === 'active') {
-        // Debounce: one scan+notify per browser session per pet (avoid refresh spam).
         rrp_start_session();
         $seenKey = 'scanned_' . $pet['public_id'];
         if (empty($_SESSION[$seenKey])) {
@@ -28,52 +27,88 @@ if ($pet) {
     }
 }
 
+$tagTail = $pet ? substr((string) $pet['public_id'], -4) : '----';
+
 rrp_layout_head(
-    $pet ? ('Found ' . $pet['name'] . '? — Ring Ring Paw') : 'Tag not found — Ring Ring Paw',
-    ['canonical' => $pet ? rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id'])) : rrp_app_url()]
+    $pet ? ('Found ' . $pet['name'] . '? — siPaw') : 'Tag not found — siPaw',
+    [
+        'canonical' => $pet ? rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id'])) : rrp_app_url(),
+        'body_class' => 'page-scan',
+        'description' => $pet
+            ? ('You found ' . $pet['name'] . '. Message the owner on siPaw.')
+            : 'siPaw tag not found.',
+    ]
 );
+rrp_app_start(['nav' => false]);
 ?>
-<div class="shell">
-  <div class="app-top">
-    <a class="app-brand" href="index.php">
-      <img src="assets/logo.jpg" alt="" width="40" height="40" />
-      <span>Ring Ring Paw</span>
-    </a>
+<div class="browserbar data"><svg aria-hidden="true"><use href="#i-lock"/></svg>ringringpaw.nakilab.com/t/<?= rrp_h($tagTail) ?></div>
+
+<div class="pad stack" style="gap:16px">
+  <div class="tilewrap" style="display:flex;justify-content:center;padding:8px 0 4px">
+    <?php rrp_logo_tile(); ?>
   </div>
 
   <?php if (!$pet || !$owner): ?>
-    <h1>Tag not found</h1>
-    <p class="lede">This QR code isn’t linked to a pet yet, or the account isn’t active.</p>
+    <h2 class="title" style="text-align:center;font-size:28px">Tag not found</h2>
+    <p class="sub" style="text-align:center">This QR isn’t linked to a pet yet, or the account isn’t active.</p>
   <?php else: ?>
-    <div class="scan-hero">
-      <?php if (!empty($pet['image_path'])): ?>
-        <img class="scan-photo" src="<?= rrp_h($pet['image_path']) ?>" alt="<?= rrp_h($pet['name']) ?>" />
-      <?php endif; ?>
-      <h1>You found <?= rrp_h($pet['name']) ?></h1>
-      <p class="lede" style="margin-bottom:8px">
-        <?= rrp_h(rrp_pet_type_label($pet)) ?>
-        <?= $pet['color'] ? ' · ' . rrp_h($pet['color']) : '' ?>
-      </p>
-    </div>
+    <h2 class="title" style="text-align:center;font-size:28px">You found <?= rrp_h($pet['name']) ?></h2>
+    <p class="sub" style="text-align:center">Thank you. Call or message the owner — location only if you agree.</p>
 
-    <div class="panel">
-      <h2>Call the owner</h2>
-      <p style="margin:0 0 6px"><strong><?= rrp_h($owner['name']) ?></strong></p>
-      <p class="meta" style="margin:0 0 14px"><?= rrp_h($owner['phone']) ?></p>
-      <a class="btn btn-call btn-block" href="tel:<?= rrp_h(preg_replace('/\s+/', '', $owner['phone'])) ?>">Call <?= rrp_h($owner['name']) ?></a>
-    </div>
-
-    <div class="panel" id="shareCard">
-      <h2>Share live location?</h2>
-      <p class="lede" style="margin-bottom:12px">Optional. Your browser will ask before anything is sent. Helps the owner find you on a map.</p>
-      <div class="row">
-        <button type="button" class="btn btn-secondary" id="shareOnce">Share once</button>
-        <button type="button" class="btn btn-primary" id="shareLive">Share live 30 min</button>
+    <div class="foundpet">
+      <div class="ph">
+        <?php if (!empty($pet['image_path'])): ?>
+          <img src="<?= rrp_h($pet['image_path']) ?>" alt="<?= rrp_h($pet['name']) ?>" />
+        <?php else: ?>
+          <svg viewBox="0 0 200 200"><use href="#<?= ($pet['type'] ?? '') === 'cat' ? 'pet-cat' : 'pet-dog' ?>"/></svg>
+        <?php endif; ?>
       </div>
-      <div class="flash flash-ok" id="status" style="display:none;margin-top:12px" role="status"></div>
-      <button type="button" class="btn btn-danger btn-block" id="stopLive" style="display:none;margin-top:12px">Stop sharing</button>
+      <div class="stack" style="gap:4px">
+        <b style="font-weight:500"><?= rrp_h($pet['name']) ?><?= $pet['breed'] ? ', ' . rrp_h($pet['breed']) : '' ?></b>
+        <small class="sub" style="font-size:13px"><?= rrp_h(rrp_pet_type_label($pet)) ?><?= $pet['color'] ? ' · ' . rrp_h($pet['color']) : '' ?></small>
+        <span class="status data" style="margin-top:4px">Owner notified</span>
+      </div>
     </div>
+
+    <?php if (!empty($pet['magic_word'])): ?>
+      <div class="magic">
+        <span class="label">Say this and they will come</span>
+        <b><?= rrp_h($pet['magic_word']) ?></b>
+      </div>
+    <?php endif; ?>
+
+    <a class="btn primary" href="tel:<?= rrp_h(preg_replace('/\s+/', '', $owner['phone'])) ?>">
+      <svg aria-hidden="true"><use href="#i-phone"/></svg>Call <?= rrp_h($owner['name']) ?>
+    </a>
+
+    <div class="box" id="shareCard">
+      <span class="label">Share live location?</span>
+      <p class="sub" style="margin:8px 0 12px;font-size:13px">Optional. Your browser will ask before anything is sent.</p>
+      <div class="row" style="gap:10px">
+        <button type="button" class="btn outline" id="shareOnce" style="flex:1">Share once</button>
+        <button type="button" class="btn solid" id="shareLive" style="flex:1">Share live 30 min</button>
+      </div>
+      <div class="flash flash-ok" id="status" style="display:none;margin:12px 0 0" role="status"></div>
+      <button type="button" class="btn lost" id="stopLive" style="display:none;margin-top:12px">Stop sharing</button>
+    </div>
+
+    <dl class="kv">
+      <dt>Look for</dt>
+      <dd><?= rrp_h($pet['identifying_marks'] ?: '—') ?></dd>
+      <dt>Health</dt>
+      <dd><?= rrp_h(trim(implode(' · ', array_filter([
+          $pet['medical_pills'] ?? null,
+          $pet['medical_conditions'] ?? null,
+      ]))) ?: '—') ?></dd>
+      <dt>Vaccines</dt>
+      <dd><?= rrp_h($pet['medical_vaccines'] ?: '—') ?></dd>
+      <dt>Owner</dt>
+      <dd><?= rrp_h($owner['name']) ?></dd>
+    </dl>
+
+    <p class="sub" style="font-size:12px;text-align:center">No app needed. Any phone camera can read a siPaw tag.</p>
   <?php endif; ?>
+  <div class="gap"></div>
 </div>
 
 <?php if ($pet && $owner && $scanId): ?>
@@ -86,4 +121,5 @@ window.RRP_SCAN = {
 </script>
 <script src="assets/js/scan.js" defer></script>
 <?php endif; ?>
-<?php rrp_layout_foot(); ?>
+<?php
+rrp_app_end(['nav' => false, 'push' => false]);

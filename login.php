@@ -34,34 +34,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-rrp_layout_head('Log in — Ring Ring Paw');
+rrp_layout_head('Log in — siPaw', [
+    'description' => 'Log in to siPaw. Home is one scan away.',
+    'body_class' => 'page-auth',
+]);
+rrp_app_start(['nav' => false]);
 ?>
-<div class="shell">
-  <div class="app-top">
-    <a class="app-brand" href="index.php">
-      <img src="assets/logo.jpg" alt="" width="40" height="40" />
-      <span>Ring Ring Paw</span>
-    </a>
-    <a href="signup.php">Sign up</a>
-  </div>
-
-  <h1>Welcome back</h1>
-  <p class="lede">See scans, live maps, and your pets’ QR tags.</p>
-
-  <?php rrp_render_flash(); ?>
-  <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
-
-  <form method="post" class="panel">
-    <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" required autocomplete="email" value="<?= rrp_h($_POST['email'] ?? '') ?>" />
-
-    <label for="password">Password</label>
-    <input id="password" name="password" type="password" required autocomplete="current-password" />
-
-    <div class="stack-actions">
-      <button type="submit" class="btn btn-primary btn-block">Log in</button>
-    </div>
-  </form>
+<div class="auth-hero">
+  <?php rrp_logo_endorsed(); ?>
+  <p class="tagline">Home is one scan away.</p>
+  <p class="sub" style="font-size:14px">Log in to see your pets and their tags.</p>
 </div>
-<?php rrp_layout_foot(); ?>
+
+<?php rrp_render_flash(); ?>
+<?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
+
+<form method="post" class="auth-form" id="login-form" novalidate>
+  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+  <div class="field">
+    <label for="email">Email</label>
+    <div class="in">
+      <svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>
+      <input id="email" name="email" type="email" required autocomplete="email" value="<?= rrp_h($_POST['email'] ?? '') ?>" />
+    </div>
+  </div>
+  <div class="field">
+    <label for="password">Password</label>
+    <div class="in">
+      <svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg>
+      <input id="password" name="password" type="password" required autocomplete="current-password" />
+      <button type="button" id="peek" aria-label="Show password"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg></button>
+    </div>
+  </div>
+  <button class="btn primary" type="submit">Log in</button>
+  <p class="sub" style="font-size:14px;text-align:center;margin-top:6px">
+    New to siPaw? <a class="link" href="signup.php">Create an account</a>
+  </p>
+</form>
+<script>
+(function(){
+  var peek=document.getElementById('peek');
+  var pass=document.getElementById('password');
+  if(peek&&pass){peek.addEventListener('click',function(){pass.type=pass.type==='password'?'text':'password';});}
+})();
+</script>
+<?php
+rrp_app_end(['nav' => false, 'push' => false]);

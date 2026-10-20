@@ -26,75 +26,76 @@ if ($alert) {
     }
 }
 
-rrp_layout_head($alert ? ('Help find ' . $alert['pet_name'] . ' — Ring Ring Paw') : 'Alert — Ring Ring Paw');
+$nav = rrp_owner_nav_context((int) $owner['id']);
+
+rrp_layout_head($alert ? ('Help find ' . $alert['pet_name'] . ' — siPaw') : 'Alert — siPaw');
+rrp_app_start(['nav' => 'lost']);
 ?>
-<div class="shell">
-  <div class="app-top">
-    <a class="app-brand" href="dashboard.php">
-      <img src="assets/logo.jpg" alt="" width="40" height="40" />
-      <span>Ring Ring Paw</span>
-    </a>
-    <a href="dashboard.php">Dashboard</a>
-  </div>
+<div class="topbar">
+  <a class="iconbtn" href="<?= $isOwner ? 'lost.php' : 'alerts.php' ?>" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
+  <div class="center"><h2>Lost alert</h2></div>
+  <span style="width:40px"></span>
+</div>
 
+<div class="pad stack" style="gap:16px">
   <?php if (!$alert || !$allowed): ?>
-    <h1>Alert not available</h1>
-    <p class="lede">This LOST alert isn’t shared with your account, or it doesn’t exist.</p>
+    <h2 class="title" style="font-size:28px">Alert not available</h2>
+    <p class="sub">This Lost alert isn’t shared with your account, or it doesn’t exist.</p>
   <?php else: ?>
-    <div class="scan-hero">
-      <?php if (!empty($alert['image_path'])): ?>
-        <img class="scan-photo" src="<?= rrp_h($alert['image_path']) ?>" alt="<?= rrp_h($alert['pet_name']) ?>" />
-      <?php endif; ?>
-      <p class="pill pill-lost" style="margin:0 auto 10px">LOST HELP ME</p>
-      <h1>Help find <?= rrp_h($alert['pet_name']) ?></h1>
-      <p class="lede">
-        <?= rrp_h($alert['pet_type']) ?>
-        · Alert <?= rrp_h($alert['status']) ?>
-        · ~<?= rrp_h((string) $alert['radius_km']) ?> km radius
-      </p>
+    <?php if (!empty($alert['image_path'])): ?>
+      <img src="<?= rrp_h($alert['image_path']) ?>" alt="<?= rrp_h($alert['pet_name']) ?>" style="width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line)" />
+    <?php endif; ?>
+    <span class="status red data">Lost help me</span>
+    <h2 class="title" style="font-size:32px">Help find <?= rrp_h($alert['pet_name']) ?></h2>
+    <p class="sub">
+      <?= rrp_h($alert['pet_type']) ?>
+      · Alert <?= rrp_h($alert['status']) ?>
+      · ~<?= rrp_h((string) $alert['radius_km']) ?> km radius
+    </p>
+
+    <div class="box">
+      <span class="label">Distinctive marks</span>
+      <p style="margin:10px 0 0;white-space:pre-wrap"><?= rrp_h($alert['identifying_marks'] ?: '—') ?></p>
     </div>
 
-    <div class="panel">
-      <h2>Distinctive marks</h2>
-      <p style="margin:0;white-space:pre-wrap"><?= rrp_h($alert['identifying_marks'] ?: '—') ?></p>
-    </div>
-
-    <div class="panel">
-      <h2>Magic word</h2>
-      <p style="margin:0;font-family:var(--font-display);font-size:1.25rem"><?= rrp_h($alert['magic_word'] ?: '—') ?></p>
-      <p class="field-hint">Use gently if you think you’ve found them — it helps confirm it’s the right pet.</p>
+    <div class="magic">
+      <span class="label">Magic word</span>
+      <b><?= rrp_h($alert['magic_word'] ?: '—') ?></b>
+      <p class="sub" style="font-size:12px">Use gently if you think you’ve found them.</p>
     </div>
 
     <?php if (!empty($alert['medical_notes'])): ?>
-    <div class="panel">
-      <h2>Medical (helpers)</h2>
-      <p style="margin:0;white-space:pre-wrap"><?= rrp_h($alert['medical_notes']) ?></p>
-    </div>
+      <div class="box">
+        <span class="label">Medical (helpers)</span>
+        <p style="margin:10px 0 0;white-space:pre-wrap"><?= rrp_h($alert['medical_notes']) ?></p>
+      </div>
     <?php endif; ?>
 
     <?php if ($isOwner): ?>
       <?php if ($recipientCount === 0): ?>
         <div class="flash flash-error" role="status">
           No nearby owners within <?= rrp_h((string) $alert['radius_km']) ?> km yet.
-          Other Ring Ring Paw accounts need a geocoded address near yours. Check <a href="account.php">Account</a> that your address mapped correctly; the alert stays open and will reach helpers who join nearby later.
+          Check <a class="link" href="account.php">Account</a> that your address mapped correctly.
         </div>
       <?php else: ?>
-        <p class="meta">Notified <?= (int) $recipientCount ?> nearby owner<?= $recipientCount === 1 ? '' : 's' ?> (within ~<?= rrp_h((string) $alert['radius_km']) ?> km).</p>
+        <p class="sub" style="font-size:13px">Notified <?= (int) $recipientCount ?> nearby owner<?= $recipientCount === 1 ? '' : 's' ?>.</p>
       <?php endif; ?>
     <?php endif; ?>
 
     <?php if ($alert['status'] === 'found'): ?>
-      <div class="flash flash-ok">Yoho rescued — this pet was marked Found. Thank you!</div>
+      <div class="flash flash-ok">This pet was marked Found. Thank you!</div>
     <?php elseif ($alert['status'] === 'open' && $isOwner): ?>
-      <form method="post" action="dashboard.php" class="stack-actions">
+      <form method="post" action="lost.php" class="stack" style="gap:12px">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
         <input type="hidden" name="action" value="lost_found" />
         <input type="hidden" name="alert_id" value="<?= (int) $alert['id'] ?>" />
-        <button type="submit" class="btn btn-primary btn-block">Mark Found — Yoho rescued</button>
+        <button type="submit" class="btn solid">She / he is home</button>
       </form>
     <?php else: ?>
-      <p class="meta">Keep an eye out nearby. You’ll get email + inbox reminders at 1h, 3h, and 8h if still open.</p>
+      <p class="sub" style="font-size:13px">Keep an eye out nearby. You’ll get reminders at 1h, 3h, and 8h if still open.</p>
     <?php endif; ?>
   <?php endif; ?>
+  <div class="gap"></div>
 </div>
-<?php rrp_layout_foot(); ?>
+<?php
+rrp_app_end(['nav' => 'lost', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

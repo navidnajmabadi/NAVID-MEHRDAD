@@ -19,6 +19,11 @@
     }
   }
 
+  window.refreshBreedList = function (val) {
+    if (typeEl && val) typeEl.value = val;
+    refreshBreeds();
+  };
+
   if (typeEl) {
     typeEl.addEventListener("change", refreshBreeds);
     refreshBreeds();

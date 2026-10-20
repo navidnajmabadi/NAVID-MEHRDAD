@@ -234,7 +234,7 @@ function rrp_lost_send_ping(array $alert, bool $isImmediate = false): void
     $title = "{$waveLabel}: {$alert['pet_name']}";
     $viewUrl = rrp_app_url('lost-alert.php?id=' . $alertId);
     $bodyParts = [
-        "A nearby Ring Ring Paw owner needs help finding {$alert['pet_name']} ({$alert['pet_type']}).",
+        "A nearby siPaw owner needs help finding {$alert['pet_name']} ({$alert['pet_type']}).",
         '',
         'Distinctive marks: ' . ($alert['identifying_marks'] ?: '—'),
         'Magic word: ' . ($alert['magic_word'] ?: '—'),

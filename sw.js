@@ -1,12 +1,12 @@
-/* Ring Ring Paw service worker — cache shell; Web Push; network for API/scans. */
-const CACHE = "rrp-shell-v2";
+/* siPaw service worker — cache shell; Web Push; network for API/scans. */
+const CACHE = "sipaw-shell-v1";
 const SHELL = [
   "./",
   "./index.php",
-  "./assets/css/app.css",
+  "./assets/css/sipaw.css",
   "./assets/js/app.js",
   "./assets/js/push.js",
-  "./assets/logo.jpg",
+  "./assets/icons/icon-192.png",
   "./manifest.webmanifest",
 ];
 
@@ -51,7 +51,7 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("push", (event) => {
   let data = {
-    title: "Ring Ring Paw",
+    title: "siPaw",
     body: "You have a new alert.",
     url: "./dashboard.php",
     icon: "./assets/icons/icon-192.png",
@@ -73,7 +73,7 @@ self.addEventListener("push", (event) => {
 
   const openUrl = data.url || "./dashboard.php";
   event.waitUntil(
-    self.registration.showNotification(data.title || "Ring Ring Paw", {
+    self.registration.showNotification(data.title || "siPaw", {
       body: data.body || "",
       icon: data.icon || "./assets/icons/icon-192.png",
       badge: data.badge || "./assets/icons/icon-192.png",
