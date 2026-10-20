@@ -31,7 +31,7 @@ function nk_email_layout(string $preheader, string $bodyHtml): string {
         . '<tr><td style="background:#000;padding:22px 32px"><img src="https://nakilab.com/assets/nakilab-logo-white.png" width="150" alt="NAKILAB" style="display:block;border:0;color:#fff;font-weight:bold;letter-spacing:2px"></td></tr>'
         . '<tr><td style="padding:36px 32px 28px;font-size:16px;line-height:1.6">' . $bodyHtml . '</td></tr>'
         . '<tr><td style="padding:20px 32px;border-top:1px solid #e6e6e8;font-size:12px;line-height:1.5;color:#77777d">'
-        . 'Nakilab — We turn ideas into companies. Powered by SI, Super Intelligence.<br><a href="https://nakilab.com" style="color:#77777d">nakilab.com</a></td></tr>'
+        . 'Nakilab: We turn ideas into companies. Powered by SI, Super Intelligence.<br><a href="https://nakilab.com" style="color:#77777d">nakilab.com</a></td></tr>'
         . '</table></td></tr></table></body></html>';
 }
 
@@ -57,12 +57,12 @@ function nk_email_confirmation(string $type, string $name, array $details): arra
     $fields = nk_fields_list($details);
     $copy = [
         'have' => [
-            'subject' => 'We received your idea — Nakilab',
+            'subject' => 'Nakilab: We received your idea',
             'intro' => 'Thank you for sending us' . (!empty($details['title']) ? ' "' . $details['title'] . '"' : ' your idea') . '. It is now in our review queue.',
-            'steps' => ['We evaluate your idea with SI — Super Intelligence: market, risks and numbers.', 'If it is a fit, we contact you to plan the build together.', 'Either way, we reply to you personally.'],
+            'steps' => ['We evaluate your idea with SI, Super Intelligence: market, risks and numbers.', 'If it is a fit, we contact you to plan the build together.', 'Either way, we reply to you personally.'],
         ],
         'need' => [
-            'subject' => 'Your idea request is in — Nakilab',
+            'subject' => 'Nakilab: Your idea request is in',
             'intro' => 'Thank you for asking us for an idea. We will look at your skills, interests and budget.',
             'steps' => ['We review your profile.', 'We look for an idea from our lab that fits you.', 'We contact you with a match or with questions.'],
         ],
@@ -75,7 +75,7 @@ function nk_email_confirmation(string $type, string $name, array $details): arra
 
     $stepsHtml = '';
     foreach ($copy['steps'] as $i => $s) {
-        $stepsHtml .= '<tr><td style="padding:6px 12px 6px 0;vertical-align:top;font-weight:bold;color:#3B82F6;font-size:14px">0' . ($i + 1) . '</td><td style="padding:6px 0;font-size:15px">' . nk_h($s) . '</td></tr>';
+        $stepsHtml .= '<tr><td style="padding:6px 12px 6px 0;vertical-align:top;font-weight:bold;color:#000000;font-family:Menlo,Consolas,monospace;font-size:14px">0' . ($i + 1) . '</td><td style="padding:6px 0;font-size:15px">' . nk_h($s) . '</td></tr>';
     }
     $html = nk_email_layout($copy['intro'],
         '<h1 style="margin:0 0 18px;font-size:24px;line-height:1.2;text-transform:uppercase;letter-spacing:.5px">Received</h1>'
@@ -85,12 +85,12 @@ function nk_email_confirmation(string $type, string $name, array $details): arra
         . '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 28px">' . $stepsHtml . '</table>'
         . ($fields ? '<p style="margin:0 0 4px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#77777d">What you sent</p>' . nk_fields_html($fields) : '')
         . '<p style="margin:28px 0 0">Want to add something? Just reply to this email.</p>'
-        . '<p style="margin:18px 0 0">— Mehrdad &amp; Navid<br><span style="color:#77777d">Co-Founders, Nakilab</span></p>');
+        . '<p style="margin:18px 0 0">Mehrdad &amp; Navid<br><span style="color:#77777d">Co-Founders, Nakilab</span></p>');
 
     $text = "Hi $first,\n\n{$copy['intro']}\n\nWHAT HAPPENS NEXT\n";
     foreach ($copy['steps'] as $i => $s) $text .= '0' . ($i + 1) . "  $s\n";
     if ($fields) $text .= "\nWHAT YOU SENT\n" . nk_fields_text($fields);
-    $text .= "\nWant to add something? Just reply to this email.\n\n— Mehrdad & Navid\nCo-Founders, Nakilab\nhttps://nakilab.com\n";
+    $text .= "\nWant to add something? Just reply to this email.\n\nMehrdad & Navid\nCo-Founders, Nakilab\nhttps://nakilab.com\n";
     return [$copy['subject'], $text, $html];
 }
 
@@ -98,7 +98,7 @@ function nk_email_confirmation(string $type, string $name, array $details): arra
 function nk_email_alert(int $id, string $type, string $name, string $email, array $details): array {
     $fields = ['Type' => NK_TYPE_LABELS[$type] ?? $type, 'Name' => $name, 'Email' => $email] + nk_fields_list($details);
     $headline = $details['title'] ?? ($details['org'] ?? $name);
-    $subject = 'New submission #' . $id . ' — ' . (NK_TYPE_LABELS[$type] ?? $type) . ': ' . mb_substr((string) $headline, 0, 60);
+    $subject = 'New submission #' . $id . ' / ' . (NK_TYPE_LABELS[$type] ?? $type) . ': ' . mb_substr((string) $headline, 0, 60);
     $html = nk_email_layout('New ' . (NK_TYPE_LABELS[$type] ?? $type) . ' submission from ' . $name,
         '<h1 style="margin:0 0 18px;font-size:22px;line-height:1.2;text-transform:uppercase">New submission #' . $id . '</h1>'
         . nk_fields_html($fields)

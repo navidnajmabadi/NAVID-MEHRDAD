@@ -109,13 +109,15 @@ function call_tool(string $name, array $a, string $client) {
         case 'get_blog_guidelines':
             $recent = array_map(fn($p) => $p['title'] . ' (' . $p['status'] . ')', $db->query('SELECT title, status FROM posts ORDER BY id DESC LIMIT 40')->fetchAll());
             return [
-                'site' => 'Nakilab (nakilab.com) — a startup studio: "We turn ideas into companies." People submit ideas; Nakilab evaluates, builds and launches them on its own infrastructure, powered by SI — Super Intelligence. Founders: Mehrdad and Navid (both Co-Founder). Current project: RingRingPaw (smart QR pet tags, ringringpaw.nakilab.com).',
+                'site' => 'Nakilab (nakilab.com) is a startup studio: "We turn ideas into companies." People submit ideas; Nakilab evaluates, builds and launches them on its own infrastructure, powered by SI, Super Intelligence. Founders: Mehrdad and Navid (both Co-Founder). Current project: siPaw, product 01 (smart QR pet tags; say "S-I Paw"; formerly RingRingPaw; live at ringringpaw.nakilab.com).',
                 'rules' => [
                     'Write in English.',
                     'NEVER use the words "AI" or "artificial intelligence". Always say "SI" or "Super Intelligence" instead.',
                     'Do not invent statistics, customers, funding, partnerships or quotes. If you cite a fact, it must be real and verifiable; otherwise speak from first principles.',
                     'Do not publish email addresses or personal data from submissions.',
-                    'Bold, practical, optimistic tone — first-principles thinking; short sentences; no hype words like "revolutionary" or "game-changer".',
+                    'Calm, direct, a little dry: engineers who ship. One idea per sentence, most sentences under 12 words. Verbs first. Numbers over adjectives, and every number has a source. No hype words (revolutionary, game-changing, disrupt, magic).',
+                    'No em dashes. Use a full stop, a comma or a colon. No exclamation marks.',
+                    'Spell the pet product "siPaw" in text, never "SiPaw", "SIPAW" or "RingRingPaw". Write "SI, Super Intelligence" on first use.',
                     'Pick a topic that is NOT already covered in recent_posts.',
                 ],
                 'format' => [
@@ -125,7 +127,7 @@ function call_tool(string $name, array $a, string $client) {
                     'End with a short call to action inviting readers to submit their idea at https://nakilab.com/#intake.',
                     'Tags: 2–5 short tags.',
                 ],
-                'topic_areas' => ['Turning an idea into a company', 'Validating ideas before building', 'Building and launching with SI', 'Startup studio model', 'Founder lessons', 'Product launch playbooks', 'Behind the scenes of Nakilab projects like RingRingPaw', 'Pets and technology (RingRingPaw)'],
+                'topic_areas' => ['Turning an idea into a company', 'Validating ideas before building', 'Building and launching with SI', 'Startup studio model', 'Founder lessons', 'Product launch playbooks', 'Behind the scenes of Nakilab projects like siPaw', 'Pets and technology (siPaw)'],
                 'publishing' => 'Create posts as "draft" unless a human has asked you to publish. A human reviews drafts and calls publish_post.',
                 'recent_posts' => $recent,
             ];

@@ -13,7 +13,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>', "\n";
   <title>Nakilab Blog</title>
   <link><?= NK_SITE ?>/blog/</link>
   <atom:link href="<?= NK_SITE ?>/blog/rss.xml" rel="self" type="application/rss+xml" />
-  <description>Notes from Nakilab on turning ideas into companies with SI — Super Intelligence.</description>
+  <description>Notes from Nakilab on turning ideas into companies with SI, Super Intelligence.</description>
   <language>en</language>
 <?php foreach ($posts as $p): $d = $p['publish_at'] ?: $p['created_at']; ?>
   <item>

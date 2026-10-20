@@ -10,7 +10,7 @@ if (preg_match('/^[a-z0-9-]{1,160}$/', $slug)) {
 }
 if (!$post || !nk_is_live($post)) {
     http_response_code(404);
-    nk_page_start('Not found — Nakilab', 'This post does not exist.', NK_SITE . '/blog/');
+    nk_page_start('Not found | Nakilab', 'This post does not exist.', NK_SITE . '/blog/');
     echo '<section class="blog-head"><div class="wrap"><div class="label">404</div><h1>Post not found</h1><div class="btns" style="margin-top:32px"><a class="btn" href="/blog/">All posts</a></div></div></section>';
     nk_page_end();
     exit;
@@ -29,7 +29,7 @@ $ld = [
 ];
 $extra = '<meta property="og:type" content="article" /><script type="application/ld+json">' . json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) . '</script>';
 
-nk_page_start($post['title'] . ' — Nakilab', $desc, nk_post_url($post), $extra);
+nk_page_start($post['title'] . ' | Nakilab', $desc, nk_post_url($post), $extra);
 ?>
 <article class="post">
   <header class="post-head">

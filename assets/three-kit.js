@@ -80,7 +80,7 @@ export function addStars(scene, n = 1500, opacity = .7) {
   const g = new THREE.BufferGeometry(), p = [];
   for (let i = 0; i < n; i++) p.push((Math.random() - .5) * 40, (Math.random() - .5) * 24, -8 - Math.random() * 12);
   g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
-  const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: .04, color: 0xd6e2ff, transparent: true, opacity }));
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: .04, color: 0xe4e4e7, transparent: true, opacity }));
   scene.add(pts);
   return pts;
 }
@@ -117,7 +117,7 @@ export function kMesh({ color = 0x2b2e35, depth = .42 } = {}) {
   const mat = new THREE.MeshPhysicalMaterial({ color, metalness: 1, roughness: .26, clearcoat: 1, clearcoatRoughness: .15, envMapIntensity: 1.4 });
   const group = new THREE.Group();
   group.add(new THREE.Mesh(geo, mat));
-  group.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({ color: 0x8fbaff, transparent: true, opacity: .55, blending: THREE.AdditiveBlending })));
+  group.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, blending: THREE.AdditiveBlending })));
   return group;
 }
 
@@ -127,11 +127,11 @@ export function heroMonolith(canvas) {
   const { scene, camera } = S;
   scene.fog = new THREE.Fog(BG, 7, 18);
   const group = kMesh(); scene.add(group);
-  scene.add(new THREE.AmbientLight(0x444a55, .4));
-  const rim = new THREE.DirectionalLight(0x6fa3ff, 3); rim.position.set(-4, 3, -3); scene.add(rim);
-  const key = new THREE.PointLight(0xbcd6ff, 30, 12); scene.add(key);
+  scene.add(new THREE.AmbientLight(0x45454a, .4));
+  const rim = new THREE.DirectionalLight(0xffffff, 3); rim.position.set(-4, 3, -3); scene.add(rim);
+  const key = new THREE.PointLight(0xffffff, 30, 12); scene.add(key);
   const portal = portalRing(); scene.add(portal.group);
-  const grid = new THREE.GridHelper(60, 90, 0x2c3a55, 0x15171d);
+  const grid = new THREE.GridHelper(60, 90, 0x3f3f46, 0x18181b);
   grid.position.y = -1.75; grid.material.transparent = true; grid.material.opacity = .5; scene.add(grid);
   const dust = risingDust(scene);
   let L = { x: 1.75, y: 0 };
@@ -155,12 +155,12 @@ export function heroMonolith(canvas) {
 }
 export function portalRing() {
   const group = new THREE.Group();
-  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(2.05, .014, 16, 220), new THREE.MeshBasicMaterial({ color: 0xc8dcff }));
-  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.4, .006, 16, 220), new THREE.MeshBasicMaterial({ color: 0x5b8fff, transparent: true, opacity: .6 }));
+  const ring1 = new THREE.Mesh(new THREE.TorusGeometry(2.05, .014, 16, 220), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.4, .006, 16, 220), new THREE.MeshBasicMaterial({ color: 0xa1a1aa, transparent: true, opacity: .6 }));
   const disc = new THREE.Mesh(new THREE.CircleGeometry(2.05, 96), new THREE.ShaderMaterial({
     transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
     vertexShader: 'varying vec2 u; void main(){ u = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
-    fragmentShader: 'varying vec2 u; void main(){ float d = distance(u, vec2(.5)); float a = smoothstep(.5,.0,d)*.14 + smoothstep(.4,.5,d)*smoothstep(.5,.47,d)*.35; gl_FragColor = vec4(.3,.55,1.,a); }',
+    fragmentShader: 'varying vec2 u; void main(){ float d = distance(u, vec2(.5)); float a = smoothstep(.5,.0,d)*.14 + smoothstep(.4,.5,d)*smoothstep(.5,.47,d)*.35; gl_FragColor = vec4(1.,1.,1.,a*.55); }',
   }));
   group.add(disc, ring1, ring2);
   return { group, tick: t => { ring2.rotation.y = t * .3; ring2.rotation.x = Math.sin(t * .2) * .3; ring1.scale.setScalar(1 + Math.sin(t * 1.2) * .01); } };
@@ -169,7 +169,7 @@ export function risingDust(scene, n = 900) {
   const dp = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) dp.set([(Math.random() - .5) * 12, Math.random() * 6 - 2, (Math.random() - .5) * 8 - 1], i * 3);
   const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.BufferAttribute(dp, 3));
-  scene.add(new THREE.Points(dg, new THREE.PointsMaterial({ size: .025, color: 0xb4ccff, transparent: true, opacity: .7 })));
+  scene.add(new THREE.Points(dg, new THREE.PointsMaterial({ size: .025, color: 0xa1a1aa, transparent: true, opacity: .7 })));
   return () => {
     if (reduce) return;
     const a = dg.attributes.position.array;
@@ -209,13 +209,13 @@ export function missionVoxels(sec, canvas) {
     axis.push(new THREE.Vector3().randomDirection());
   }
   for (let i = N - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [K[i], K[j]] = [K[j], K[i]]; }
-  const mat = new THREE.MeshPhysicalMaterial({ color: 0x2b2e35, metalness: .95, roughness: .3, clearcoat: 1, clearcoatRoughness: .2, emissive: 0x3b7bff, emissiveIntensity: 0 });
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0x2b2e35, metalness: .95, roughness: .3, clearcoat: 1, clearcoatRoughness: .2, emissive: 0xffffff, emissiveIntensity: 0 });
   const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), mat, N);
   const group = new THREE.Group(); group.add(mesh); scene.add(group);
-  scene.add(new THREE.AmbientLight(0x444a55, .5));
-  const rim = new THREE.DirectionalLight(0x7fb2ff, 3); rim.position.set(-3, 4, -2); scene.add(rim);
-  const key = new THREE.PointLight(0xd6e2ff, 25, 14); key.position.set(3, 2, 4); scene.add(key);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.9, .012, 12, 200), new THREE.MeshBasicMaterial({ color: 0xc8dcff, transparent: true, opacity: 0 }));
+  scene.add(new THREE.AmbientLight(0x45454a, .5));
+  const rim = new THREE.DirectionalLight(0xffffff, 3); rim.position.set(-3, 4, -2); scene.add(rim);
+  const key = new THREE.PointLight(0xe4e4e7, 25, 14); key.position.set(3, 2, 4); scene.add(key);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.9, .012, 12, 200), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }));
   ring.rotation.x = Math.PI / 2.3; group.add(ring);
   addStars(scene, 700, .5);
   const L = missionLayout(S, group);

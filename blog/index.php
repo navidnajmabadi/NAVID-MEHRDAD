@@ -14,13 +14,13 @@ try {
 }
 $pages = max(1, (int) ceil($total / $perPage));
 
-nk_page_start('Blog — Nakilab', 'Notes from Nakilab on turning ideas into companies, building with SI — Super Intelligence, and launching products.', NK_SITE . '/blog/' . ($page > 1 ? "?page=$page" : ''));
+nk_page_start('Blog | Nakilab', 'Notes from Nakilab on turning ideas into companies, building with SI, Super Intelligence, and launching products.', NK_SITE . '/blog/' . ($page > 1 ? "?page=$page" : ''));
 ?>
 <section class="blog-head">
   <div class="wrap">
     <div class="label">Blog</div>
     <h1>Notes from the lab</h1>
-    <p class="sub">Ideas, launches and lessons from building companies with SI — Super Intelligence.</p>
+    <p class="sub">Ideas, launches and lessons from building companies with SI, Super Intelligence.</p>
   </div>
 </section>
 
