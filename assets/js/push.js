@@ -101,7 +101,7 @@
 
     if (base.ios && !base.standalone) {
       base.hint =
-        "On iPhone, install Ring Ring Paw first (Share → Add to Home Screen), then open the app and enable notifications.";
+        "On iPhone, install siPaw first (Share → Add to Home Screen), then open the app and enable notifications.";
     }
 
     return fetchVapid()
@@ -117,7 +117,7 @@
             base.subscribed = !!sub;
             if (base.permission === "denied") {
               base.hint = isIos()
-                ? "Notifications blocked. On iPhone: Settings → Notifications → Ring Ring Paw → Allow Notifications."
+                ? "Notifications blocked. On iPhone: Settings → Notifications → siPaw → Allow Notifications."
                 : "Notifications blocked. Open site settings in your browser and allow notifications for ringringpaw.nakilab.com, then tap Enable again.";
             } else if (!base.subscribed && base.permission === "granted") {
               base.hint = "Permission granted — finishing subscription…";
@@ -151,7 +151,7 @@
         error: "ios_not_installed",
         status: {
           hint:
-            "Install the app first: Share → Add to Home Screen, open Ring Ring Paw from your home screen, then enable notifications.",
+            "Install the app first: Share → Add to Home Screen, open siPaw from your home screen, then enable notifications.",
         },
       });
     }

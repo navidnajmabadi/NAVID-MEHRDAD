@@ -54,7 +54,7 @@
       }
       var doc = new jsPDF({ unit: "mm", format: "a6" });
       doc.setFontSize(14);
-      doc.text("Ring Ring Paw", 15, 18);
+      doc.text("siPaw", 15, 18);
       doc.setFontSize(12);
       doc.text((cfg.petName || "Pet") + " — scan to call owner", 15, 26);
       var img = canvas.toDataURL("image/png");

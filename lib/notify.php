@@ -9,7 +9,7 @@ function rrp_notify_scan(array $pet, array $owner, int $scanId, string $mode = '
     $petName = $pet['name'];
     $dashboard = rrp_app_url('dashboard.php');
     $title = "Someone scanned {$petName}'s tag";
-    $body = "A finder opened {$petName}'s Ring Ring Paw page.";
+    $body = "A finder opened {$petName}'s siPaw page.";
     if ($mode === 'one-time') {
         $body .= ' They shared a one-time location — open your dashboard for the map.';
     } elseif ($mode === 'live') {
@@ -43,6 +43,15 @@ function rrp_notifications_for_owner(int $ownerId, int $limit = 30): array
     $stmt->bindValue(2, $limit, PDO::PARAM_INT);
     $stmt->execute();
     return $stmt->fetchAll();
+}
+
+function rrp_notifications_unread_count(int $ownerId): int
+{
+    $stmt = rrp_db()->prepare(
+        'SELECT COUNT(*) FROM notifications WHERE owner_id = ? AND read_at IS NULL'
+    );
+    $stmt->execute([$ownerId]);
+    return (int) $stmt->fetchColumn();
 }
 
 function rrp_mark_notifications_read(int $ownerId): void

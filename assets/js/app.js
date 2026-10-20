@@ -69,7 +69,7 @@
 
   if (isIos && !isStandalone && banner && installText && !dismissed()) {
     installText.textContent =
-      "On iPhone: Share → Add to Home Screen to install Ring Ring Paw (needed for notifications).";
+      "On iPhone: Share → Add to Home Screen to install siPaw (needed for notifications).";
     if (installBtn) installBtn.style.display = "none";
     showBanner();
   }
@@ -114,7 +114,7 @@
                   "Install via Share → Add to Home Screen first.";
               } else if (res && res.error === "permission_denied") {
                 hint.textContent = isIos
-                  ? "Notifications blocked. Settings → Notifications → Ring Ring Paw → Allow."
+                  ? "Notifications blocked. Settings → Notifications → siPaw → Allow."
                   : "Notifications blocked. Allow notifications for this site in browser settings, then try again.";
               } else if (res && res.error === "vapid_not_configured") {
                 hint.textContent =

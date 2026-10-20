@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $result = rrp_ticket_create((int) $owner['id'], (string) ($_POST['subject'] ?? ''), (string) ($_POST['body'] ?? ''));
         if (!empty($result['ok'])) {
-            rrp_flash_set('ok', 'Ticket sent. Navid & Mehrdad will follow up.');
+            rrp_flash_set('ok', 'Ticket sent. The siPaw team will follow up.');
             rrp_redirect('support.php');
         }
         $error = $result['error'] ?? 'Could not send.';
@@ -20,53 +20,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $tickets = rrp_tickets_for_owner((int) $owner['id']);
+$nav = rrp_owner_nav_context((int) $owner['id']);
 
-rrp_layout_head('Support — Ring Ring Paw');
+rrp_layout_head('Support — siPaw');
+rrp_app_start(['nav' => 'home']);
 ?>
-<div class="shell">
-  <div class="app-top">
-    <a class="app-brand" href="dashboard.php">
-      <img src="assets/logo.jpg" alt="" width="40" height="40" />
-      <span>Ring Ring Paw</span>
-    </a>
-    <a href="dashboard.php">Dashboard</a>
-  </div>
+<div class="topbar">
+  <a class="iconbtn" href="dashboard.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
+  <div class="center"><h2>Support</h2></div>
+  <span style="width:40px"></span>
+</div>
 
-  <h1>Support</h1>
-  <p class="lede">Send a note to the Ring Ring Paw team. We’ll reply by email when we can.</p>
+<div class="pad stack" style="gap:16px">
+  <p class="sub" style="font-size:14px">Send a note to the siPaw team (Nakilab). We’ll reply by email when we can.</p>
   <?php rrp_render_flash(); ?>
   <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
 
-  <form method="post" class="panel" novalidate>
+  <form method="post" class="stack" style="gap:16px" novalidate>
     <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
-    <label for="subject">Subject</label>
-    <input id="subject" name="subject" required maxlength="200" value="<?= rrp_h($_POST['subject'] ?? '') ?>" />
-    <label for="body">Message</label>
-    <textarea id="body" name="body" required rows="5"><?= rrp_h($_POST['body'] ?? '') ?></textarea>
-    <div class="stack-actions">
-      <button type="submit" class="btn btn-primary btn-block">Send ticket</button>
-    </div>
+    <div class="field"><label for="subject">Subject</label><div class="in"><input id="subject" name="subject" required maxlength="200" value="<?= rrp_h($_POST['subject'] ?? '') ?>" /></div></div>
+    <div class="field"><label for="body">Message</label><div class="in area"><textarea id="body" name="body" required rows="5"><?= rrp_h($_POST['body'] ?? '') ?></textarea></div></div>
+    <button type="submit" class="btn primary">Send ticket</button>
   </form>
 
-  <section class="panel" aria-labelledby="histHeading">
-    <h2 id="histHeading">Your tickets</h2>
+  <div class="section">
+    <span class="label">Your tickets</span>
     <?php if (!$tickets): ?>
-      <p class="empty">No tickets yet.</p>
+      <p class="sub" style="font-size:13px">No tickets yet.</p>
     <?php else: ?>
-      <?php foreach ($tickets as $t): ?>
-        <div class="panel panel-soft" style="margin-top:10px;margin-bottom:0">
-          <div style="display:flex;justify-content:space-between;gap:8px">
-            <strong><?= rrp_h($t['subject']) ?></strong>
-            <span class="pill"><?= rrp_h($t['status']) ?></span>
+      <div class="list">
+        <?php foreach ($tickets as $t): ?>
+          <div class="li">
+            <div>
+              <b><?= rrp_h($t['subject']) ?></b>
+              <small><?= rrp_h(rrp_clip((string) $t['body'], 80)) ?></small>
+            </div>
+            <span class="data"><?= rrp_h($t['status']) ?></span>
           </div>
-          <p class="meta" style="white-space:pre-wrap;margin:6px 0 0"><?= rrp_h($t['body']) ?></p>
-          <?php if (!empty($t['admin_note'])): ?>
-            <p class="meta" style="margin:8px 0 0"><strong>Team note:</strong> <?= rrp_h($t['admin_note']) ?></p>
-          <?php endif; ?>
-          <p class="meta" style="margin:6px 0 0"><?= rrp_h($t['created_at']) ?> UTC</p>
-        </div>
-      <?php endforeach; ?>
+        <?php endforeach; ?>
+      </div>
     <?php endif; ?>
-  </section>
+  </div>
+  <div class="gap"></div>
 </div>
-<?php rrp_layout_foot(); ?>
+<?php
+rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
