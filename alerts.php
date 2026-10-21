@@ -85,10 +85,25 @@ rrp_app_start(['nav' => 'alerts']);
             continue; // already listed via scans
         }
         $shown++;
-        $href = !empty($n['lost_alert_id']) ? 'lost-alert.php?id=' . (int) $n['lost_alert_id'] : '#';
+        if ($type === 'chat' || $type === 'message') {
+            // Prefer deep-link into Chat if body contains chat.php?thread=
+            if (preg_match('/chat\\.php\\?thread=(\\d+)/', (string) $n['body'], $mm)) {
+                $href = 'chat.php?thread=' . (int) $mm[1];
+            } else {
+                $href = 'chat.php';
+            }
+        } elseif (!empty($n['lost_alert_id'])) {
+            $href = 'lost-alert.php?id=' . (int) $n['lost_alert_id'];
+        } elseif ($type === 'health') {
+            $href = 'health-care.php';
+        } elseif ($type === 'scan' && !empty($n['scan_id'])) {
+            $href = 'dashboard.php';
+        } else {
+            $href = 'alerts.php';
+        }
     ?>
       <a class="event" href="<?= rrp_h($href) ?>">
-        <span class="d"></span>
+        <span class="d<?= $type === 'chat' || $type === 'message' ? ' on' : '' ?>"></span>
         <div>
           <b><?= rrp_h($n['title']) ?></b>
           <small><?= rrp_h(rrp_clip((string) $n['body'], 90)) ?></small>
@@ -97,10 +112,10 @@ rrp_app_start(['nav' => 'alerts']);
       </a>
     <?php endforeach; ?>
     <?php if ($filter === 'health' && $shown === 0): ?>
-      <div class="box"><p class="sub" style="margin:0">No health alerts yet. Vaccine due dates will show here.</p></div>
+      <div class="box"><p class="sub" style="margin:0">No health alerts yet. Vaccine and med reminders show here when due.</p></div>
     <?php endif; ?>
     <?php if ($filter === 'messages' && $shown === 0): ?>
-      <div class="box"><p class="sub" style="margin:0">Finder chat messages will appear here. <span class="soon">Coming soon</span></p></div>
+      <div class="box"><p class="sub" style="margin:0">No finder messages yet. When a finder chats from a scan page, it shows here and under Chat.</p></div>
     <?php endif; ?>
   <?php endif; ?>
 

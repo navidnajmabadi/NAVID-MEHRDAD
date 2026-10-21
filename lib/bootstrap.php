@@ -262,3 +262,5 @@ require_once __DIR__ . '/lost.php';
 require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/tickets.php';
 require_once __DIR__ . '/coupons.php';
+require_once __DIR__ . '/chat.php';
+require_once __DIR__ . '/health.php';

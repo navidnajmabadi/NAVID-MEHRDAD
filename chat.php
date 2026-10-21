@@ -5,67 +5,138 @@ require_once __DIR__ . '/lib/layout.php';
 
 $owner = rrp_require_owner();
 $nav = rrp_owner_nav_context((int) $owner['id']);
-$pets = rrp_pets_by_owner((int) $owner['id']);
-$petName = $pets ? (string) $pets[0]['name'] : 'your pet';
+$threadId = isset($_GET['thread']) ? (int) $_GET['thread'] : 0;
 
-rrp_layout_head('Chat — siPaw');
-rrp_app_start(['nav' => 'chat']);
+$threads = [];
+$thread = null;
+$messages = [];
+$dbReady = true;
+
+try {
+    $threads = rrp_chat_threads_for_owner((int) $owner['id']);
+    if ($threadId) {
+        $thread = rrp_chat_thread_by_id($threadId);
+        if (!$thread || !rrp_chat_owner_can_access($thread, (int) $owner['id'])) {
+            rrp_flash_set('error', 'Chat not found.');
+            rrp_redirect('chat.php');
+        }
+        $messages = rrp_chat_messages((int) $thread['id']);
+    }
+} catch (Throwable $e) {
+    error_log('chat.php: ' . $e->getMessage());
+    $dbReady = false;
+}
+
+$finderLabel = 'Finder';
+if ($thread) {
+    $fn = trim((string) ($thread['finder_name'] ?? ''));
+    $finderLabel = $fn !== '' ? $fn : 'Finder';
+}
+$av = strtoupper(mb_substr($finderLabel, 0, 1));
+$lastId = $messages ? (int) $messages[count($messages) - 1]['id'] : 0;
+
+rrp_layout_head($thread ? ('Chat — ' . $finderLabel . ' — siPaw') : 'Chat — siPaw');
+rrp_app_start(['nav' => 'chat', 'class' => $thread ? 'chat-active' : '']);
 ?>
+<?php if ($thread): ?>
+<div class="chat-screen">
+  <div class="topbar">
+    <a class="iconbtn" href="chat.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
+    <div class="center"><h2>Finder chat</h2></div>
+    <span style="width:40px"></span>
+  </div>
+
+  <div class="chathead">
+    <span class="av"><?= rrp_h($av) ?></span>
+    <div>
+      <b><?= rrp_h($finderLabel) ?></b>
+      <small>About <?= rrp_h((string) $thread['pet_name']) ?><?= !empty($thread['scan_id']) ? ' · scan #' . (int) $thread['scan_id'] : '' ?></small>
+    </div>
+    <span class="status live data">Open</span>
+  </div>
+
+  <p class="privacy">
+    <svg aria-hidden="true"><use href="#i-shield"/></svg>
+    Phone numbers stay private. Location is shared only if you agree.
+  </p>
+
+  <div class="msgs" id="chatMsgs">
+    <?php if (!$messages): ?>
+      <p class="chat-empty sub">No messages yet. Reply when the finder writes, or say hello.</p>
+    <?php else: ?>
+      <?php foreach ($messages as $m): ?>
+        <div class="msg <?= $m['sender_role'] === 'owner' ? 'me' : 'them' ?>" id="msg-<?= (int) $m['id'] ?>">
+          <?= rrp_h((string) $m['body']) ?>
+          <time><?= rrp_h(substr((string) $m['created_at'], 11, 5)) ?></time>
+        </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
+
+  <div class="quick" id="chatQuick">
+    <button type="button" data-quick="On my way">On my way</button>
+    <button type="button" data-quick="Keep them safe">Keep them safe</button>
+    <button type="button" data-quick="What’s the magic word?">What’s the magic word?</button>
+  </div>
+
+  <form class="composer" id="chatComposer" aria-label="Message composer">
+    <input id="chatInput" type="text" name="body" maxlength="2000" placeholder="Message <?= rrp_h($finderLabel) ?>" autocomplete="off" aria-label="Message" />
+    <button type="submit" class="send" id="chatSend" aria-label="Send"><svg aria-hidden="true"><use href="#i-send"/></svg></button>
+  </form>
+</div>
+<script>
+window.RRP_CHAT = {
+  threadId: <?= (int) $thread['id'] ?>,
+  role: "owner",
+  csrf: <?= json_encode(rrp_csrf_token()) ?>,
+  lastId: <?= (int) $lastId ?>,
+  apiUrl: <?= json_encode(rrp_asset('api/chat.php')) ?>
+};
+</script>
+<script src="<?= rrp_h(rrp_asset('assets/js/chat.js', true)) ?>" defer></script>
+<?php else: ?>
 <div class="topbar">
   <a class="iconbtn" href="dashboard.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
-  <div class="center"><h2>Finder chat</h2></div>
+  <div class="center"><h2>Chat</h2></div>
   <span style="width:40px"></span>
 </div>
 
-<div class="chathead">
-  <span class="av">F</span>
-  <div>
-    <b>Finder</b>
-    <small>About <?= rrp_h($petName) ?> · <span class="soon">Coming soon</span></small>
-  </div>
-  <span class="status idle data">Offline</span>
+<?php rrp_render_flash(); ?>
+
+<div class="pad stack" style="gap:10px;padding-top:12px">
+  <?php if (!$dbReady): ?>
+    <div class="box">
+      <p style="margin:0 0 6px;font-weight:500">Chat tables not installed yet</p>
+      <p class="sub" style="margin:0;font-size:13px">
+        Run <span class="data">sql/004_chat.sql</span> in Hostinger phpMyAdmin, then refresh.
+      </p>
+    </div>
+  <?php elseif (!$threads): ?>
+    <div class="box">
+      <p style="margin:0 0 6px;font-weight:500">No finder chats yet</p>
+      <p class="sub" style="margin:0;font-size:13px">
+        When someone scans a tag and taps Message owner, the thread appears here.
+      </p>
+    </div>
+  <?php else: ?>
+    <?php foreach ($threads as $t):
+      $who = trim((string) ($t['finder_name'] ?? ''));
+      $who = $who !== '' ? $who : 'Finder';
+      $preview = trim((string) ($t['last_body'] ?? ''));
+      $when = (string) ($t['last_message_at'] ?? $t['created_at'] ?? '');
+    ?>
+      <a class="event" href="chat.php?thread=<?= (int) $t['id'] ?>">
+        <span class="d on"></span>
+        <div>
+          <b><?= rrp_h($who) ?> · <?= rrp_h((string) $t['pet_name']) ?></b>
+          <small><?= rrp_h($preview !== '' ? rrp_clip($preview, 80) : 'Open thread') ?></small>
+        </div>
+        <time><?= rrp_h($when !== '' ? substr($when, 5, 11) : '') ?></time>
+      </a>
+    <?php endforeach; ?>
+  <?php endif; ?>
+  <div class="gap"></div>
 </div>
-
-<p class="privacy">
-  <svg aria-hidden="true"><use href="#i-shield"/></svg>
-  Phone numbers stay private. Location is shared only if you agree.
-</p>
-
-<div class="msgs">
-  <div class="msg them">
-    Hi — I think I found <?= rrp_h($petName) ?> near the park.
-    <time>Demo</time>
-  </div>
-  <div class="msg me">
-    Thank you. Please keep them calm. I’m on my way.
-    <time>Demo</time>
-  </div>
-  <div class="msg them loc">
-    <div class="mini"><svg viewBox="0 0 400 230"><use href="#map"/></svg></div>
-    <p>Shared location once</p>
-    <time>Demo</time>
-  </div>
-</div>
-
-<div class="pad" style="padding-top:0">
-  <div class="box">
-    <p style="margin:0 0 6px;font-weight:500">Chat is almost ready</p>
-    <p class="sub" style="margin:0;font-size:13px">
-      This shell matches the siPaw prototype. Live finder ↔ owner messaging will wire here without changing the look.
-      For now, finders reach you via the public scan page call button and shared location.
-    </p>
-  </div>
-</div>
-
-<div class="quick" aria-hidden="true">
-  <button type="button" disabled>On my way</button>
-  <button type="button" disabled>Keep them safe</button>
-  <button type="button" disabled>What’s the magic word?</button>
-</div>
-
-<form class="composer" onsubmit="return false;" aria-label="Message composer">
-  <input type="text" placeholder="Message (coming soon)" disabled />
-  <button type="button" class="send" disabled aria-label="Send"><svg aria-hidden="true"><use href="#i-send"/></svg></button>
-</form>
+<?php endif; ?>
 <?php
 rrp_app_end(['nav' => 'chat', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

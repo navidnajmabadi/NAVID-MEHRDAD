@@ -159,6 +159,10 @@ rrp_app_start(['nav' => 'lost']);
     <?php endif; ?>
 
     <?php if ($pet): ?>
+      <div class="section">
+        <span class="label">Lost poster</span>
+        <p class="sub" style="margin:8px 0 12px;font-size:13px">Download a flyer with photo, marks, and magic word.</p>
+      </div>
       <div class="poster" id="lostPoster">
         <div class="top">
           <span class="lab">Lost pet</span>
@@ -167,7 +171,7 @@ rrp_app_start(['nav' => 'lost']);
         <div class="hd"><?= rrp_h($pet['name']) ?></div>
         <div class="pic">
           <?php if (!empty($pet['image_path'])): ?>
-            <img src="<?= rrp_h($pet['image_path']) ?>" alt="" style="width:100%;height:100%;object-fit:cover" />
+            <img src="<?= rrp_h($pet['image_path']) ?>" alt="" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover" />
           <?php else: ?>
             <svg viewBox="0 0 200 200"><use href="#<?= ($pet['type'] ?? '') === 'cat' ? 'pet-cat' : 'pet-dog' ?>"/></svg>
           <?php endif; ?>
@@ -179,10 +183,19 @@ rrp_app_start(['nav' => 'lost']);
         <?php if (!empty($pet['magic_word'])): ?>
           <p><strong>Magic word:</strong> <?= rrp_h($pet['magic_word']) ?></p>
         <?php endif; ?>
+        <p><strong>Call:</strong> <?= rrp_h((string) $owner['phone']) ?></p>
         <div class="bar">
-          <span>Scan the collar tag or call the owner via siPaw.</span>
+          <span>Scan the collar tag or call via siPaw · <?= rrp_h(rrp_app_url('pet.php?id=' . rawurlencode((string) $pet['public_id']))) ?></span>
         </div>
       </div>
+      <button type="button" class="btn primary" id="posterPng">Download PNG</button>
+      <button type="button" class="btn outline" id="posterPdf">Download PDF</button>
+      <script>
+      window.RRP_POSTER = { petName: <?= json_encode($pet['name'], JSON_UNESCAPED_UNICODE) ?> };
+      </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+      <script src="<?= rrp_h(rrp_asset('assets/js/poster.js', true)) ?>" defer></script>
     <?php endif; ?>
     <div class="gap"></div>
   </div>
