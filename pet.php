@@ -81,6 +81,12 @@ rrp_app_start(['nav' => false]);
       <svg aria-hidden="true"><use href="#i-phone"/></svg>Call <?= rrp_h($owner['name']) ?>
     </a>
 
+    <?php if ($scanId): ?>
+      <a class="btn outline" href="finder-chat.php?scan=<?= (int) $scanId ?>">
+        <svg aria-hidden="true"><use href="#i-chat"/></svg>Message owner
+      </a>
+    <?php endif; ?>
+
     <div class="box" id="shareCard">
       <span class="label">Share live location?</span>
       <p class="sub" style="margin:8px 0 12px;font-size:13px">Optional. Your browser will ask before anything is sent.</p>

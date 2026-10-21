@@ -1,5 +1,5 @@
 /* siPaw service worker — cache shell; Web Push; network for API/scans. */
-const CACHE = "sipaw-shell-v1";
+const CACHE = "sipaw-shell-v2";
 const SHELL = [
   "./",
   "./index.php",

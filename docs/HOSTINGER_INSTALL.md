@@ -9,7 +9,7 @@ Do this **once** on Hostinger. Agents cannot SSH. After merge to `PetFinder`, au
 | Web root (possible) | `/home/u233722910/domains/nakilab.com/public_html/ringringpaw` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/public_html` |
 | Site URL | https://ringringpaw.nakilab.com |
 | **Config (secrets) — either works** | `/home/u233722910/domains/nakilab.com/config/ringringpaw.php` **or** `/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php` |
-| Schema files (in repo) | `sql/001_schema.sql` → `sql/002_lost_admin.sql` → `sql/003_push_subscriptions.sql` |
+| Schema files (in repo) | `sql/001_schema.sql` → `002` → `003` → **`004_chat.sql`** → **`005_health.sql`** |
 | LOST + Admin setup | [`LOST_ADMIN.md`](./LOST_ADMIN.md) |
 | Web Push (PWA) | [`WEB_PUSH.md`](./WEB_PUSH.md) |
 | Config template (in repo) | `config.example.php` |
@@ -32,8 +32,13 @@ In **hPanel → Databases → MySQL Databases**:
 In **phpMyAdmin** (or MySQL CLI):
 
 1. Select the new database.
-2. Import / run `sql/001_schema.sql`, then **`sql/002_lost_admin.sql`** (LOST HELP ME + Admin), then **`sql/003_push_subscriptions.sql`** (Web Push columns).  
-   Path after deploy: `…/ringringpaw/sql/`. Full cron/admin steps: [`LOST_ADMIN.md`](./LOST_ADMIN.md). Push: [`WEB_PUSH.md`](./WEB_PUSH.md).
+2. Import / run in order:
+   - `sql/001_schema.sql`
+   - `sql/002_lost_admin.sql` (LOST HELP ME + Admin)
+   - `sql/003_push_subscriptions.sql` (Web Push columns)
+   - **`sql/004_chat.sql`** (finder ↔ owner chat) — required for Chat tab
+   - **`sql/005_health.sql`** (vaccines, meds, feeding, vet) — required for Health tabs  
+   Path after deploy: `…/ringringpaw/sql/`. Full cron/admin steps: [`LOST_ADMIN.md`](./LOST_ADMIN.md). Push: [`WEB_PUSH.md`](./WEB_PUSH.md). Chat/Health tables: see project doc `feature-db-setup.md`.
 
 ### 3. Place config outside web root
 
