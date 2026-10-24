@@ -45,6 +45,10 @@ rrp_app_start(['nav' => 'alerts']);
 
 <div class="pad stack" style="gap:10px;padding-top:8px">
   <?php if (in_array($filter, ['all', 'lost'], true) && $nearbyLost): ?>
+    <div class="sipo-inline" style="margin-bottom:4px">
+      <sipo-mascot id="sipo" state="alert" theme="ice-blue" size="56" animated="true" label="Sipo alert — lost nearby"></sipo-mascot>
+      <p class="sub" style="margin:0;font-size:13px">Lost pets nearby need eyes on the street.</p>
+    </div>
     <?php foreach ($nearbyLost as $la): ?>
       <a class="event" href="lost-alert.php?id=<?= (int) $la['id'] ?>">
         <span class="d red"></span>
@@ -130,5 +134,11 @@ rrp_app_start(['nav' => 'alerts']);
   </div>
   <div class="gap"></div>
 </div>
+<?php if (!empty($nearbyLost) && in_array($filter, ['all', 'lost'], true)): ?>
+<script>
+window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+</script>
+<script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
+<?php endif; ?>
 <?php
 rrp_app_end(['nav' => 'alerts', 'unread' => 0, 'lost_active' => $nav['lost_active']]);

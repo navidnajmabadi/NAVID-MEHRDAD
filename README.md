@@ -47,6 +47,10 @@ php scripts/create-admin.php "Navid" navid@example.com 'password-here'
 php -S localhost:8000
 ```
 
+### Sipo mascot preview
+
+Open **`/sipo-preview.php`** after starting the PHP server — grid of 6 states × 4 themes (Ice Blue default, blue-body, mono, dark). Source package under `assets/mascot/` (untouched); public names at `assets/mascot/public/` (`sipo-{state}.svg`, `sipo-{state}-{theme}.webp|.gif`, `themes.json`).
+
 ## Deploy
 
 Push/merge to **`PetFinder`** → GitHub Action SSHs `git pull` on Hostinger.  

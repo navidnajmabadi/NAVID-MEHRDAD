@@ -8,6 +8,15 @@
   var watchId = null;
   var liveTimer = null;
 
+  function sipo(state) {
+    if (window.Sipo && typeof window.Sipo.setState === "function") {
+      window.Sipo.setState(state);
+      return;
+    }
+    var el = document.getElementById("sipo") || document.querySelector("sipo-mascot");
+    if (el) el.setAttribute("state", state);
+  }
+
   function showStatus(msg) {
     if (!statusEl) return;
     statusEl.style.display = "block";
@@ -29,9 +38,11 @@
 
   function share(mode) {
     if (!navigator.geolocation) {
+      sipo("alert");
       showStatus("Your browser doesn’t support location sharing.");
       return;
     }
+    sipo("thinking");
     showStatus("Requesting permission…");
     navigator.geolocation.getCurrentPosition(
       function (pos) {
@@ -43,10 +54,12 @@
         })
           .then(function (res) {
             if (!res.ok) {
+              sipo("alert");
               showStatus(res.error || "Could not share location.");
               return;
             }
             if (mode === "one-time") {
+              sipo("happy");
               showStatus("Thanks — location shared once with the owner.");
               return;
             }
@@ -67,13 +80,16 @@
             );
             liveTimer = setTimeout(stopLive, 30 * 60 * 1000);
             if (stopBtn) stopBtn.style.display = "block";
+            sipo("happy");
             showStatus("Sharing live location for 30 minutes. You can stop anytime.");
           })
           .catch(function () {
+            sipo("alert");
             showStatus("Network error — try again.");
           });
       },
       function (err) {
+        sipo("alert");
         showStatus("Location not shared: " + err.message);
       },
       { enableHighAccuracy: true, timeout: 12000 }

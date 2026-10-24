@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "default": "ice-blue",
+  "source": "SI Blue #2E6AFF and neutrals from SIPaw Brandbook v1.0; other blues derived from SI Blue",
+  "cssVariablePrefix": "--sipaw-",
+  "roles": {
+    "body": "Main body fill",
+    "shade": "Body shading (lower-right crescent, leg notch)",
+    "seam": "Horizontal body seam line",
+    "bezel": "Ring around the screen",
+    "bezel-line": "Thin edge of the screen ring",
+    "screen": "Screen face",
+    "line": "Outline of every part",
+    "tip": "Antenna top blocks",
+    "tip-hi": "Highlight on antenna tops",
+    "base": "Antenna base cylinders",
+    "ring": "Antenna ring joints",
+    "arm": "Arms / hands",
+    "arm-shade": "Arm shading",
+    "accent": "Effects outside the body: bubbles, sparkles, sound arcs, alert marks",
+    "on-screen": "Secondary screen graphics: sound bars, typing line, thinking dots",
+    "dim": "Dimmest screen graphic (first thinking dot)",
+    "pencil": "Pencil body (writing)",
+    "eraser": "Pencil eraser band (writing)",
+    "glyph": "Eyes, mouth, cursor (primary screen graphics)"
+  },
+  "presets": {
+    "ice-blue": {
+      "label": "Ice Blue (primary)",
+      "colors": {
+        "body": "#EEF3FF", "shade": "#B4C9FF", "seam": "#82A6FF", "bezel": "#DCE6FF",
+        "bezel-line": "#82A6FF", "screen": "#0B1B4D", "line": "#0B1B4D", "tip": "#2E6AFF",
+        "tip-hi": "#82A6FF", "base": "#EEF3FF", "ring": "#1A47C2", "arm": "#2E6AFF",
+        "arm-shade": "#1A47C2", "accent": "#2E6AFF", "on-screen": "#5C8BFF", "dim": "#1A47C2",
+        "pencil": "#2E6AFF", "eraser": "#FFFFFF", "glyph": "#FFFFFF"
+      }
+    },
+    "blue-body": {
+      "label": "Blue Body",
+      "colors": {
+        "body": "#2E6AFF", "shade": "#1A47C2", "seam": "#1A47C2", "bezel": "#82A6FF",
+        "bezel-line": "#0B1B4D", "screen": "#0B1B4D", "line": "#0B1B4D", "tip": "#FFFFFF",
+        "tip-hi": "#DCE6FF", "base": "#2E6AFF", "ring": "#B4C9FF", "arm": "#2E6AFF",
+        "arm-shade": "#1A47C2", "accent": "#2E6AFF", "on-screen": "#82A6FF", "dim": "#1A47C2",
+        "pencil": "#FFFFFF", "eraser": "#2E6AFF", "glyph": "#FFFFFF"
+      }
+    },
+    "mono": {
+      "label": "Mono black & white",
+      "colors": {
+        "body": "#FFFFFF", "shade": "#E4E4E7", "seam": "#A1A1AA", "bezel": "#E4E4E7",
+        "bezel-line": "#A1A1AA", "screen": "#0A0A0B", "line": "#18181B", "tip": "#FFFFFF",
+        "tip-hi": "#E4E4E7", "base": "#FFFFFF", "ring": "#A1A1AA", "arm": "#FFFFFF",
+        "arm-shade": "#E4E4E7", "accent": "#71717A", "on-screen": "#A1A1AA", "dim": "#3F3F46",
+        "pencil": "#FFFFFF", "eraser": "#A1A1AA", "glyph": "#FFFFFF"
+      }
+    },
+    "dark": {
+      "label": "Dark mode",
+      "colors": {
+        "body": "#18181B", "shade": "#0A0A0B", "seam": "#3F3F46", "bezel": "#3F3F46",
+        "bezel-line": "#71717A", "screen": "#000000", "line": "#71717A", "tip": "#2E6AFF",
+        "tip-hi": "#82A6FF", "base": "#18181B", "ring": "#2E6AFF", "arm": "#3F3F46",
+        "arm-shade": "#18181B", "accent": "#2E6AFF", "on-screen": "#5C8BFF", "dim": "#1A47C2",
+        "pencil": "#2E6AFF", "eraser": "#FFFFFF", "glyph": "#FFFFFF"
+      }
+    }
+  }
+}

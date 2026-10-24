@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" class="sipaw-mascot sipaw-alert">
+  <!-- Themable: set the sipaw CSS custom properties (var names: double-hyphen + sipaw- + role) on this svg or any ancestor (inline SVG). Fallbacks = "ice-blue" preset. Roles: body, shade, seam, bezel, bezel-line, screen, line, tip, tip-hi, base, ring, arm, arm-shade, accent, on-screen, dim, pencil, eraser, glyph -->
+  <title>SIPaw mascot - alert</title>
+  <g id="mascot">
+  <g id="antennas"><g transform="translate(180 166) rotate(-32)">
+    <rect x="-27" y="-30" width="54" height="34" rx="7" stroke-width="3" style="fill:var(--sipaw-base, #EEF3FF);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <rect x="-27" y="-30" width="54" height="7" rx="3" stroke-width="2" style="fill:var(--sipaw-ring, #1A47C2);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <rect x="-23" y="-76" width="46" height="46" rx="9" stroke-width="3" style="fill:var(--sipaw-tip, #2E6AFF);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <path d="M-13 -66 H5" stroke-width="4" stroke-linecap="round" style="stroke:var(--sipaw-tip-hi, #82A6FF)"/>
+  </g><g transform="translate(332 166) rotate(32)">
+    <rect x="-27" y="-30" width="54" height="34" rx="7" stroke-width="3" style="fill:var(--sipaw-base, #EEF3FF);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <rect x="-27" y="-30" width="54" height="7" rx="3" stroke-width="2" style="fill:var(--sipaw-ring, #1A47C2);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <rect x="-23" y="-76" width="46" height="46" rx="9" stroke-width="3" style="fill:var(--sipaw-tip, #2E6AFF);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <path d="M-13 -66 H5" stroke-width="4" stroke-linecap="round" style="stroke:var(--sipaw-tip-hi, #82A6FF)"/>
+  </g></g>
+  <g id="arms-back"><g transform="translate(106 320) rotate(58)">
+    <ellipse cx="0" cy="0" rx="19" ry="37" stroke-width="3" style="fill:var(--sipaw-arm, #2E6AFF);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <path d="M9 22 Q0 34 -9 22" fill="none" stroke-width="5" stroke-linecap="round" style="stroke:var(--sipaw-arm-shade, #1A47C2)"/>
+  </g><g transform="translate(406 320) rotate(-58)">
+    <ellipse cx="0" cy="0" rx="19" ry="37" stroke-width="3" style="fill:var(--sipaw-arm, #2E6AFF);stroke:var(--sipaw-line, #0B1B4D)"/>
+    <path d="M-9 22 Q0 34 9 22" fill="none" stroke-width="5" stroke-linecap="round" style="stroke:var(--sipaw-arm-shade, #1A47C2)"/>
+  </g></g>
+  <g id="body"><clipPath id="sipaw-alert-clip"><path d="M216 150 H296 C352 150 396 194 396 250 V412 Q396 440 368 440 H306 C294 440 292 418 256 418 C220 418 218 440 206 440 H144 Q116 440 116 412 V250 C116 194 160 150 216 150 Z"/></clipPath>
+  <path d="M216 150 H296 C352 150 396 194 396 250 V412 Q396 440 368 440 H306 C294 440 292 418 256 418 C220 418 218 440 206 440 H144 Q116 440 116 412 V250 C116 194 160 150 216 150 Z" style="fill:var(--sipaw-shade, #B4C9FF)"/>
+  <g clip-path="url(#sipaw-alert-clip)">
+    <path d="M216 150 H296 C352 150 396 194 396 250 V412 Q396 440 368 440 H306 C294 440 292 418 256 418 C220 418 218 440 206 440 H144 Q116 440 116 412 V250 C116 194 160 150 216 150 Z" transform="translate(-9 -8)" style="fill:var(--sipaw-body, #EEF3FF)"/>
+    <path d="M116 262 H396" stroke-width="2" style="stroke:var(--sipaw-seam, #82A6FF)"/>
+  </g>
+  <path d="M216 150 H296 C352 150 396 194 396 250 V412 Q396 440 368 440 H306 C294 440 292 418 256 418 C220 418 218 440 206 440 H144 Q116 440 116 412 V250 C116 194 160 150 216 150 Z" fill="none" stroke-width="3" stroke-linejoin="round" style="stroke:var(--sipaw-line, #0B1B4D)"/>
+  <rect x="149" y="173" width="214" height="174" rx="56" stroke-width="1.5" style="fill:var(--sipaw-bezel, #DCE6FF);stroke:var(--sipaw-bezel-line, #82A6FF)"/>
+  <rect x="157" y="181" width="198" height="158" rx="49" style="fill:var(--sipaw-screen, #0B1B4D)"/></g>
+  <g id="face"><circle cx="227" cy="254" r="15" style="fill:var(--sipaw-glyph, #FFFFFF)"/><circle cx="285" cy="254" r="15" style="fill:var(--sipaw-glyph, #FFFFFF)"/><ellipse cx="256" cy="304" rx="9" ry="11" fill="none" stroke-width="6" style="stroke:var(--sipaw-glyph, #FFFFFF)"/></g>
+  <g id="extras"><g opacity="1"><path d="M106 150 L92 128" stroke-width="6" stroke-linecap="round" style="stroke:var(--sipaw-accent, #2E6AFF)"/><path d="M84 170 L64 160" stroke-width="6" stroke-linecap="round" style="stroke:var(--sipaw-accent, #2E6AFF)"/></g><g opacity="1"><path d="M406 150 L420 128" stroke-width="6" stroke-linecap="round" style="stroke:var(--sipaw-accent, #2E6AFF)"/><path d="M428 170 L448 160" stroke-width="6" stroke-linecap="round" style="stroke:var(--sipaw-accent, #2E6AFF)"/></g></g>
+  </g>
+</svg>
