@@ -80,6 +80,7 @@ rrp_app_start(['nav' => false, 'class' => 'chat-active']);
     <div class="pad"><div class="box"><p class="sub" style="margin:0"><?= rrp_h($error ?: 'Chat unavailable.') ?></p></div></div>
   <?php else: ?>
     <div class="chathead">
+      <sipo-mascot id="sipo" class="sipo-chat" state="idle" theme="ice-blue" size="48" animated="true" label="Sipo, SIPaw assistant"></sipo-mascot>
       <span class="av"><?= rrp_h($av) ?></span>
       <div>
         <b><?= rrp_h($ownerName) ?></b>
@@ -118,6 +119,7 @@ rrp_app_start(['nav' => false, 'class' => 'chat-active']);
     </form>
 
     <script>
+    window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
     window.RRP_CHAT = {
       threadId: <?= (int) $thread['id'] ?>,
       role: "finder",
@@ -126,6 +128,7 @@ rrp_app_start(['nav' => false, 'class' => 'chat-active']);
       apiUrl: <?= json_encode(rrp_asset('api/chat.php')) ?>
     };
     </script>
+    <script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
     <script src="<?= rrp_h(rrp_asset('assets/js/chat.js', true)) ?>" defer></script>
   <?php endif; ?>
 </div>

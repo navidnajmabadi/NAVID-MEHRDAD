@@ -39,9 +39,15 @@ rrp_app_start(['nav' => 'lost']);
 
 <div class="pad stack" style="gap:16px">
   <?php if (!$alert || !$allowed): ?>
+    <div class="sipo-inline">
+      <sipo-mascot id="sipo" state="alert" theme="ice-blue" size="96" animated="true" label="Sipo, SIPaw assistant"></sipo-mascot>
+    </div>
     <h2 class="title" style="font-size:28px">Alert not available</h2>
     <p class="sub">This Lost alert isn’t shared with your account, or it doesn’t exist.</p>
   <?php else: ?>
+    <div class="sipo-inline">
+      <sipo-mascot id="sipo" state="alert" theme="ice-blue" size="72" animated="true" label="Sipo alert — lost pet"></sipo-mascot>
+    </div>
     <?php if (!empty($alert['image_path'])): ?>
       <img src="<?= rrp_h($alert['image_path']) ?>" alt="<?= rrp_h($alert['pet_name']) ?>" style="width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line)" />
     <?php endif; ?>
@@ -97,5 +103,9 @@ rrp_app_start(['nav' => 'lost']);
   <?php endif; ?>
   <div class="gap"></div>
 </div>
+<script>
+window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+</script>
+<script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
 <?php
 rrp_app_end(['nav' => 'lost', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

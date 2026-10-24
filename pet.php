@@ -49,9 +49,15 @@ rrp_app_start(['nav' => false]);
   </div>
 
   <?php if (!$pet || !$owner): ?>
+    <div class="sipo-inline" style="justify-content:center">
+      <sipo-mascot id="sipo" state="alert" theme="ice-blue" size="96" animated="true" label="Sipo alert — tag not found"></sipo-mascot>
+    </div>
     <h2 class="title" style="text-align:center;font-size:28px">Tag not found</h2>
     <p class="sub" style="text-align:center">This QR isn’t linked to a pet yet, or the account isn’t active.</p>
   <?php else: ?>
+    <div class="sipo-inline" style="justify-content:center">
+      <sipo-mascot id="sipo" state="happy" theme="ice-blue" size="72" animated="true" label="Sipo, SIPaw assistant"></sipo-mascot>
+    </div>
     <h2 class="title" style="text-align:center;font-size:28px">You found <?= rrp_h($pet['name']) ?></h2>
     <p class="sub" style="text-align:center">Thank you. Call or message the owner — location only if you agree.</p>
 
@@ -117,6 +123,10 @@ rrp_app_start(['nav' => false]);
   <div class="gap"></div>
 </div>
 
+<script>
+window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+</script>
+<script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
 <?php if ($pet && $owner && $scanId): ?>
 <script>
 window.RRP_SCAN = {
@@ -125,7 +135,7 @@ window.RRP_SCAN = {
   csrf: <?= json_encode(rrp_csrf_token()) ?>
 };
 </script>
-<script src="assets/js/scan.js" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/scan.js', true)) ?>" defer></script>
 <?php endif; ?>
 <?php
 rrp_app_end(['nav' => false, 'push' => false]);

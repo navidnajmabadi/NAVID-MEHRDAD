@@ -12,6 +12,23 @@
   var lastId = Number(cfg.lastId || 0);
   var sending = false;
   var apiUrl = cfg.apiUrl || "api/chat.php";
+  var idleTimer = null;
+
+  function sipo(state) {
+    if (window.Sipo && typeof window.Sipo.setState === "function") {
+      window.Sipo.setState(state);
+      return;
+    }
+    var el = document.getElementById("sipo") || document.querySelector("sipo-mascot");
+    if (el) el.setAttribute("state", state);
+  }
+
+  function sipoIdleSoon(ms) {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(function () {
+      sipo("idle");
+    }, ms || 1800);
+  }
 
   function esc(s) {
     var d = document.createElement("div");
@@ -21,12 +38,12 @@
 
   function formatTime(iso) {
     if (!iso) return "";
-    // "YYYY-MM-DD HH:MM:SS" UTC → show HH:MM
     var m = String(iso).match(/(\d{2}):(\d{2})/);
     return m ? m[1] + ":" + m[2] : "";
   }
 
-  function appendMessage(msg) {
+  function appendMessage(msg, opts) {
+    opts = opts || {};
     if (!msgsEl || !msg || !msg.id) return;
     if (document.getElementById("msg-" + msg.id)) return;
     lastId = Math.max(lastId, Number(msg.id));
@@ -44,6 +61,11 @@
     div.innerHTML = esc(msg.body) + "<time>" + esc(formatTime(msg.created_at)) + "</time>";
     msgsEl.appendChild(div);
     msgsEl.scrollTop = msgsEl.scrollHeight;
+
+    if (opts.fromPoll && !mine) {
+      sipo("writing");
+      sipoIdleSoon(1600);
+    }
   }
 
   function setBusy(busy) {
@@ -56,6 +78,7 @@
     text = String(text || "").trim();
     if (!text || sending) return;
     setBusy(true);
+    sipo("thinking");
     fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -74,14 +97,20 @@
       .then(function (data) {
         setBusy(false);
         if (!data || !data.ok) {
+          sipo("alert");
+          sipoIdleSoon(2400);
           window.alert((data && data.error) || "Could not send.");
           return;
         }
         if (input) input.value = "";
         appendMessage(data.message);
+        sipo("happy");
+        sipoIdleSoon(1600);
       })
       .catch(function () {
         setBusy(false);
+        sipo("alert");
+        sipoIdleSoon(2400);
         window.alert("Network error. Try again.");
       });
   }
@@ -99,7 +128,9 @@
       })
       .then(function (data) {
         if (!data || !data.ok || !data.messages) return;
-        data.messages.forEach(appendMessage);
+        data.messages.forEach(function (m) {
+          appendMessage(m, { fromPoll: true });
+        });
       })
       .catch(function () {});
   }
@@ -119,9 +150,22 @@
     });
   }
 
+  if (input) {
+    input.addEventListener("input", function () {
+      if (sending) return;
+      if (String(input.value || "").length > 0) sipo("listening");
+      else sipo("idle");
+    });
+    input.addEventListener("blur", function () {
+      if (sending) return;
+      if (!String(input.value || "").trim()) sipo("idle");
+    });
+  }
+
   if (msgsEl) {
     msgsEl.scrollTop = msgsEl.scrollHeight;
   }
 
+  sipo("idle");
   setInterval(poll, 4000);
 })();
