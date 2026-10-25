@@ -59,7 +59,7 @@ main{flex:1}
 
 footer{padding:48px 0 40px;border-top:1px solid var(--line);margin-top:auto}
 footer .foot-grid{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(4,minmax(0,1fr));gap:32px 28px;align-items:start}
-footer .foot-tile{width:72px;height:72px;display:block;border:1px solid var(--line);background:#000}
+footer .foot-tile{width:min(148px,100%);aspect-ratio:1;height:auto;display:block;border:1px solid var(--line);background:#000}
 footer .foot-tile img{width:100%;height:100%;object-fit:contain;display:block}
 footer .foot-h{font-family:var(--f-data);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--edge);margin:0 0 14px}
 footer .foot-col{display:flex;flex-direction:column;gap:10px;align-items:flex-start}

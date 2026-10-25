@@ -86,7 +86,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:600;text-transform:uppercase;l
 :root[data-theme="light"] .on-light{display:block}
 :root[data-theme="light"] .on-dark{display:none}
 /* footer logo = element tile only (app icon). Header keeps endorsed wordmark. */
-footer .foot-tile{width:72px;height:72px;display:block;border:1px solid var(--line);background:#000}
+footer .foot-tile{width:min(148px,100%);aspect-ratio:1;height:auto;display:block;border:1px solid var(--line);background:#000}
 footer .foot-tile img{width:100%;height:100%;object-fit:contain;display:block}
 /* demo notif: SI system squircle chip */
 .push .ap{border-radius:10px;letter-spacing:.04em}
@@ -731,7 +731,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     <div class="foot-grid">
       <div class="foot-brand">
         <a class="foot-tile" href="#top" aria-label="SIPAW home">
-          <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg')) ?>" width="72" height="72" alt="SI^PAW element tile">
+          <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg')) ?>" width="148" height="148" alt="SI^PAW element tile">
         </a>
       </div>
       <div class="foot-col">

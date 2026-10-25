@@ -72,7 +72,7 @@ function rrp_marketing_footer(int $year): void
     <div class="foot-grid">
       <div class="foot-brand">
         <a class="foot-tile" href="<?= rrp_h($home) ?>" aria-label="SIPAW home">
-          <img src="<?= rrp_h($tile) ?>" width="72" height="72" alt="SI^PAW element tile">
+          <img src="<?= rrp_h($tile) ?>" width="148" height="148" alt="SI^PAW element tile">
         </a>
       </div>
       <div class="foot-col">
