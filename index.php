@@ -5,13 +5,14 @@ require_once __DIR__ . '/lib/bootstrap.php';
 /**
  * Marketing landing — exact Navid home.html (self-contained CSS/SVG/JS).
  * Entry for `/` and `index.php`. Does NOT redirect to login.
+ * No Characteristics/system-code section. Footer logo = element tile only.
  */
 $owner = rrp_config_ready() ? rrp_current_owner() : null;
 $canonical = rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/';
 $year = (int) date('Y');
 ?><!--
   Source of truth: Navid-uploaded home.html (SI^PAW logos, SIPO hero, features, demo).
-  Footer expanded only: Product / Company / Social / Blog. Auth CTAs wired to PHP routes.
+  Footer: element-tile logo + Product / Company / Social / Blog.
 -->
 <!doctype html>
 <html lang="en">
@@ -84,14 +85,9 @@ h1,h2,h3{font-family:var(--f-display);font-weight:600;text-transform:uppercase;l
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .on-light{display:block}:root:not([data-theme="dark"]) .on-dark{display:none}}
 :root[data-theme="light"] .on-light{display:block}
 :root[data-theme="light"] .on-dark{display:none}
-footer .logo-endorsed{width:140px;margin-left:-16px}
-/* system code / characteristics — element-table tile (also app icon) */
-.system-code{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:48px;align-items:center}
-.system-code .copy{display:flex;flex-direction:column;gap:18px;max-width:36rem}
-.system-code .copy p{color:var(--sub)}
-.element-tile{width:min(280px,42vw);aspect-ratio:1;border:1px solid var(--line);background:#000;display:block}
-.element-tile img,.element-tile object,.element-tile svg{width:100%;height:100%;object-fit:contain;display:block}
-@media (max-width:720px){.system-code{grid-template-columns:1fr;gap:28px}.element-tile{width:min(220px,70vw);justify-self:start}}
+/* footer logo = element tile only (app icon). Header keeps endorsed wordmark. */
+footer .foot-tile{width:72px;height:72px;display:block;border:1px solid var(--line);background:#000}
+footer .foot-tile img{width:100%;height:100%;object-fit:contain;display:block}
 /* demo notif: SI system squircle chip */
 .push .ap{border-radius:10px;letter-spacing:.04em}
 
@@ -275,8 +271,6 @@ section.block{padding:128px 0;border-bottom:1px solid var(--line)}
 footer{padding:48px 0 40px;border-top:1px solid var(--line)}
 footer .wrap{display:block}
 footer .foot-grid{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(4,minmax(0,1fr));gap:32px 28px;align-items:start}
-footer .foot-brand .logo-endorsed{width:140px;margin-left:-16px;display:block}
-footer .foot-tag{color:var(--meta);font-size:13px;margin-top:12px;max-width:22ch;line-height:1.45}
 footer .foot-h{font-family:var(--f-data);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--edge);margin:0 0 14px}
 footer .foot-col{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
 footer .foot-col a{color:var(--sub);font-size:14px;text-decoration:none;line-height:1.3}
@@ -696,18 +690,6 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     </div>
   </section>
 
-  <section class="block" id="code" aria-labelledby="code-title">
-    <div class="wrap system-code">
-      <div class="copy">
-        <div><p class="label">System code</p><h2 id="code-title">Characteristics</h2></div>
-        <p>01 · 2026 · SI^PAW · PETS · BY NAKILAB. The code of the system — product identity and app icon, not a random chip.</p>
-      </div>
-      <figure class="element-tile">
-        <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg')) ?>" width="1024" height="1024" alt="SI to the power of PAW element tile: 01, 2026, PETS, BY NAKILAB">
-      </figure>
-    </div>
-  </section>
-
   <section class="block" id="pets" aria-labelledby="p-title">
     <div class="wrap">
       <div class="head"><div><p class="label">Features</p><h2 id="p-title">Software with pets inside</h2></div><p>Short, funny, useful. Not a policy PDF.</p></div>
@@ -748,9 +730,9 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <svg class="logo-endorsed on-dark" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-dark"/></svg>
-        <svg class="logo-endorsed on-light" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-light"/></svg>
-        <p class="foot-tag">siPaw by Nakilab. Your pet's SI companion.</p>
+        <a class="foot-tile" href="#top" aria-label="SIPAW home">
+          <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg')) ?>" width="72" height="72" alt="SI^PAW element tile">
+        </a>
       </div>
       <div class="foot-col">
         <p class="foot-h">Product</p>
@@ -774,16 +756,16 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><rect x="3" y="3" width="18" height="18"/><path d="M8 11v6M8 8v.01M12 17v-4.5a2.5 2.5 0 015 0V17"/></svg>
           </a>
           <a href="#" aria-label="Facebook" title="Facebook">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><rect x="3" y="3" width="18" height="18"/><path d="M12 17v-6h3M10 11h5"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M22 12.07C22 6.48 17.52 2 11.93 2S1.86 6.48 1.86 12.07c0 5.02 3.66 9.18 8.44 9.93v-7.03H7.9v-2.9h2.4V9.85c0-2.37 1.4-3.68 3.56-3.68 1.03 0 2.11.18 2.11.18v2.32h-1.19c-1.17 0-1.54.73-1.54 1.48v1.78h2.62l-.42 2.9h-2.2V22c4.78-.75 8.44-4.91 8.44-9.93z"/></svg>
           </a>
           <a href="#" aria-label="Instagram" title="Instagram">
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><rect x="3" y="3" width="18" height="18"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r=".8" fill="currentColor" stroke="none"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 01-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 017.8 2zm-.2 2A3.6 3.6 0 004 7.6v8.8A3.6 3.6 0 007.6 20h8.8a3.6 3.6 0 003.6-3.6V7.6A3.6 3.6 0 0016.4 4H7.6zm9.65 1.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM12 7a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z"/></svg>
           </a>
         </div>
       </div>
       <div class="foot-col">
         <p class="foot-h">Blog</p>
-        <a href="#blog">Blog</a>
+        <a href="blog.php">Blog</a>
       </div>
     </div>
     <div class="foot-bar">
@@ -792,7 +774,6 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     </div>
   </div>
 </footer>
-<div id="blog" hidden aria-hidden="true"></div>
 
 <script>
 (() => {
