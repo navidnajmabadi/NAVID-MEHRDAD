@@ -65,14 +65,14 @@ function rrp_marketing_nav(bool $owner, string $active = ''): void
 function rrp_marketing_footer(int $year): void
 {
     $home = rrp_asset('index.php');
-    $tile = rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg');
+    $tile = rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg', true);
     ?>
 <footer>
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
         <a class="foot-tile" href="<?= rrp_h($home) ?>" aria-label="SIPAW home">
-          <img src="<?= rrp_h($tile) ?>" width="72" height="72" alt="SI^PAW element tile">
+          <img src="<?= rrp_h($tile) ?>" width="160" height="160" alt="SI^PAW element tile">
         </a>
       </div>
       <div class="foot-col">
