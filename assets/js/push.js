@@ -1,5 +1,5 @@
 /**
- * Web Push subscribe for Ring Ring Paw (installed PWA + logged-in owners).
+ * Web Push subscribe for siPaw (installed PWA + logged-in owners).
  * Exposes window.RRPPush: ensure(), status(), enable().
  */
 (function () {
