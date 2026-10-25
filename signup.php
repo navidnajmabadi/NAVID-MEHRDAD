@@ -31,15 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 rrp_layout_head('Create account — siPaw', [
-    'description' => 'Create your siPaw account. Home is one scan away.',
+    'description' => 'Create your siPaw account — AI pet care companion by Nakilab.',
     'body_class' => 'page-auth',
 ]);
 rrp_app_start(['nav' => false]);
 ?>
 <div class="auth-hero">
   <?php rrp_logo_endorsed(); ?>
-  <p class="tagline">Home is one scan away.</p>
-  <p class="sub" style="font-size:14px">Name, address, phone, and email — so a finder can reach you.</p>
+  <p class="tagline">Join siPaw</p>
+  <p class="sub" style="font-size:14px">Create an account for AI pet care and community with other owners.</p>
 </div>
 
 <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>

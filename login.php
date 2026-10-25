@@ -35,15 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 rrp_layout_head('Log in — siPaw', [
-    'description' => 'Log in to siPaw. Home is one scan away.',
+    'description' => 'Log in to siPaw — AI pet care companion by Nakilab.',
     'body_class' => 'page-auth',
 ]);
 rrp_app_start(['nav' => false]);
 ?>
 <div class="auth-hero">
   <?php rrp_logo_endorsed(); ?>
-  <p class="tagline">Home is one scan away.</p>
-  <p class="sub" style="font-size:14px">Log in to see your pets and their tags.</p>
+  <p class="tagline">Welcome back</p>
+  <p class="sub" style="font-size:14px">Log in for SI chat, health, and your pet community.</p>
 </div>
 
 <?php rrp_render_flash(); ?>
