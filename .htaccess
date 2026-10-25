@@ -19,4 +19,7 @@ RedirectMatch 404 /\.git
   RewriteEngine On
   RewriteRule ^uploads/.*\.(?i:php|phtml|phar)$ - [F,L]
   RewriteRule ^config(/|$) - [F,L]
+  # Pretty blog URLs → PHP handlers
+  RewriteRule ^blog/?$ blog.php [L,QSA]
+  RewriteRule ^blog/([a-z0-9\-]+)/?$ blog-post.php?slug=$1 [L,QSA]
 </IfModule>
