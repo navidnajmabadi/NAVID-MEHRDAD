@@ -106,7 +106,7 @@ JSON should show `ok: true`, `pdo_connect: true`, `owners_table: true`, and `db_
 
 ## Smoke-test checklist
 
-1. Open https://sipaw.nakilab.com — marketing landing (siPaw brand-first hero, Sipo GIF row, What/How/Features/Trust + Register CTAs, footer **NAKILAB** → nakilab.com); does **not** bounce straight to login; CSS/logos load. Demo section still placeholder (see `docs/LANDING_DEMO.md`).  
+1. Open https://sipaw.nakilab.com — marketing landing (SI square mark + SIPAW wordmark, **one** large talking Sipo + dialog bubbles, short What/How/Features/Trust + Register CTAs, multi-column footer **NAKILAB** → nakilab.com); does **not** bounce straight to login; CSS/logos load. Demo section still placeholder (see `docs/LANDING_DEMO.md`).  
 2. **Phone A:** Sign up → add a pet (photo, type, breed, magic word, distinctive marks, medical) → download QR PNG (and PDF).  
 3. **Install PWA:** Chrome Android “Install” / iOS Share → Add to Home Screen.  
 4. **Phone B:** Scan QR (or open public URL) → see **pet name + owner name + phone** → Call works.  

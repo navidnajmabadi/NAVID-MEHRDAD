@@ -115,8 +115,8 @@ function rrp_logo_endorsed(string $class = ''): void
     $cls = trim('logo-endorsed ' . $class);
     $dark = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-black.svg');
     $light = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-white.svg');
-    echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="siPaw by Nakilab" width="210" height="154" />';
-    echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="siPaw by Nakilab" width="210" height="154" />';
+    echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="siPaw by NAKILAB" width="210" height="154" />';
+    echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="siPaw by NAKILAB" width="210" height="154" />';
 }
 
 function rrp_logo_wordmark(string $class = ''): void
@@ -133,6 +133,42 @@ function rrp_logo_tile(string $class = ''): void
     $cls = trim('logo-tile ' . $class);
     $src = rrp_asset('assets/img/logos/sipaw-symbol-on-black.svg');
     echo '<img class="' . rrp_h($cls) . '" src="' . rrp_h($src) . '" alt="siPaw" width="104" height="104" />';
+}
+
+/**
+ * Square SI logo mark (Super Intelligence). Always renders capital SI — never "Si".
+ */
+function rrp_mark_si(string $class = '', string $size = 'md'): void
+{
+    $cls = trim('si-mark si-mark--' . $size . ' ' . $class);
+    echo '<span class="' . rrp_h($cls) . '" aria-hidden="true"><span class="si-mark__letters">SI</span></span>';
+}
+
+/**
+ * HTML/CSS product wordmark: SI mark + PAW + optional "by NAKILAB".
+ * Prefer this on marketing surfaces so SI never reads as "Si" from SVG paths.
+ *
+ * @param array{class?:string,size?:string,endorsed?:bool,tag?:string} $opts
+ */
+function rrp_wordmark_sipaw(array $opts = []): void
+{
+    $class = trim('sipaw-wm ' . (string) ($opts['class'] ?? ''));
+    $size = (string) ($opts['size'] ?? 'md');
+    $endorsed = array_key_exists('endorsed', $opts) ? (bool) $opts['endorsed'] : true;
+    $tag = (string) ($opts['tag'] ?? 'div');
+    if (!in_array($tag, ['div', 'span', 'a', 'p'], true)) {
+        $tag = 'div';
+    }
+    echo '<' . $tag . ' class="' . rrp_h($class . ' sipaw-wm--' . $size) . '">';
+    rrp_mark_si('sipaw-wm__mark', $size);
+    echo '<span class="sipaw-wm__lockup">';
+    echo '<span class="sipaw-wm__name" aria-label="siPaw">';
+    echo '<span class="sipaw-wm__si">SI</span><span class="sipaw-wm__paw">PAW</span>';
+    echo '</span>';
+    if ($endorsed) {
+        echo '<span class="sipaw-wm__by">by <span class="sipaw-wm__co">NAKILAB</span></span>';
+    }
+    echo '</span></' . $tag . '>';
 }
 
 function rrp_owner_nav_context(int $ownerId): array
