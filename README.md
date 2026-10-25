@@ -9,7 +9,7 @@ Scan a collar QR → see pet + owner phone → optional live location → owner 
 ## Features
 
 - Real **accounts** and **pets** (max 5) with photo, type, breed, magic word, distinctive marks, medical
-- Short branded **landing** + **PWA**
+- Marketing **landing** at `/` (AI companion + community; Register CTA) + **PWA** · demo swap: `docs/LANDING_DEMO.md`
 - **Public scan** + owner **dashboard** (scans, inbox, Leaflet live map)
 - **Finder ↔ owner chat** (per scan, guest cookie; inbox + push notify)
 - **Health Care** — structured vaccines, med reminders, feeding checklist, vet appointments
