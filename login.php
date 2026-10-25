@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-rrp_layout_head('Log in — siPaw', [
+rrp_layout_head('Log in — SIPAW', [
     'description' => 'Log in to siPaw — AI pet care companion by Nakilab.',
     'body_class' => 'page-auth',
 ]);

@@ -6,7 +6,7 @@ require_once __DIR__ . '/lib/layout.php';
 $owner = rrp_require_owner();
 $name = trim((string) ($_GET['pet'] ?? 'your pet'));
 
-rrp_layout_head('Home again — siPaw', ['body_class' => 'page-rescued']);
+rrp_layout_head('Home again — SIPAW', ['body_class' => 'page-rescued']);
 rrp_app_start(['nav' => false]);
 ?>
 <div class="pad" style="padding-top:48px">

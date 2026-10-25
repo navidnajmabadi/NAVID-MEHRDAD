@@ -16,7 +16,7 @@ $error = null;
 $okMsg = null;
 
 if ($count >= 2) {
-    rrp_layout_head('Admin setup — siPaw', ['body_class' => 'admin-body']);
+    rrp_layout_head('Admin setup — SIPAW', ['body_class' => 'admin-body']);
     ?>
 <div class="shell">
   <div class="app-top">
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-rrp_layout_head('Create admin — siPaw', ['body_class' => 'admin-body']);
+rrp_layout_head('Create admin — SIPAW', ['body_class' => 'admin-body']);
 ?>
 <div class="shell">
   <div class="app-top">

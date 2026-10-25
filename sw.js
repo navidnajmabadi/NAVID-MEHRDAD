@@ -51,7 +51,7 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("push", (event) => {
   let data = {
-    title: "siPaw",
+    title: "SIPAW",
     body: "You have a new alert.",
     url: "./dashboard.php",
     icon: "./assets/icons/icon-192.png",
@@ -73,7 +73,7 @@ self.addEventListener("push", (event) => {
 
   const openUrl = data.url || "./dashboard.php";
   event.waitUntil(
-    self.registration.showNotification(data.title || "siPaw", {
+    self.registration.showNotification(data.title || "SIPAW", {
       body: data.body || "",
       icon: data.icon || "./assets/icons/icon-192.png",
       badge: data.badge || "./assets/icons/icon-192.png",

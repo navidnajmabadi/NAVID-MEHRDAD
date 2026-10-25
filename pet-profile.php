@@ -22,7 +22,7 @@ foreach ($myLost as $la) {
 }
 $scanUrl = rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id']));
 
-rrp_layout_head($pet['name'] . ' — siPaw');
+rrp_layout_head($pet['name'] . ' — SIPAW');
 rrp_app_start(['nav' => 'home']);
 ?>
 <div class="profile-hero">

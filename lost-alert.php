@@ -28,7 +28,7 @@ if ($alert) {
 
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
-rrp_layout_head($alert ? ('Help find ' . $alert['pet_name'] . ' — siPaw') : 'Alert — siPaw');
+rrp_layout_head($alert ? ('Help find ' . $alert['pet_name'] . ' — SIPAW') : 'Alert — SIPAW');
 rrp_app_start(['nav' => 'lost']);
 ?>
 <div class="topbar">

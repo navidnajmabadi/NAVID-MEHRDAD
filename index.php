@@ -10,7 +10,7 @@ $owner = rrp_config_ready() ? rrp_current_owner() : null;
 $canonical = rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/';
 $year = (int) date('Y');
 ?><!--
-  Source of truth: Navid-uploaded home.html (SI^PAW logos, Sipo hero, features, demo).
+  Source of truth: Navid-uploaded home.html (SI^PAW logos, SIPO hero, features, demo).
   Footer expanded only: Product / Company / Social / Blog. Auth CTAs wired to PHP routes.
 -->
 <!doctype html>
@@ -18,8 +18,10 @@ $year = (int) date('Y');
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>siPaw: Your pet's SI companion</title>
-<meta name="description" content="siPaw by Nakilab. Chat with Sipo, get reminders on time, and ask other owners. One app for every paw.">
+<title>SIPAW: Your pet's SI companion</title>
+<meta name="description" content="siPaw by Nakilab. Chat with SIPO, get reminders on time, and ask other owners. One app for every paw.">
+<meta property="og:title" content="SIPAW: Your pet's SI companion">
+<meta property="og:site_name" content="SIPAW">
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="<?= rrp_h($canonical) ?>">
 <link rel="manifest" href="<?= rrp_h(rrp_asset('manifest.webmanifest')) ?>">
@@ -27,7 +29,7 @@ $year = (int) date('Y');
 <link rel="apple-touch-icon" href="<?= rrp_h(rrp_asset('assets/icons/apple-touch-icon.png')) ?>">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="siPaw">
+<meta name="apple-mobile-web-app-title" content="SIPAW">
 <meta name="rrp-sw" content="<?= rrp_h(rrp_asset('sw.js')) ?>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,7 +37,7 @@ $year = (int) date('Y');
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* siPaw home. Brandbook v1.0: black and white do the work, Si Blue on the primary action, focus, selection, live dot
-   and Sipo's light. Square corners. Hero = Sipo with the pets, one bubble above Sipo that walks through the product. */
+   and SIPO's light. Square corners. Hero = SIPO with the pets, one bubble above SIPO that walks through the product. */
 :root{
   --bg:#000000; --panel:#0A0A0B; --raised:#18181B; --line:#27272A; --line-hi:#3F3F46; --edge:#71717A;
   --text:#FFFFFF; --sub:#A1A1AA; --meta:#71717A;
@@ -74,14 +76,24 @@ h1,h2,h3{font-family:var(--f-display);font-weight:600;text-transform:uppercase;l
 .skip:focus{left:8px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-/* logo: the SI artwork (SI to the power of PAW), placed from the files, never typed */
+/* logo: SI^PAW artwork from files. Header/nav ALWAYS endorsed (+ by NAKILAB). Element tile = system code / app icon. */
 .logo-word{width:96px;height:auto;margin:-6px 0 -6px -12px;color:var(--text)}
 .logo-endorsed{width:200px;height:auto;margin-left:-22px}
+.nav .logo-endorsed{width:118px;height:auto;margin:-4px 0 -4px -14px}
 .on-light{display:none}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .on-light{display:block}:root:not([data-theme="dark"]) .on-dark{display:none}}
 :root[data-theme="light"] .on-light{display:block}
 :root[data-theme="light"] .on-dark{display:none}
 footer .logo-endorsed{width:140px;margin-left:-16px}
+/* system code / characteristics — element-table tile (also app icon) */
+.system-code{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:48px;align-items:center}
+.system-code .copy{display:flex;flex-direction:column;gap:18px;max-width:36rem}
+.system-code .copy p{color:var(--sub)}
+.element-tile{width:min(280px,42vw);aspect-ratio:1;border:1px solid var(--line);background:#000;display:block}
+.element-tile img,.element-tile object,.element-tile svg{width:100%;height:100%;object-fit:contain;display:block}
+@media (max-width:720px){.system-code{grid-template-columns:1fr;gap:28px}.element-tile{width:min(220px,70vw);justify-self:start}}
+/* demo notif: SI system squircle chip */
+.push .ap{border-radius:10px;letter-spacing:.04em}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 28px;font:600 14px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;text-decoration:none;border:1px solid var(--text);transition:background-color .2s,color .2s,border-color .2s,transform .15s var(--ease)}
 .btn:active{transform:scale(.98)}
@@ -161,7 +173,7 @@ section.block{padding:128px 0;border-bottom:1px solid var(--line)}
 .head h2{font-size:clamp(36px,4.6vw,64px);margin-top:18px;max-width:16ch}
 .head p{max-width:34rem;color:var(--sub)}
 
-/* what Sipo does: each card is one of Sipo's lines */
+/* what SIPO does: each card is one of SIPO's lines */
 .fgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--line)}
 .fcard{position:relative;display:flex;flex-direction:column;gap:14px;padding:28px 22px 26px;min-height:300px;transition:background-color .25s}
 .fcard + .fcard{border-left:1px solid var(--line)}
@@ -326,7 +338,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <!-- Sipo's six faces (static), from sipaw.nakilab.com/assets/mascot/public -->
+  <!-- SIPO's six faces (static), from sipaw.nakilab.com/assets/mascot/public -->
 <symbol id="mini-idle" viewBox="0 0 512 512"><g>
   <g><g transform="translate(180 166) rotate(-32)">
     <rect x="-27" y="-30" width="54" height="34" rx="7" stroke-width="3" style="fill:var(--sipaw-base, #EEF3FF);stroke:var(--sipaw-line, #0B1B4D)"/>
@@ -557,9 +569,9 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
 
 <nav class="nav" aria-label="Main">
   <div class="wrap">
-    <a href="#top" aria-label="siPaw home"><svg class="logo-word" viewBox="0 0 629 372" role="img" aria-label="siPaw"><use href="#lg-word"/></svg></a>
+    <a href="#top" aria-label="siPaw by Nakilab home"><svg class="logo-endorsed on-dark" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-dark"/></svg><svg class="logo-endorsed on-light" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-light"/></svg></a>
     <ul>
-      <li><a href="#features">What Sipo does</a></li>
+      <li><a href="#features">What SIPO does</a></li>
       <li><a href="#demo">Demo</a></li>
       <li><a href="#pets">Features</a></li>
     </ul>
@@ -580,7 +592,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
       <div class="intro">
         <div class="brand"><svg class="logo-endorsed on-dark" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-dark"/></svg><svg class="logo-endorsed on-light" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-light"/></svg></div>
         <h1>Your pet's <span>SI companion.</span></h1>
-        <p class="lede">Add Milo and Luna, ask Sipo anything, and get a nudge before you forget. One app for every paw.</p>
+        <p class="lede">Add Milo and Luna, ask SIPO anything, and get a nudge before you forget. One app for every paw.</p>
         <div class="ctas">
 <?php if ($owner): ?>
         <a class="btn primary" href="dashboard.php">Open home <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
@@ -592,9 +604,9 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
       </div>
       </div>
 
-      <div class="scene" id="scene" role="button" tabindex="0" aria-label="Sipo with Milo and Luna. Tap for Sipo's next line">
+      <div class="scene" id="scene" role="button" tabindex="0" aria-label="SIPO with Milo and Luna. Tap for SIPO's next line">
         <div class="bubble" id="bubble">
-          <div class="who"><span class="name"><i></i>Sipo</span><span class="tag data" id="line-tag">01 / HELLO</span></div>
+          <div class="who"><span class="name"><i></i>SIPO</span><span class="tag data" id="line-tag">01 / HELLO</span></div>
           <div class="typing" aria-hidden="true"><i></i><i></i><i></i></div>
           <p class="say" id="say" aria-live="polite"></p>
           <div class="timer" aria-hidden="true"><i id="timer"></i></div>
@@ -613,7 +625,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
           <div class="pet" id="pet-luna"><svg viewBox="0 0 200 200" aria-hidden="true" style="--c1:#71717A;--c2:#E4E4E7;--c3:#3F3F46"><use href="#pet-cat"/></svg><span class="tagline"><b>Luna</b><span class="data">TABBY / 2 YRS</span></span></div>
           <span class="floor" aria-hidden="true"></span>
         </div>
-        <ol class="steps" id="steps" aria-label="Sipo's lines"></ol>
+        <ol class="steps" id="steps" aria-label="SIPO's lines"></ol>
       </div>
     </div>
   </header>
@@ -621,8 +633,8 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
   <section class="block" id="features" aria-labelledby="f-title">
     <div class="wrap">
       <div class="head">
-        <div><p class="label">What Sipo does</p><h2 id="f-title">One companion for every paw</h2></div>
-        <p>Tap a card and Sipo explains it. Each line changes Sipo's face, so you always know if it is listening, writing, thinking or warning you.</p>
+        <div><p class="label">What SIPO does</p><h2 id="f-title">One companion for every paw</h2></div>
+        <p>Tap a card and SIPO explains it. Each line changes SIPO's face, so you always know if it is listening, writing, thinking or warning you.</p>
       </div>
       <div class="fgrid" id="fgrid"></div>
     </div>
@@ -636,7 +648,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
         <p style="color:var(--sub);max-width:32rem;margin-bottom:36px">The app plays itself. Pick a step to jump to it.</p>
         <ol class="dsteps" id="dsteps">
           <li><button data-v="0"><span class="n data">01</span><b>Your pets</b><small>Milo and Luna, and what is due today.</small><i class="bar"></i></button></li>
-          <li><button data-v="1"><span class="n data">02</span><b>Ask Sipo</b><small>A real question, a calm answer.</small><i class="bar"></i></button></li>
+          <li><button data-v="1"><span class="n data">02</span><b>Ask SIPO</b><small>A real question, a calm answer.</small><i class="bar"></i></button></li>
           <li><button data-v="2"><span class="n data">03</span><b>The nudge</b><small>Flea meds, right on time. One tap to log it.</small><i class="bar"></i></button></li>
           <li><button data-v="3"><span class="n data">04</span><b>Owner boards</b><small>Tips from people with the same breed.</small><i class="bar"></i></button></li>
         </ol>
@@ -662,7 +674,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
           </div>
 
           <div class="view" data-view="1">
-            <div class="top"><div><p class="label" style="font-size:10px">Chat</p><h4>Sipo</h4></div><svg class="mini-sipo" viewBox="0 0 512 512"><use href="#mini-listening"/></svg></div>
+            <div class="top"><div><p class="label" style="font-size:10px">Chat</p><h4>SIPO</h4></div><svg class="mini-sipo" viewBox="0 0 512 512"><use href="#mini-listening"/></svg></div>
             <div class="chat" id="chat"></div>
             <div class="composer"><span>Ask about Milo or Luna</span><i><svg width="16" height="16"><use href="#i-arrow"/></svg></i></div>
           </div>
@@ -681,6 +693,18 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="block" id="code" aria-labelledby="code-title">
+    <div class="wrap system-code">
+      <div class="copy">
+        <div><p class="label">System code</p><h2 id="code-title">Characteristics</h2></div>
+        <p>01 · 2026 · SI^PAW · PETS · BY NAKILAB. The code of the system — product identity and app icon, not a random chip.</p>
+      </div>
+      <figure class="element-tile">
+        <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg')) ?>" width="1024" height="1024" alt="SI to the power of PAW element tile: 01, 2026, PETS, BY NAKILAB">
+      </figure>
     </div>
   </section>
 
@@ -706,7 +730,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
 
   <section class="block final" id="cta" aria-labelledby="c-title">
     <div class="wrap">
-      <div><h2 id="c-title">Add your first pet.</h2><p>Two minutes. Sipo takes it from there.</p></div>
+      <div><h2 id="c-title">Add your first pet.</h2><p>Two minutes. SIPO takes it from there.</p></div>
       <div class="ctas">
 <?php if ($owner): ?>
         <a class="btn primary" href="dashboard.php">Open home</a>
@@ -730,7 +754,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
       </div>
       <div class="foot-col">
         <p class="foot-h">Product</p>
-        <a href="#features">What Sipo does</a>
+        <a href="#features">What SIPO does</a>
         <a href="#demo">Demo</a>
         <a href="#pets">Features</a>
         <a href="signup.php">Register</a>
@@ -777,9 +801,9 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
-  /* ================= Hero: Sipo's lines. Each line sets Sipo's face; `pet` lifts Milo or Luna. ================= */
+  /* ================= Hero: SIPO's lines. Each line sets SIPO's face; `pet` lifts Milo or Luna. ================= */
   const LINES = [
-    { face: 'happy',     tag: 'Hello',     title: 'Meet Sipo',   text: 'Hi, I am SIPO, your pet assistant. Ask me anything about Milo and Luna.' },
+    { face: 'happy',     tag: 'Hello',     title: 'Meet SIPO',   text: 'Hi, I am SIPO, your pet assistant. Ask me anything about Milo and Luna.' },
     { face: 'listening', tag: 'Care',      title: 'Pet profile', text: 'Tell me about your pet. I remember breed, health notes, habits, and that Milo hates baths.', pet: 'milo' },
     { face: 'writing',   tag: 'Reminders', title: 'Reminders',   text: 'I write down vaccines, pills and meals, then remind you on time. The day before, and on the day.', pet: 'luna' },
     { face: 'thinking',  tag: 'Ask SI',    title: 'Ask SI',      text: 'Forgot the flea meds again? I got you. Nudges beat guilt trips.', pet: 'luna' },
@@ -802,7 +826,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
       <svg class="face-mini" viewBox="0 0 512 512" aria-hidden="true"><use href="#mini-${l.face}"/></svg>
       <h3>${l.title}</h3>
       <p>${l.text.split(/(?<=[.?]) /)[0]}</p>
-      <span class="go">Ask Sipo <svg width="14" height="14"><use href="#i-arrow"/></svg></span>
+      <span class="go">Ask SIPO <svg width="14" height="14"><use href="#i-arrow"/></svg></span>
     </button>`).join('');
   const cards = $$('#fgrid .fcard');
   cards.forEach(c => c.addEventListener('click', () => {
@@ -831,7 +855,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     tag.textContent = `${String(i + 1).padStart(2, '0')} / ${l.tag.toUpperCase()}`;
     timer.style.transform = 'scaleX(0)';
     if (reduce) { setFace(l.face); say.textContent = l.text; return; }
-    // a short "thinking" beat, then Sipo changes face and types the line
+    // a short "thinking" beat, then SIPO changes face and types the line
     bubble.classList.add('thinking');
     setFace('thinking');
     thinkT = setTimeout(() => { bubble.classList.remove('thinking'); setFace(l.face); type(l.text); }, go.started ? THINK_MS : 250);
@@ -896,7 +920,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     const box = $('#nudge');
     box.innerHTML = '';
     if (!reduce) await wait(500); if (run !== demoRun) return;
-    box.innerHTML = '<div class="push"><span class="ap">SI</span><div style="flex:1"><div style="display:flex;justify-content:space-between"><b>Sipo</b><span class="data" style="font-size:10px;color:var(--sub)">NOW</span></div><p>Flea meds for Luna. Two drops between the shoulders.</p><div class="row"><span>Snooze 1 h</span><span class="do">Done</span></div></div></div>';
+    box.innerHTML = '<div class="push"><span class="ap">SI</span><div style="flex:1"><div style="display:flex;justify-content:space-between"><b>SIPO</b><span class="data" style="font-size:10px;color:var(--sub)">NOW</span></div><p>Flea meds for Luna. Two drops between the shoulders.</p><div class="row"><span>Snooze 1 h</span><span class="do">Done</span></div></div></div>';
     if (!reduce) await wait(2600); if (run !== demoRun) return;
     box.firstElementChild.classList.add('done');
     box.insertAdjacentHTML('beforeend', '<p class="done-note"><svg width="16" height="16" style="color:var(--blue)"><use href="#i-check"/></svg>Logged for Luna. Next dose on 21 Nov.</p>');
@@ -907,7 +931,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     const POSTS = [
       ['Best harness for a puller?', 'ANA / 2H', '18 replies'],
       ['Tired after walks: normal at 4 years?', 'SAM / 5H', '9 replies'],
-      ['Sipo tip: walk before 9:00 in summer', 'PINNED', 'Saved by 41']
+      ['SIPO tip: walk before 9:00 in summer', 'PINNED', 'Saved by 41']
     ];
     for (const [t, who, n] of POSTS) {
       if (!reduce) await wait(500); if (run !== demoRun) return;

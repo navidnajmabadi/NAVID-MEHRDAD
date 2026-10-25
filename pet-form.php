@@ -36,7 +36,7 @@ $type = $values['type'] ?? 'dog';
 $petCount = rrp_pet_count((int) $owner['id']);
 $breedsJson = json_encode(RRP_BREED_SUGGESTIONS, JSON_UNESCAPED_UNICODE);
 
-rrp_layout_head(($editing ? 'Edit pet' : 'Add a pet') . ' — siPaw', ['body_class' => 'page-add']);
+rrp_layout_head(($editing ? 'Edit pet' : 'Add a pet') . ' — SIPAW', ['body_class' => 'page-add']);
 rrp_app_start(['nav' => false]);
 ?>
 <form method="post" enctype="multipart/form-data" id="petForm" class="scr" style="display:flex;flex-direction:column;min-height:100%">

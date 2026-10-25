@@ -90,7 +90,7 @@ if ($pet) {
     }
 }
 
-rrp_layout_head('Health — siPaw');
+rrp_layout_head('Health — SIPAW');
 rrp_app_start(['nav' => 'health']);
 ?>
 <div class="topbar">

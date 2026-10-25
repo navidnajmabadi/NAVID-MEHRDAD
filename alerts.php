@@ -16,7 +16,7 @@ if (!in_array($filter, $allowed, true)) {
     $filter = 'all';
 }
 
-rrp_layout_head('Alerts — siPaw');
+rrp_layout_head('Alerts — SIPAW');
 rrp_app_start(['nav' => 'alerts']);
 ?>
 <div class="topbar">

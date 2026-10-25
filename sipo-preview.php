@@ -16,7 +16,7 @@ $themes = [
 ];
 $base = rtrim(rrp_asset('assets/mascot/public'), '/');
 
-rrp_layout_head('Sipo preview — siPaw', [
+rrp_layout_head('Sipo preview — SIPAW', [
     'description' => 'Sipo mascot state × theme grid for SIPaw.',
     'body_class' => 'page-sipo-preview',
 ]);

@@ -29,7 +29,7 @@ $profile = $stmt->fetch() ?: $owner;
 $nav = rrp_owner_nav_context((int) $owner['id']);
 $initial = strtoupper(substr((string) ($profile['name'] ?? 'U'), 0, 1));
 
-rrp_layout_head('Account — siPaw');
+rrp_layout_head('Account — SIPAW');
 rrp_app_start(['nav' => 'home']);
 ?>
 <div class="topbar">

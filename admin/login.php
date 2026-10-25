@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-rrp_layout_head('Admin login — siPaw', ['body_class' => 'admin-body']);
+rrp_layout_head('Admin login — SIPAW', ['body_class' => 'admin-body']);
 ?>
 <div class="shell">
   <div class="app-top">
