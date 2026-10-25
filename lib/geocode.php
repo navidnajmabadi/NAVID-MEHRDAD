@@ -53,7 +53,7 @@ function rrp_geocode_address(string $address, bool $forceRefresh = false): array
     }
 
     $cfg = rrp_load_config()['geocode'] ?? [];
-    $ua = (string) ($cfg['user_agent'] ?? 'RingRingPaw/1 (https://ringringpaw.nakilab.com; noreply@nakilab.com)');
+    $ua = (string) ($cfg['user_agent'] ?? 'siPaw/1 (https://sipaw.nakilab.com; noreply@nakilab.com)');
     $url = 'https://nominatim.openstreetmap.org/search?' . http_build_query([
         'q' => $address,
         'format' => 'json',

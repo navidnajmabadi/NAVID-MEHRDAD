@@ -1,4 +1,4 @@
-# RingRingPaw — web root hardening (safe to keep in git)
+# siPaw — web root hardening (safe to keep in git)
 DirectoryIndex index.php index.html
 
 # Block git metadata if the clone lives in the web root

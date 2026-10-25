@@ -10,13 +10,19 @@ function rrp_config_paths(): array
     $root = dirname(__DIR__);
     return [
         // Absolute Hostinger paths first (preferred: outside public_html).
+        // sipaw.php preferred; ringringpaw.php kept as legacy filename fallback.
+        '/home/u233722910/domains/nakilab.com/config/sipaw.php',
         '/home/u233722910/domains/nakilab.com/config/ringringpaw.php',
-        '/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php',
-        // Relative fallbacks if the clone lives under public_html/.../ringringpaw
+        '/home/u233722910/domains/sipaw.nakilab.com/config/sipaw.php',
+        '/home/u233722910/domains/sipaw.nakilab.com/config/ringringpaw.php',
+        // Relative fallbacks if the clone lives under public_html/.../sipaw
+        $root . '/../../config/sipaw.php',
         $root . '/../../config/ringringpaw.php',
+        $root . '/../config/sipaw.php',
         $root . '/../config/ringringpaw.php',
         // Temporary: config/ inside the app/docroot (Navid File Browser layout).
         // Prefer outside-web-root long-term; .htaccess must deny /config/ over HTTP.
+        $root . '/config/sipaw.php',
         $root . '/config/ringringpaw.php',
         // Local override (gitignored)
         $root . '/config.local.php',
@@ -54,12 +60,14 @@ function rrp_load_config(): array
 
     http_response_code(503);
     header('Content-Type: text/plain; charset=utf-8');
-    echo "RingRingPaw is not configured yet.\n\n";
+    echo "siPaw is not configured yet.\n\n";
     echo "Create MySQL DB, import sql/001_schema.sql, then place config at ONE of:\n";
-    echo "  /home/u233722910/domains/nakilab.com/config/ringringpaw.php  (preferred)\n";
-    echo "  /home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php\n";
-    echo "  {app}/config/ringringpaw.php  (temporary in-docroot; HTTP blocked)\n";
+    echo "  /home/u233722910/domains/nakilab.com/config/sipaw.php  (preferred)\n";
+    echo "  /home/u233722910/domains/nakilab.com/config/ringringpaw.php  (legacy filename OK)\n";
+    echo "  /home/u233722910/domains/sipaw.nakilab.com/config/sipaw.php\n";
+    echo "  {app}/config/sipaw.php  (temporary in-docroot; HTTP blocked)\n";
     echo "(copy from config.example.php — never commit real passwords).\n";
+    echo "Set app_url to https://sipaw.nakilab.com\n";
     exit;
 }
 
@@ -113,7 +121,7 @@ function rrp_safe_db_error(Throwable $e, string $fallback = 'Database error'): s
     if ($code === 1049 || $sqlState === '42000') {
         $hint = ' Check that config db.name matches a real MySQL database.';
     } elseif ($code === 1045) {
-        $hint = ' Check db.user / db.pass in ringringpaw.php.';
+        $hint = ' Check db.user / db.pass in sipaw.php (or legacy ringringpaw.php).';
     } elseif ($code === 1146) {
         $hint = ' Table missing — import sql/001_schema.sql into the same DB as config.';
     } elseif ($code === 2002 || $code === 2003) {
@@ -172,15 +180,17 @@ function rrp_app_url(string $path = ''): string
 }
 
 /**
- * Absolute URL for static assets / shared layout links.
- * Safe from /admin/* pages where relative "assets/…" would 404.
+ * Site-root path for static assets / shared layout links.
+ * Uses "/assets/…" (not app_url) so a stale app_url cannot break CSS/images,
+ * and /admin/* pages resolve to the subdomain root (not /admin/assets/…).
+ * Subdomain docroot must be the app folder (https://sipaw.nakilab.com → …/sipaw).
  * When $versioned is true, appends ?v=filemtime so Hostinger CDN/browser
  * caches (max-age up to 7d) pick up CSS/JS after deploy.
  */
 function rrp_asset(string $path, bool $versioned = false): string
 {
     $path = ltrim($path, '/');
-    $url = rrp_app_url($path);
+    $url = '/' . $path;
     if (!$versioned) {
         return $url;
     }

@@ -3,7 +3,7 @@
 # Prefer merge to PetFinder + docs/HOSTINGER_INSTALL.md over this zip.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-OUT="$ROOT/dist/ringringpaw-hostinger.zip"
+OUT="$ROOT/dist/sipaw-hostinger.zip"
 mkdir -p "$ROOT/dist"
 rm -f "$OUT"
 cd "$ROOT"

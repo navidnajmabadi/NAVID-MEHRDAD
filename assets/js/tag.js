@@ -36,7 +36,7 @@
       var canvas = canvasFromQr();
       if (!canvas) return;
       var a = document.createElement("a");
-      a.download = (cfg.petName || "pet") + "-ringringpaw-qr.png";
+      a.download = (cfg.petName || "pet") + "-sipaw-qr.png";
       a.href = canvas.toDataURL("image/png");
       a.click();
     });
@@ -61,7 +61,7 @@
       doc.addImage(img, "PNG", 25, 35, 55, 55);
       doc.setFontSize(8);
       doc.text(cfg.url || "", 15, 100, { maxWidth: 75 });
-      doc.save((cfg.petName || "pet") + "-ringringpaw-qr.pdf");
+      doc.save((cfg.petName || "pet") + "-sipaw-qr.pdf");
     });
   }
 

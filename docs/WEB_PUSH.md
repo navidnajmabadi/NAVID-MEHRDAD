@@ -1,4 +1,4 @@
-# RingRingPaw — Web Push (PWA notifications)
+# siPaw — Web Push (PWA notifications)
 
 Real notifications on the **installed** home-screen app (Android Chrome + iOS Safari 16.4+).  
 Email + in-app inbox stay primary and are never disabled when push fails.
@@ -23,8 +23,9 @@ Or use https://vapidkeys.com (same base64url format).
 
 Edit **one** of (same file you already use for DB):
 
-- `/home/u233722910/domains/nakilab.com/config/ringringpaw.php`
-- `/home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php`
+- `/home/u233722910/domains/nakilab.com/config/sipaw.php` (preferred)
+- `/home/u233722910/domains/nakilab.com/config/ringringpaw.php` (legacy filename OK)
+- `/home/u233722910/domains/sipaw.nakilab.com/config/sipaw.php`
 
 ```php
 'vapid' => [
@@ -38,7 +39,7 @@ Leave keys empty to skip push (no crash — email/inbox only).
 
 ### 3. SQL (optional but recommended)
 
-In phpMyAdmin, on the RingRingPaw database:
+In phpMyAdmin, on the siPaw database:
 
 ```text
 sql/003_push_subscriptions.sql
@@ -52,14 +53,14 @@ Merge/push to **`PetFinder`** → auto `git pull`. No Composer on Hostinger — 
 
 ### 5. Confirm
 
-Open https://ringringpaw.nakilab.com/health.php — look for `"vapid_configured": true`.  
+Open https://sipaw.nakilab.com/health.php — look for `"vapid_configured": true`.  
 Logged-in: Dashboard → **Phone notifications** → Enable.
 
 ## Smoke-test checklist
 
 ### Android (Chrome)
 
-1. Open https://ringringpaw.nakilab.com in Chrome → log in.  
+1. Open https://sipaw.nakilab.com in Chrome → log in.  
 2. Install (banner or menu → Install app / Add to Home Screen).  
 3. Open from home screen → Dashboard → **Enable notifications** → Allow.  
 4. Badge should show **On**.  
@@ -72,14 +73,14 @@ Logged-in: Dashboard → **Phone notifications** → Enable.
 1. **Must** use Share → **Add to Home Screen** (notifications do **not** work in Safari tab).  
 2. Open the icon from the home screen (standalone).  
 3. Log in → Enable notifications → Allow.  
-4. If blocked: Settings → Notifications → Ring Ring Paw → Allow.  
+4. If blocked: Settings → Notifications → siPaw → Allow.  
 5. Same LOST / scan test as Android.  
 6. iOS &lt; 16.4: push unsupported — email + inbox only (UI explains).
 
 ### Permission denied
 
 - **Android:** site settings → Notifications → Allow → tap Enable again.  
-- **iOS:** Settings → Notifications → Ring Ring Paw.  
+- **iOS:** Settings → Notifications → siPaw.  
 - UX copy lives on the dashboard push banner.
 
 ### VAPID empty

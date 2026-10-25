@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Hostinger scheduled task / cron endpoint.
  *
- * URL: https://ringringpaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET
+ * URL: https://sipaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET
  * Suggested schedule: every 5–15 minutes.
  *
  * Sends due LOST HELP ME escalation pings (+1h, +3h, +8h) and expires finished alerts.

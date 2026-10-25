@@ -1,7 +1,8 @@
-# Auto-deploy RingRingPaw: push to PetFinder → SSH git pull on Hostinger.
+# Auto-deploy siPaw: push to PetFinder → SSH git pull on Hostinger.
 # Requires repo secret HOSTINGER_SSH_KEY (private deploy key; not the Mac key).
-# Setup: docs/hostinger-deploy.md → "Your steps".
-name: Deploy RingRingPaw
+# Setup: docs/HOSTINGER_INSTALL.md → deploy section.
+# Hostinger folder must be public_html/sipaw (renamed from ringringpaw).
+name: Deploy siPaw
 
 on:
   push:
@@ -15,4 +16,4 @@ jobs:
         run: |
           echo "${{ secrets.HOSTINGER_SSH_KEY }}" > key && chmod 600 key
           ssh -i key -p 65002 -o StrictHostKeyChecking=accept-new u233722910@46.202.198.223 \
-            "cd domains/nakilab.com/public_html/ringringpaw && git pull --ff-only"
+            "cd domains/nakilab.com/public_html/sipaw && git pull --ff-only"

@@ -25,13 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-rrp_layout_head('Admin login — Ring Ring Paw', ['body_class' => 'admin-body']);
+rrp_layout_head('Admin login — siPaw', ['body_class' => 'admin-body']);
 ?>
 <div class="shell">
   <div class="app-top">
     <a class="app-brand" href="<?= rrp_h(rrp_asset('index.php')) ?>">
       <img src="<?= rrp_h(rrp_asset('assets/logo.jpg')) ?>" alt="" width="40" height="40" />
-      <span>Ring Ring Paw</span>
+      <span>siPaw</span>
     </a>
   </div>
   <h1>Admin</h1>

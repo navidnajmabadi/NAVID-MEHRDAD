@@ -1,6 +1,6 @@
 # LOST HELP ME + Admin — Hostinger setup
 
-Import **after** Phase 1 schema. Config stays at `{app}/config/ringringpaw.php` (or outside web root — see `HOSTINGER_INSTALL.md`).
+Import **after** Phase 1 schema. Config stays at `{app}/config/sipaw.php` (or legacy `ringringpaw.php` / outside web root — see `HOSTINGER_INSTALL.md`).
 
 ## 1. SQL to import
 
@@ -13,7 +13,7 @@ If an `ALTER TABLE` says “Duplicate column”, that piece already exists — r
 
 ## 2. Config additions
 
-Merge these keys into live `ringringpaw.php` (from `config.example.php`):
+Merge these keys into live `sipaw.php` / legacy `ringringpaw.php` (from `config.example.php`):
 
 | Key | Purpose |
 |-----|---------|
@@ -31,15 +31,15 @@ Admins live in **`admin_users`** (separate from owner accounts).
 ### Option A — browser setup (recommended once)
 
 1. Set `admin_setup_secret` in config.
-2. Open https://ringringpaw.nakilab.com/admin/setup.php  
+2. Open https://sipaw.nakilab.com/admin/setup.php  
 3. Create **Navid**, then **Mehrdad** (setup closes after 2 admins).
-4. Log in at https://ringringpaw.nakilab.com/admin/login.php  
+4. Log in at https://sipaw.nakilab.com/admin/login.php  
 5. Optionally blank `admin_setup_secret` after both exist.
 
 ### Option B — CLI on Hostinger
 
 ```bash
-cd domains/nakilab.com/public_html/ringringpaw   # or your docroot
+cd domains/nakilab.com/public_html/sipaw   # or your docroot
 php scripts/create-admin.php "Navid" navid@example.com 'ChooseALongPassword'
 php scripts/create-admin.php "Mehrdad" mehrdad@example.com 'ChooseALongPassword'
 ```
@@ -49,7 +49,7 @@ php scripts/create-admin.php "Mehrdad" mehrdad@example.com 'ChooseALongPassword'
 **URL:**
 
 ```text
-https://ringringpaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET
+https://sipaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET
 ```
 
 **Hostinger:** hPanel → **Advanced → Cron Jobs** (or Scheduled Tasks) → fetch that URL every **5 or 10 minutes**.
@@ -58,10 +58,10 @@ Examples:
 
 ```bash
 # wget
-*/10 * * * * wget -q -O - "https://ringringpaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET" >/dev/null 2>&1
+*/10 * * * * wget -q -O - "https://sipaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET" >/dev/null 2>&1
 
 # curl
-*/10 * * * * curl -fsS "https://ringringpaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET" >/dev/null 2>&1
+*/10 * * * * curl -fsS "https://sipaw.nakilab.com/cron/lost-escalate.php?key=YOUR_CRON_SECRET" >/dev/null 2>&1
 ```
 
 Expect JSON `{"ok":true,"stats":{...}}`. Wrong key → HTTP 403.

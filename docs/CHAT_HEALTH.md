@@ -1,6 +1,6 @@
 # Chat + Health — SQL & cron for Navid
 
-After this code is on Hostinger (`PetFinder` deploy), run these **once** in **phpMyAdmin** on the same database as `ringringpaw.php` → `db.name`.
+After this code is on Hostinger (`PetFinder` deploy), run these **once** in **phpMyAdmin** on the same database as `sipaw.php` / legacy `ringringpaw.php` → `db.name`.
 
 ## 1. Import SQL (order matters)
 
@@ -11,7 +11,7 @@ After this code is on Hostinger (`PetFinder` deploy), run these **once** in **ph
 
 Steps:
 
-1. hPanel → **phpMyAdmin** → select the RingRingPaw database.
+1. hPanel → **phpMyAdmin** → select the siPaw database.
 2. **Import** → choose `004_chat.sql` → Go.
 3. **Import** → choose `005_health.sql` → Go.
 4. Or paste each file into the SQL tab and run.
@@ -25,7 +25,7 @@ If Chat or Health show “tables not installed”, the import did not hit the co
 Add a second Hostinger scheduled task (or append to the existing curl script), every ~10 minutes:
 
 ```bash
-curl -fsS "https://ringringpaw.nakilab.com/cron/health-reminders.php?key=YOUR_CRON_SECRET"
+curl -fsS "https://sipaw.nakilab.com/cron/health-reminders.php?key=YOUR_CRON_SECRET"
 ```
 
 Uses the same `cron_secret` as `cron/lost-escalate.php`.
