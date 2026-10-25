@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 function rrp_layout_head(string $title, array $opts = []): void
 {
-    $desc = $opts['description'] ?? 'siPaw by Nakilab — AI pet care companion and community for pet owners.';
+    $desc = $opts['description'] ?? 'siPaw by NAKILAB — AI pet care companion and community for pet owners.';
     $extra = $opts['extra_head'] ?? '';
     $canonical = $opts['canonical'] ?? (rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/');
     $bodyClass = trim((string) ($opts['body_class'] ?? ''));
