@@ -95,7 +95,7 @@ function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): 
         'health' => ['href' => 'health-care.php', 'label' => 'Health', 'icon' => 'i-heart'],
         'lost' => ['href' => 'lost.php', 'label' => 'Lost', 'icon' => 'i-lost'],
         'alerts' => ['href' => 'alerts.php', 'label' => 'Alerts', 'icon' => 'i-bell'],
-        'chat' => ['href' => 'chat.php', 'label' => 'Chat', 'icon' => 'i-chat'],
+        'chat' => ['href' => 'si-chat.php', 'label' => 'SIPO', 'icon' => 'i-chat'],
     ];
     echo '<nav class="tabbar" id="tabbar" aria-label="Main">' . "\n";
     foreach ($tabs as $key => $tab) {

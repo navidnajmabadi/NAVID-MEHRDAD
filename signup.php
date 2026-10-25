@@ -68,6 +68,14 @@ rrp_app_start(['nav' => false]);
     <div class="in"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" /></div>
     <small>At least 8 characters.</small>
   </div>
+  <label class="checkrow" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--sub)">
+    <input type="checkbox" name="accept_terms" value="1" required <?= !empty($_POST['accept_terms']) ? 'checked' : '' ?> />
+    <span>I accept the <a class="link" href="legal.php?doc=terms">Terms</a> (stub until T27).</span>
+  </label>
+  <label class="checkrow" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--sub)">
+    <input type="checkbox" name="accept_privacy" value="1" required <?= !empty($_POST['accept_privacy']) ? 'checked' : '' ?> />
+    <span>I accept the <a class="link" href="legal.php?doc=privacy">Privacy Policy</a> (stub until T27).</span>
+  </label>
   <button class="btn primary" type="submit">Create account</button>
   <p class="sub" style="font-size:14px;text-align:center;margin-top:6px">
     Already have an account? <a class="link" href="login.php">Log in</a>

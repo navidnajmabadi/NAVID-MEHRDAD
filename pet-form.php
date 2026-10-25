@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $values = $pet ?: $_POST;
 $type = $values['type'] ?? 'dog';
 $petCount = rrp_pet_count((int) $owner['id']);
+$petLimit = rrp_owner_pet_limit($owner);
 $breedsJson = json_encode(RRP_BREED_SUGGESTIONS, JSON_UNESCAPED_UNICODE);
 
 rrp_layout_head(($editing ? 'Edit pet' : 'Add a pet') . ' — SIPAW', ['body_class' => 'page-add']);
@@ -59,7 +60,7 @@ rrp_app_start(['nav' => false]);
   <div class="scroll" style="flex:1">
     <div class="step on" data-step="1" data-sub="Species">
       <h2 class="title"><?= $editing ? 'Edit pet' : 'Add a pet' ?></h2>
-      <p class="sub"><?= $editing ? 'Update photo and species.' : 'Start with who you are protecting. You can add up to ' . (int) RRP_MAX_PETS . ' pets.' ?></p>
+      <p class="sub"><?= $editing ? 'Update photo and species.' : 'Start with who you are protecting. Free = 1 pet · Plus = 3 (your limit: ' . (int) $petLimit . ').' ?></p>
       <div class="choice" id="species">
         <button type="button" class="opt" data-val="dog" aria-pressed="<?= $type === 'dog' ? 'true' : 'false' ?>">
           <svg class="pv" viewBox="0 0 200 200"><use href="#pet-dog"/></svg><span>Dog</span>
@@ -139,7 +140,7 @@ rrp_app_start(['nav' => false]);
       <button class="btn primary" type="button" id="add-next">Continue</button>
       <button class="btn primary" type="submit" id="add-save" hidden>Save &amp; get QR</button>
       <a class="link" href="dashboard.php" id="add-skip">Skip for now</a>
-      <p class="data" style="font-size:11px;color:var(--meta)"><?= (int) $petCount ?> of <?= (int) RRP_MAX_PETS ?> used</p>
+      <p class="data" style="font-size:11px;color:var(--meta)"><?= (int) $petCount ?> of <?= (int) $petLimit ?> used · <?= rrp_h(strtoupper(rrp_owner_plan($owner))) ?></p>
     <?php endif; ?>
   </div>
 </form>

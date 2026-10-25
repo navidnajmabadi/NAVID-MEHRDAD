@@ -262,6 +262,7 @@ function rrp_client_ua(): ?string
 }
 
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/plan.php';
 require_once __DIR__ . '/pets.php';
 require_once __DIR__ . '/scans.php';
 require_once __DIR__ . '/mailer.php';
@@ -274,3 +275,9 @@ require_once __DIR__ . '/tickets.php';
 require_once __DIR__ . '/coupons.php';
 require_once __DIR__ . '/chat.php';
 require_once __DIR__ . '/health.php';
+require_once __DIR__ . '/area.php';
+require_once __DIR__ . '/si.php';
+require_once __DIR__ . '/forum.php';
+require_once __DIR__ . '/wellness.php';
+require_once __DIR__ . '/routines.php';
+require_once __DIR__ . '/food_photo.php';

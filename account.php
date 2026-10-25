@@ -66,8 +66,31 @@ rrp_app_start(['nav' => 'home']);
     <?php endif; ?>
   </div>
 
+  <?php
+    $plan = rrp_owner_plan($owner);
+    $area = rrp_owner_area($owner);
+  ?>
+  <div class="box">
+    <span class="label">Plan</span>
+    <p class="sub" style="margin:10px 0 0;font-size:14px"><?= rrp_h(strtoupper($plan)) ?> · <?= (int) rrp_pet_count((int) $owner['id']) ?> / <?= (int) rrp_owner_pet_limit($owner) ?> pets</p>
+    <p style="margin-top:10px"><a class="link" href="plus.php"><?= $plan === 'plus' ? 'Plus details' : 'Upgrade to Plus' ?></a></p>
+  </div>
+
+  <div class="box">
+    <span class="label">Home area</span>
+    <p class="sub" style="margin:10px 0 0;font-size:13px">
+      <?= !empty($area['has_home'])
+        ? rrp_h((string) ($area['label'] ?: 'Pinned')) . ' · ' . rrp_h((string) $area['radius_km']) . ' km'
+        : 'Not set — needed for Finder / Places.' ?>
+    </p>
+    <p style="margin-top:10px"><a class="link" href="area.php">Set home area</a></p>
+  </div>
+
   <p class="sub" style="font-size:12px;text-align:center">
-    <a class="link" href="support.php">Support</a> · <a class="link" href="logout.php">Log out</a>
+    <a class="link" href="forum.php">Boards</a> ·
+    <a class="link" href="si-chat.php">SIPO</a> ·
+    <a class="link" href="support.php">Support</a> ·
+    <a class="link" href="logout.php">Log out</a>
   </p>
   <div class="gap"></div>
 </div>
