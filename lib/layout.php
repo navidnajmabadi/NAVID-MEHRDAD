@@ -24,7 +24,7 @@ function nk_page_start(string $title, string $description, string $canonical, st
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="/assets/studio.css?v=20261021" />
+<link rel="stylesheet" href="/assets/studio.css?v=20261025" />
 <?= $extraHead ?>
 </head>
 <body class="page-blog">
