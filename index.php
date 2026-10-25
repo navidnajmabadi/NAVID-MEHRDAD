@@ -11,27 +11,28 @@ $owner = rrp_config_ready() ? rrp_current_owner() : null;
 $demoVideo = __DIR__ . '/assets/video/sipaw-demo.mp4';
 $hasDemoVideo = is_readable($demoVideo);
 $sipoBase = rtrim(rrp_asset('assets/mascot/public'), '/');
-$ice = 'assets/mascot/animated/ice-blue';
 
 /**
- * Ice-blue Sipo GIF (+ webp) for the hero communication row.
+ * HTML/CSS SI mark + SIPAW wordmark (never “Si”).
  */
-function rrp_landing_sipo_frame(string $iceDir, string $state, string $label): void
+function rrp_landing_si_mark(string $class = '', bool $showWord = true, bool $showBy = false): void
 {
-    $gif = rrp_asset($iceDir . '/' . $state . '.gif', true);
-    $webp = rrp_asset($iceDir . '/' . $state . '.webp', true);
-    echo '<figure class="landing-sipo-frame landing-sipo-frame--' . rrp_h($state) . '">';
-    echo '<picture>';
-    echo '<source type="image/webp" srcset="' . rrp_h($webp) . '" />';
-    echo '<img src="' . rrp_h($gif) . '" alt="" width="180" height="180" loading="eager" decoding="async" />';
-    echo '</picture>';
-    echo '<figcaption class="data">' . rrp_h($label) . '</figcaption>';
-    echo '</figure>';
+    $cls = trim('si-mark ' . $class);
+    echo '<span class="' . rrp_h($cls) . '" aria-hidden="true">';
+    echo '<span class="si-mark__badge">SI</span>';
+    if ($showWord) {
+        echo '<span class="si-mark__word"><span class="si-mark__sipaw">SIPAW</span>';
+        if ($showBy) {
+            echo '<span class="si-mark__by">BY NAKILAB</span>';
+        }
+        echo '</span>';
+    }
+    echo '</span>';
 }
 
 rrp_layout_head('siPaw — AI pet care companion', [
     'body_class' => 'landing',
-    'canonical' => rrp_app_url(),
+    'canonical' => rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/',
     'description' => 'siPaw by NAKILAB — caring SI chat, health reminders, and a pet-owner community in one PWA.',
     'extra_head' => '<script>window.SIPO_ASSET_BASE=' . json_encode($sipoBase) . ';</script>',
 ]);
@@ -39,26 +40,36 @@ rrp_layout_head('siPaw — AI pet care companion', [
 <div class="landing-page">
   <header class="landing-top">
     <a class="landing-brand" href="index.php" aria-label="siPaw home">
-      <?php rrp_logo_endorsed('landing-logo'); ?>
+      <?php rrp_landing_si_mark('landing-nav-mark', true, false); ?>
+      <span class="visually-hidden">siPaw</span>
     </a>
-    <nav class="landing-nav" aria-label="Account">
+    <nav class="landing-nav" aria-label="Primary">
+      <a class="landing-nav-link" href="#features">Features</a>
+      <a class="landing-nav-link" href="#how">How it works</a>
       <?php if ($owner): ?>
         <a class="btn outline landing-nav-btn" href="dashboard.php">Open app</a>
       <?php else: ?>
         <a class="btn outline landing-nav-btn" href="login.php">Log in</a>
+        <a class="btn primary landing-nav-btn" href="signup.php">Register</a>
       <?php endif; ?>
     </nav>
   </header>
 
   <main>
     <section class="landing-hero" aria-labelledby="landing-headline">
-      <div class="landing-hero-copy">
-        <?php rrp_logo_endorsed('landing-hero-mark'); ?>
-        <h1 id="landing-headline" class="landing-headline">Care for every paw</h1>
+      <div class="landing-hero-stage">
+        <div class="landing-hero-glow" aria-hidden="true"></div>
+
+        <div class="landing-hero-brand">
+          <?php rrp_landing_si_mark('landing-hero-mark', true, true); ?>
+        </div>
+
+        <h1 id="landing-headline" class="landing-headline">Your pet’s SI wingman</h1>
         <p class="landing-lede">
-          Caring SI chat, reminders, and a community built for pet owners — in one PWA.
+          Chat care, reminders, and owner vibes — one PWA, zero metal-tag energy.
         </p>
-        <div class="cta-group">
+
+        <div class="cta-group landing-hero-ctas">
           <?php if ($owner): ?>
             <a class="btn primary" href="dashboard.php">Open home</a>
             <a class="btn outline" href="chat.php">Talk to SI</a>
@@ -67,76 +78,129 @@ rrp_layout_head('siPaw — AI pet care companion', [
             <a class="btn outline" href="login.php">Log in</a>
           <?php endif; ?>
         </div>
-      </div>
-      <div class="landing-hero-visual" aria-label="Sipo communicating">
-        <div class="landing-hero-glow"></div>
-        <div class="landing-sipo-row">
-          <?php
-          rrp_landing_sipo_frame($ice, 'idle', 'Idle');
-          rrp_landing_sipo_frame($ice, 'thinking', 'Thinking');
-          rrp_landing_sipo_frame($ice, 'writing', 'Writing');
-          rrp_landing_sipo_frame($ice, 'happy', 'Happy');
-          ?>
+
+        <div class="landing-sipo-stage" id="landingSipoStage">
+          <div class="landing-sipo-dialog" aria-live="polite">
+            <p class="landing-bubble" id="landingBubble" data-line="0">
+              Hi I’m SIPO — your Pet Assistant. Ask me anything. I’ll roast your schedule gently.
+            </p>
+          </div>
+          <div class="landing-sipo-focal">
+            <sipo-mascot
+              id="landingSipo"
+              state="happy"
+              theme="ice-blue"
+              size="280"
+              animated="true"
+              label="Sipo, SI pet assistant"
+            ></sipo-mascot>
+          </div>
+          <div class="landing-sipo-controls">
+            <button type="button" class="landing-sipo-pause data" id="landingSipoPause" aria-pressed="false">
+              Pause chat
+            </button>
+          </div>
         </div>
-        <p class="landing-sipo-caption data">Sipo · SI companion</p>
       </div>
     </section>
 
-    <section class="landing-section landing-what" aria-labelledby="what-title">
-      <div class="landing-section-inner">
-        <p class="label">What it is</p>
-        <h2 id="what-title" class="landing-section-title">siPaw is your SI pet care companion</h2>
-        <p class="landing-section-copy">
-          A phone-first PWA from NAKILAB: talk with a caring Super Intelligence (SI) about your pets,
-          keep routines on track, and tap into owner community boards — without a metal-tag gimmick.
-        </p>
-      </div>
-    </section>
-
-    <section class="landing-section landing-how" aria-labelledby="how-title">
+    <section class="landing-section landing-how" id="how" aria-labelledby="how-title">
       <div class="landing-section-inner">
         <p class="label">How it works</p>
-        <h2 id="how-title" class="landing-section-title">Three steps to calmer care</h2>
+        <h2 id="how-title" class="landing-section-title">Three taps. Less panic.</h2>
         <ol class="landing-steps">
           <li class="landing-step">
             <span class="landing-step-num data">01</span>
             <h3 class="landing-step-title">Register</h3>
-            <p class="landing-step-copy">Create your account and add your pet profiles in minutes.</p>
+            <p class="landing-step-copy">Drop in. Add your crew. Free = 1 pet energy.</p>
           </li>
           <li class="landing-step">
             <span class="landing-step-num data">02</span>
-            <h3 class="landing-step-title">Talk with SI</h3>
-            <p class="landing-step-copy">Ask about health, routines, and day-to-day care — Sipo stays with you.</p>
+            <h3 class="landing-step-title">Talk SI</h3>
+            <p class="landing-step-copy">Health, vibes, “is this normal?” — Sipo’s on it.</p>
           </li>
           <li class="landing-step">
             <span class="landing-step-num data">03</span>
-            <h3 class="landing-step-title">Stay on track</h3>
-            <p class="landing-step-copy">Reminders, community tips, and peace of mind on your home screen.</p>
+            <h3 class="landing-step-title">Stay sharp</h3>
+            <p class="landing-step-copy">Reminders + boards. Home-screen PWA flex.</p>
           </li>
         </ol>
       </div>
     </section>
 
-    <section class="landing-section landing-features" aria-labelledby="features-title">
+    <section class="landing-section landing-features" id="features" aria-labelledby="features-title">
       <div class="landing-section-inner">
         <p class="label">Features</p>
-        <h2 id="features-title" class="landing-section-title">Built for everyday pet life</h2>
-        <ul class="landing-feature-list">
-          <li class="landing-feature">
-            <h3 class="landing-feature-title">Care</h3>
-            <p class="landing-feature-copy">Pet profiles, health notes, and context SI can use when you chat.</p>
+        <h2 id="features-title" class="landing-section-title">Software with pets inside</h2>
+        <p class="landing-section-copy landing-features-lede">
+          Short, funny, useful — not a policy PDF.
+        </p>
+
+        <ul class="landing-mock-grid">
+          <li class="landing-mock">
+            <div class="landing-mock-chrome" aria-hidden="true">
+              <span class="landing-mock-dot"></span><span class="landing-mock-dot"></span><span class="landing-mock-dot"></span>
+              <span class="landing-mock-title data">care.app</span>
+            </div>
+            <div class="landing-mock-body">
+              <div class="landing-mock-icon" aria-hidden="true">
+                <svg width="28" height="28"><use href="#i-heart"/></svg>
+              </div>
+              <div class="landing-mock-pet" aria-hidden="true">
+                <svg viewBox="0 0 200 200" width="72" height="72"><use href="#pet-dog"/></svg>
+              </div>
+              <h3 class="landing-mock-heading">Care dossiers</h3>
+              <p class="landing-mock-copy">Profiles SI actually reads — so you don’t retype “Milo hates baths” every chat.</p>
+            </div>
           </li>
-          <li class="landing-feature">
-            <h3 class="landing-feature-title">Reminders</h3>
-            <p class="landing-feature-copy">Keep walks, meds, and check-ins visible so nothing slips.</p>
+          <li class="landing-mock">
+            <div class="landing-mock-chrome" aria-hidden="true">
+              <span class="landing-mock-dot"></span><span class="landing-mock-dot"></span><span class="landing-mock-dot"></span>
+              <span class="landing-mock-title data">ping.app</span>
+            </div>
+            <div class="landing-mock-body">
+              <div class="landing-mock-icon" aria-hidden="true">
+                <svg width="28" height="28"><use href="#i-clock"/></svg>
+              </div>
+              <div class="landing-mock-pet" aria-hidden="true">
+                <svg viewBox="0 0 200 200" width="72" height="72"><use href="#pet-cat"/></svg>
+              </div>
+              <h3 class="landing-mock-heading">Nudge mode</h3>
+              <p class="landing-mock-copy">Walks, meds, check-ins. Your cat judges; we just remind.</p>
+            </div>
           </li>
-          <li class="landing-feature">
-            <h3 class="landing-feature-title">Community</h3>
-            <p class="landing-feature-copy">Species boards and owner tips — social, not a full social network.</p>
+          <li class="landing-mock">
+            <div class="landing-mock-chrome" aria-hidden="true">
+              <span class="landing-mock-dot"></span><span class="landing-mock-dot"></span><span class="landing-mock-dot"></span>
+              <span class="landing-mock-title data">chat.si</span>
+            </div>
+            <div class="landing-mock-body">
+              <div class="landing-mock-icon" aria-hidden="true">
+                <svg width="28" height="28"><use href="#i-chat"/></svg>
+              </div>
+              <div class="landing-mock-pet landing-mock-pet--sipo" aria-hidden="true">
+                <sipo-mascot state="writing" theme="ice-blue" size="64" animated="true" label=""></sipo-mascot>
+              </div>
+              <h3 class="landing-mock-heading">SI on tap</h3>
+              <p class="landing-mock-copy">Fact-minded Super Intelligence. Cares hard. Sells nothing.</p>
+            </div>
           </li>
-          <li class="landing-feature">
-            <h3 class="landing-feature-title">SI</h3>
-            <p class="landing-feature-copy">A caring Super Intelligence companion — fact-minded, always on tap.</p>
+          <li class="landing-mock">
+            <div class="landing-mock-chrome" aria-hidden="true">
+              <span class="landing-mock-dot"></span><span class="landing-mock-dot"></span><span class="landing-mock-dot"></span>
+              <span class="landing-mock-title data">boards.app</span>
+            </div>
+            <div class="landing-mock-body">
+              <div class="landing-mock-icon" aria-hidden="true">
+                <svg width="28" height="28"><use href="#i-pin"/></svg>
+              </div>
+              <div class="landing-mock-pet" aria-hidden="true">
+                <svg viewBox="0 0 200 200" width="64" height="64"><use href="#pet-dog"/></svg>
+                <svg viewBox="0 0 200 200" width="48" height="48" class="landing-mock-pet-overlap"><use href="#pet-cat"/></svg>
+              </div>
+              <h3 class="landing-mock-heading">Owner boards</h3>
+              <p class="landing-mock-copy">Species tips, not doomscroll. Social lite for people with lint rollers.</p>
+            </div>
           </li>
         </ul>
       </div>
@@ -147,7 +211,7 @@ rrp_layout_head('siPaw — AI pet care companion', [
         <p class="label">See it</p>
         <h2 id="demo-title" class="landing-demo-title">Sipo in motion</h2>
         <p class="landing-demo-sub">
-          A short look at the AI companion experience. Replace the placeholder video when your cut is ready.
+          Demo placeholder — drop your cut in when ready.
         </p>
 
         <div class="landing-demo-stage">
@@ -193,7 +257,7 @@ rrp_layout_head('siPaw — AI pet care companion', [
       <div class="landing-section-inner landing-trust-inner">
         <p class="label">Trust</p>
         <h2 id="trust-title" class="landing-section-title landing-trust-line">
-          Your pets’ details stay private — SI is here to help, not to sell your story.
+          Pets’ details stay private. SI helps — it doesn’t sell your story.
         </h2>
       </div>
     </section>
@@ -201,7 +265,7 @@ rrp_layout_head('siPaw — AI pet care companion', [
     <section class="landing-section landing-final-cta" aria-labelledby="final-cta-title">
       <div class="landing-section-inner landing-final-inner">
         <h2 id="final-cta-title" class="landing-section-title">Ready when you are</h2>
-        <p class="landing-section-copy">Join siPaw and start caring with SI today.</p>
+        <p class="landing-section-copy">Join siPaw. Start caring with SI.</p>
         <div class="cta-group landing-final-ctas">
           <?php if ($owner): ?>
             <a class="btn primary" href="dashboard.php">Open home</a>
@@ -215,11 +279,32 @@ rrp_layout_head('siPaw — AI pet care companion', [
   </main>
 
   <footer class="landing-foot">
-    <p>
-      siPaw by
-      <a class="landing-foot-link" href="https://nakilab.com" target="_blank" rel="noopener noreferrer">NAKILAB</a>
-      · AI pet care companion + community · Add to Home Screen for the PWA
-    </p>
+    <div class="landing-foot-grid">
+      <div class="landing-foot-brand">
+        <?php rrp_landing_si_mark('landing-foot-mark', true, true); ?>
+        <p class="landing-foot-tag">SI pet care companion + community</p>
+      </div>
+      <div class="landing-foot-col">
+        <p class="landing-foot-heading data">Product</p>
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="signup.php">Register</a>
+      </div>
+      <div class="landing-foot-col">
+        <p class="landing-foot-heading data">Company</p>
+        <a href="https://nakilab.com" target="_blank" rel="noopener noreferrer">NAKILAB</a>
+        <a href="https://nakilab.com" target="_blank" rel="noopener noreferrer">Contact</a>
+      </div>
+      <div class="landing-foot-col">
+        <p class="landing-foot-heading data">Legal</p>
+        <a href="#privacy">Privacy</a>
+        <a href="#terms">Terms</a>
+      </div>
+    </div>
+    <div class="landing-foot-bar">
+      <p>© <?= (int) date('Y') ?> NAKILAB · siPaw</p>
+      <p>Add to Home Screen for the PWA</p>
+    </div>
   </footer>
 </div>
 
@@ -229,5 +314,6 @@ rrp_layout_head('siPaw — AI pet care companion', [
   <button type="button" class="btn outline" id="installDismiss" style="width:auto;padding:0 12px;height:44px" aria-label="Dismiss">Not now</button>
 </div>
 <script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/landing.js', true)) ?>" defer></script>
 <?php
 rrp_layout_foot(['push' => false]);
