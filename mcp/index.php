@@ -109,7 +109,7 @@ function call_tool(string $name, array $a, string $client) {
         case 'get_blog_guidelines':
             $recent = array_map(fn($p) => $p['title'] . ' (' . $p['status'] . ')', $db->query('SELECT title, status FROM posts ORDER BY id DESC LIMIT 40')->fetchAll());
             return [
-                'site' => 'Nakilab (nakilab.com) is a startup studio: "We turn ideas into companies." People submit ideas; Nakilab evaluates, builds and launches them on its own infrastructure, powered by SI, Super Intelligence. Founders: Mehrdad and Navid (both Co-Founder). Current project: siPaw, product 01 (smart QR pet tags; say "S-I Paw"; formerly RingRingPaw; live at ringringpaw.nakilab.com).',
+                'site' => 'Nakilab (nakilab.com) is a startup studio: "We turn ideas into companies." People submit ideas; Nakilab evaluates, builds and launches them on its own infrastructure, powered by SI, Super Intelligence. Founders: Mehrdad and Navid (both Co-Founder). Current project: siPaw, product 01 (SI pet care companion: Sipo chat, reminders and owner boards; say "S-I Paw"; formerly RingRingPaw; live at sipaw.nakilab.com).',
                 'rules' => [
                     'Write in English.',
                     'NEVER use the words "AI" or "artificial intelligence". Always say "SI" or "Super Intelligence" instead.',

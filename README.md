@@ -19,4 +19,4 @@ NAKILAB_INTAKE_DIR=/tmp/nakilab-intake php -S localhost:8090
 ```
 
 Other branches in this repo:
-- `PetFinder` — RingRingPaw (QR pet tag), deployed to ringringpaw.nakilab.com
+- `PetFinder` — RingRingPaw, now siPaw; the live app is at sipaw.nakilab.com
