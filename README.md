@@ -19,7 +19,11 @@ Scan a collar QR → see pet + owner phone → optional live location → owner 
 - Secrets outside web root — see `docs/HOSTINGER_INSTALL.md` + `docs/LOST_ADMIN.md`
 - **Web Push** on installed PWA (VAPID) — see `docs/WEB_PUSH.md`
 
-**Later:** payments / Stripe, metal tags, walk/activity, training tips.
+### v1 migration 006
+
+After 001–005 (or the combined full schema), import **`sql/006_v1_product.sql`** into `u233722910_sipaw` (phpMyAdmin → select DB → Import). Additive only: `CREATE TABLE IF NOT EXISTS` + documented `ALTER`s (ignore Duplicate column/key). Same file mirrored at `docs/sql/006_v1_product.sql`. Covers Free/Plus plan columns, SI chat kind on existing `chat_*`, rate limits, fact-based routine templates (`source_urls` / `last_verified_at`), forum, XP + Canada Mon–Sun boards, Sip ledger, referrals/subscriptions/first-100 promo, real-$ pet accounting, bug Sip reward fields, export markers. **English-only v1; no physical tags.** Full UI for forum/SI/Stripe comes in later tasks.
+
+**Later:** Stripe checkout UI, walk GPS, food photo rating, GA4, ToS pages.
 
 ## Install on Hostinger
 
@@ -29,8 +33,8 @@ Scan a collar QR → see pet + owner phone → optional live location → owner 
 Summary:
 
 1. Create MySQL DB + user in hPanel  
-2. Import `sql/001_schema.sql` → `002_lost_admin.sql` → `003_push_subscriptions.sql` → **`004_chat.sql`** → **`005_health.sql`**  
-3. Copy `config.example.php` → live `sipaw.php` (or keep legacy `ringringpaw.php` filename) — include `cron_secret` + `admin_setup_secret` + optional `vapid`; set `app_url` to `https://sipaw.nakilab.com`  
+2. Import `sql/001_schema.sql` → `002_lost_admin.sql` → `003_push_subscriptions.sql` → **`004_chat.sql`** → **`005_health.sql`** → **`006_v1_product.sql`** (v1 product: SI/forum/Sip/XP/accounting — see note below)  
+3. Copy `config.example.php` → live `sipaw.php` (or keep legacy `ringringpaw.php` filename) — include `cron_secret` + `admin_setup_secret` + optional `vapid` + empty `openai.api_key`; set `app_url` to `https://sipaw.nakilab.com`  
 4. Point subdomain **sipaw.nakilab.com** document root at `public_html/sipaw`  
 5. Merge/push to `PetFinder` (auto `git pull` into `…/public_html/sipaw`)  
 6. Create Navid + Mehrdad via `/admin/setup.php`  
