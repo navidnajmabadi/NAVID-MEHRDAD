@@ -65,7 +65,7 @@ function rrp_marketing_nav(bool $owner, string $active = ''): void
 function rrp_marketing_footer(int $year): void
 {
     $home = rrp_asset('index.php');
-    $tile = rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg');
+    $tile = rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg', true);
     ?>
 <footer>
   <div class="wrap">

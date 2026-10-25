@@ -731,7 +731,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     <div class="foot-grid">
       <div class="foot-brand">
         <a class="foot-tile" href="#top" aria-label="SIPAW home">
-          <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg')) ?>" width="148" height="148" alt="SI^PAW element tile">
+          <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-app-icon-1024.svg', true)) ?>" width="148" height="148" alt="SI^PAW element tile">
         </a>
       </div>
       <div class="foot-col">
