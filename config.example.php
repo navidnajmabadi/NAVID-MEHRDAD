@@ -20,14 +20,22 @@ return [
     'db' => [
         'host' => 'localhost',
         'port' => 3306,
-        'name' => 'u233722910_ringringpaw', // change to your MySQL database name
-        'user' => 'u233722910_rrp',         // change to your MySQL user
-        'pass' => 'CHANGE_ME',              // set a strong password
+        'name' => 'u233722910_sipaw', // Hostinger MySQL DB (legacy ringringpaw name OK if unchanged)
+        'user' => 'u233722910_rrp',   // change to your MySQL user
+        'pass' => 'CHANGE_ME',        // set a strong password
         'charset' => 'utf8mb4',
     ],
 
     // Public site origin (no trailing slash). Used in emails + QR URLs.
     'app_url' => 'https://sipaw.nakilab.com',
+
+    // OpenAI (SI chatbot) — set api_key only in live sipaw.php outside web root. Never commit secrets.
+    // v1: pay-as-you-go; start with mini models. App enforces Free/Plus gates + rate limits.
+    'openai' => [
+        'api_key' => '',
+        'model' => 'gpt-4o-mini',
+        'base_url' => 'https://api.openai.com/v1',
+    ],
 
     // From-address for scan alert emails (must be allowed on Hostinger mail).
     'mail_from' => 'noreply@nakilab.com',

@@ -10,7 +10,7 @@ Do this **once** on Hostinger. Agents cannot SSH. After merge to `PetFinder`, au
 | Site URL | https://sipaw.nakilab.com |
 | Subdomain document root | Must point at `…/public_html/sipaw` (not the old `ringringpaw` folder) |
 | **Config (secrets) — either works** | `/home/u233722910/domains/nakilab.com/config/sipaw.php` **(preferred)** or legacy `…/config/ringringpaw.php` · if subdomain is its own site: `…/domains/sipaw.nakilab.com/config/sipaw.php` |
-| Schema files (in repo) | `sql/001_schema.sql` → `002` → `003` → **`004_chat.sql`** → **`005_health.sql`** |
+| Schema files (in repo) | `sql/001_schema.sql` → `002` → `003` → **`004_chat.sql`** → **`005_health.sql`** → **`006_v1_product.sql`** |
 | LOST + Admin setup | [`LOST_ADMIN.md`](./LOST_ADMIN.md) |
 | Web Push (PWA) | [`WEB_PUSH.md`](./WEB_PUSH.md) |
 | Config template (in repo) | `config.example.php` |
@@ -40,8 +40,9 @@ In **phpMyAdmin** (or MySQL CLI):
    - `sql/002_lost_admin.sql` (LOST HELP ME + Admin)
    - `sql/003_push_subscriptions.sql` (Web Push columns)
    - **`sql/004_chat.sql`** (finder ↔ owner chat) — required for Chat tab
-   - **`sql/005_health.sql`** (vaccines, meds, feeding, vet) — required for Health tabs  
-   Path after deploy: `…/sipaw/sql/`. Full cron/admin steps: [`LOST_ADMIN.md`](./LOST_ADMIN.md). Push: [`WEB_PUSH.md`](./WEB_PUSH.md).
+   - **`sql/005_health.sql`** (vaccines, meds, feeding, vet) — required for Health tabs
+   - **`sql/006_v1_product.sql`** (v1 product additive — SI/forum/Sip/XP/accounting; ALTERs may warn Duplicate column — continue)  
+   Path after deploy: `…/sipaw/sql/`. Mirror: `docs/sql/006_v1_product.sql`. Full cron/admin steps: [`LOST_ADMIN.md`](./LOST_ADMIN.md). Push: [`WEB_PUSH.md`](./WEB_PUSH.md).
 
 ### 3. Place config outside web root
 
