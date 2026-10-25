@@ -9,6 +9,7 @@ function rrp_admin_nav(string $active = 'home'): void
         'geo' => ['geo.php', 'Map / cities'],
         'tickets' => ['tickets.php', 'Tickets'],
         'coupons' => ['coupons.php', 'Coupons'],
+        'brain' => ['brain.php', 'SI Brain'],
         'logs' => ['logs.php', 'Logs'],
     ];
     echo '<nav class="admin-nav" aria-label="Admin">' . "\n";

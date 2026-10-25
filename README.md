@@ -33,8 +33,8 @@ After 001–005 (or the combined full schema), import **`sql/006_v1_product.sql`
 Summary:
 
 1. Create MySQL DB + user in hPanel  
-2. Import `sql/001_schema.sql` → `002_lost_admin.sql` → `003_push_subscriptions.sql` → **`004_chat.sql`** → **`005_health.sql`** → **`006_v1_product.sql`** (v1 product: SI/forum/Sip/XP/accounting — see note below)  
-3. Copy `config.example.php` → live `sipaw.php` (or keep legacy `ringringpaw.php` filename) — include `cron_secret` + `admin_setup_secret` + optional `vapid` + empty `openai.api_key`; set `app_url` to `https://sipaw.nakilab.com`  
+2. Import `sql/001_schema.sql` → `002_lost_admin.sql` → `003_push_subscriptions.sql` → **`004_chat.sql`** → **`005_health.sql`** → **`006_v1_product.sql`** → **`007_t03_t15_deltas.sql`** (home area, wellness, SI secrets, template seeds)  
+3. Copy `config.example.php` → live `sipaw.php` (or keep legacy `ringringpaw.php` filename) — include `cron_secret` + `admin_setup_secret` + optional `vapid` + empty `openai.api_key` / `google.*` placeholders; set `app_url` to `https://sipaw.nakilab.com`. **Add real OpenAI key when you are ready** (T05–T06); app works with empty key (graceful SIPO fallback).  
 4. Point subdomain **sipaw.nakilab.com** document root at `public_html/sipaw`  
 5. Merge/push to `PetFinder` (auto `git pull` into `…/public_html/sipaw`)  
 6. Create Navid + Mehrdad via `/admin/setup.php`  

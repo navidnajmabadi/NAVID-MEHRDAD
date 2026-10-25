@@ -8,9 +8,26 @@ function rrp_current_owner(): ?array
         return null;
     }
     try {
-        $stmt = rrp_db()->prepare('SELECT id, name, email, phone, address, status, created_at FROM owners WHERE id = ? LIMIT 1');
-        $stmt->execute([(int) $_SESSION['owner_id']]);
-        $owner = $stmt->fetch();
+        // Prefer v1 columns (006+); fall back if not imported yet.
+        try {
+            $stmt = rrp_db()->prepare(
+                'SELECT id, name, email, phone, address, status, created_at,
+                        plan, plan_expires_at, locale, lat, lng, city, country,
+                        home_lat, home_lng, home_radius_km, home_area_label,
+                        first100_promo, first100_promo_ends_at, sip_balance
+                 FROM owners WHERE id = ? LIMIT 1'
+            );
+            $stmt->execute([(int) $_SESSION['owner_id']]);
+            $owner = $stmt->fetch();
+        } catch (Throwable $inner) {
+            $stmt = rrp_db()->prepare('SELECT id, name, email, phone, address, status, created_at, lat, lng, city, country FROM owners WHERE id = ? LIMIT 1');
+            $stmt->execute([(int) $_SESSION['owner_id']]);
+            $owner = $stmt->fetch();
+            if ($owner) {
+                $owner['plan'] = $owner['plan'] ?? 'free';
+                $owner['locale'] = $owner['locale'] ?? 'en';
+            }
+        }
     } catch (Throwable $e) {
         error_log('rrp_current_owner: ' . $e->getMessage());
         return null;
@@ -72,9 +89,14 @@ function rrp_register_owner(array $data): array
     $phone = trim((string) ($data['phone'] ?? ''));
     $address = trim((string) ($data['address'] ?? ''));
     $password = (string) ($data['password'] ?? '');
+    $acceptTerms = !empty($data['accept_terms']);
+    $acceptPrivacy = !empty($data['accept_privacy']);
 
     if ($name === '' || $email === '' || $phone === '' || $address === '' || $password === '') {
         return ['ok' => false, 'error' => 'All fields are required.'];
+    }
+    if (!$acceptTerms || !$acceptPrivacy) {
+        return ['ok' => false, 'error' => 'Accept Terms and Privacy to continue.'];
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         return ['ok' => false, 'error' => 'Enter a valid email address.'];
@@ -85,10 +107,18 @@ function rrp_register_owner(array $data): array
 
     $hash = password_hash($password, PASSWORD_DEFAULT);
     try {
-        $stmt = rrp_db()->prepare(
-            'INSERT INTO owners (name, email, phone, address, password_hash) VALUES (?, ?, ?, ?, ?)'
-        );
-        $stmt->execute([$name, $email, $phone, $address, $hash]);
+        try {
+            $stmt = rrp_db()->prepare(
+                'INSERT INTO owners (name, email, phone, address, password_hash, plan, locale, terms_accepted_at, privacy_accepted_at)
+                 VALUES (?, ?, ?, ?, ?, \'free\', \'en\', NOW(), NOW())'
+            );
+            $stmt->execute([$name, $email, $phone, $address, $hash]);
+        } catch (Throwable $inner) {
+            $stmt = rrp_db()->prepare(
+                'INSERT INTO owners (name, email, phone, address, password_hash) VALUES (?, ?, ?, ?, ?)'
+            );
+            $stmt->execute([$name, $email, $phone, $address, $hash]);
+        }
         $id = (int) rrp_db()->lastInsertId();
         // Best-effort Nominatim geocode for LOST HELP ME radius (cached).
         rrp_owner_apply_geocode($id, $address);

@@ -29,12 +29,32 @@ return [
     // Public site origin (no trailing slash). Used in emails + QR URLs.
     'app_url' => 'https://sipaw.nakilab.com',
 
-    // OpenAI (SI chatbot) — set api_key only in live sipaw.php outside web root. Never commit secrets.
-    // v1: pay-as-you-go; start with mini models. App enforces Free/Plus gates + rate limits.
+    // OpenAI (SI chatbot) — set keys ONLY in live sipaw.php outside web root. Never commit secrets.
+    // WHEN: leave empty until T05–T06; app returns graceful missing_api_key / fallback copy.
+    // v1: pay-as-you-go. Free teaser + Plus daily caps enforced in lib/si.php.
     'openai' => [
-        'api_key' => '',
-        'model' => 'gpt-4o-mini',
+        'api_key' => '',              // sk-… product traffic
+        'brain_api_key' => '',        // optional Admin SI Brain isolation
+        'model' => 'gpt-4o-mini',     // fallback default
         'base_url' => 'https://api.openai.com/v1',
+        'models' => [
+            'si_chat' => 'gpt-4o-mini',
+            'food_vision' => 'gpt-4o-mini',
+            'forum_mod' => 'gpt-4o-mini',
+            'si_brain' => 'gpt-4o',
+        ],
+        'si_transcript' => [
+            'master_key' => '',       // base64 32-byte; Navid-only; enables si_message_secrets
+            'cipher' => 'aes-256-gcm',
+        ],
+    ],
+
+    // Google SSO — NOT wired in UI yet (RRP-1 style confirm). Placeholders for T03+.
+    // Create OAuth Web client; redirect must match exactly when callback ships.
+    'google' => [
+        'client_id' => '',
+        'client_secret' => '',
+        'redirect_uri' => 'https://sipaw.nakilab.com/oauth/google-callback.php',
     ],
 
     // From-address for scan alert emails (must be allowed on Hostinger mail).

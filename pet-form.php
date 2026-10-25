@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $values = $pet ?: $_POST;
 $type = $values['type'] ?? 'dog';
 $petCount = rrp_pet_count((int) $owner['id']);
+$petLimit = rrp_owner_pet_limit($owner);
 $breedsJson = json_encode(RRP_BREED_SUGGESTIONS, JSON_UNESCAPED_UNICODE);
 
 rrp_layout_head(($editing ? 'Edit pet' : 'Add a pet') . ' — SIPAW', ['body_class' => 'page-add']);

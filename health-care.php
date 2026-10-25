@@ -125,6 +125,11 @@ rrp_app_start(['nav' => 'health']);
     <?php endforeach; ?>
   </div>
 
+  <div class="pad" style="display:flex;gap:12px;flex-wrap:wrap;padding-top:12px">
+    <a class="link" href="wellness.php?pet=<?= (int) $petId ?>">Wellness</a>
+    <a class="link" href="reminders.php?pet=<?= (int) $petId ?>">Reminders</a>
+    <a class="link" href="si-chat.php?pet=<?= (int) $petId ?>">Ask SIPO</a>
+  </div>
   <div class="pad stack" style="margin-top:16px;gap:14px">
     <?php if (!$dbReady): ?>
       <div class="box">

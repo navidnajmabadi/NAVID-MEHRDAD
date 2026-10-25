@@ -105,10 +105,19 @@ rrp_app_start(['nav' => 'home']);
       <?= rrp_h($pet['name']) ?>
     </a>
   <?php endforeach; ?>
-  <?php if (count($pets) < RRP_MAX_PETS): ?>
+  <?php
+    $petLimit = rrp_owner_pet_limit($owner);
+    $petActive = count($pets);
+  ?>
+  <?php if ($petActive < $petLimit): ?>
     <a class="petchip add" href="pet-form.php">
       <span class="ph"><svg aria-hidden="true"><use href="#i-plus"/></svg></span>
       Add
+    </a>
+  <?php elseif (rrp_owner_plan($owner) === 'free'): ?>
+    <a class="petchip add" href="plus.php">
+      <span class="ph"><svg aria-hidden="true"><use href="#i-plus"/></svg></span>
+      Plus
     </a>
   <?php endif; ?>
 </div>
@@ -126,7 +135,7 @@ rrp_app_start(['nav' => 'home']);
       <?php endif; ?>
       <div class="facts">
         <div><b><?= (int) $weekScans ?></b><span>Recent scans</span></div>
-        <div><b><?= count($pets) ?>/<?= RRP_MAX_PETS ?></b><span>Pets</span></div>
+        <div><b><?= count($pets) ?>/<?= (int) rrp_owner_pet_limit($owner) ?></b><span>Pets · <?= rrp_h(strtoupper(rrp_owner_plan($owner))) ?></span></div>
       </div>
     </div>
     <div class="art">
@@ -141,7 +150,7 @@ rrp_app_start(['nav' => 'home']);
   <div class="pad stack" style="margin-top:24px">
     <div class="box">
       <p class="h2" style="margin-bottom:8px">Add your first pet</p>
-      <p class="sub" style="margin-bottom:16px">Generate a QR collar tag. Up to <?= RRP_MAX_PETS ?> pets per account.</p>
+      <p class="sub" style="margin-bottom:16px">Generate a QR collar tag. Free = 1 pet · Plus = 3.</p>
       <a class="btn primary" href="pet-form.php">Add a pet</a>
     </div>
   </div>
@@ -192,9 +201,15 @@ rrp_app_start(['nav' => 'home']);
   <?php endif; ?>
 
   <?php if ($active): ?>
-    <div class="row between" style="margin-top:16px">
+    <div class="row between" style="margin-top:16px;flex-wrap:wrap;gap:8px">
       <span class="label">Today</span>
-      <a class="link" href="health-care.php?pet=<?= (int) $active['id'] ?>">Health</a>
+      <span class="row" style="gap:12px">
+        <a class="link" href="si-chat.php?pet=<?= (int) $active['id'] ?>">SIPO</a>
+        <a class="link" href="forum.php">Boards</a>
+        <a class="link" href="wellness.php?pet=<?= (int) $active['id'] ?>">Wellness</a>
+        <a class="link" href="reminders.php?pet=<?= (int) $active['id'] ?>">Reminders</a>
+        <a class="link" href="health-care.php?pet=<?= (int) $active['id'] ?>">Health</a>
+      </span>
     </div>
     <div class="list">
       <?php if (!empty($active['medical_pills'])): ?>

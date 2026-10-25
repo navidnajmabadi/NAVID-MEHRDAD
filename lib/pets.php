@@ -1,24 +1,46 @@
 <?php
 declare(strict_types=1);
 
-const RRP_MAX_PETS = 5;
+/** @deprecated use rrp_owner_pet_limit() — kept as hard ceiling */
+const RRP_MAX_PETS = 3;
 
 const RRP_BREED_SUGGESTIONS = [
     'dog' => ['Labrador Retriever', 'German Shepherd', 'Golden Retriever', 'French Bulldog', 'Poodle', 'Beagle', 'Dachshund', 'Mixed'],
     'cat' => ['Domestic Shorthair', 'Domestic Longhair', 'Siamese', 'Persian', 'Maine Coon', 'British Shorthair', 'Ragdoll', 'Mixed'],
+    'bird' => ['Budgie', 'Cockatiel', 'Parrot', 'Canary', 'Mixed'],
     'rabbit' => ['Holland Lop', 'Netherland Dwarf', 'Rex', 'Lionhead', 'Flemish Giant', 'Mini Lop', 'Mixed'],
+    'hamster' => ['Syrian', 'Dwarf', 'Roborovski', 'Mixed'],
+    'other' => [],
     'custom' => [],
 ];
 
-function rrp_pet_count(int $ownerId): int
+function rrp_pet_count(int $ownerId, bool $activeOnly = true): int
 {
+    if ($activeOnly) {
+        try {
+            $stmt = rrp_db()->prepare('SELECT COUNT(*) FROM pets WHERE owner_id = ? AND is_active = 1');
+            $stmt->execute([$ownerId]);
+            return (int) $stmt->fetchColumn();
+        } catch (Throwable $e) {
+            // is_active may be missing pre-006
+        }
+    }
     $stmt = rrp_db()->prepare('SELECT COUNT(*) FROM pets WHERE owner_id = ?');
     $stmt->execute([$ownerId]);
     return (int) $stmt->fetchColumn();
 }
 
-function rrp_pets_by_owner(int $ownerId): array
+function rrp_pets_by_owner(int $ownerId, bool $activeOnly = true): array
 {
+    if ($activeOnly) {
+        try {
+            $stmt = rrp_db()->prepare('SELECT * FROM pets WHERE owner_id = ? AND is_active = 1 ORDER BY created_at DESC');
+            $stmt->execute([$ownerId]);
+            return $stmt->fetchAll();
+        } catch (Throwable $e) {
+            // fall through
+        }
+    }
     $stmt = rrp_db()->prepare('SELECT * FROM pets WHERE owner_id = ? ORDER BY created_at DESC');
     $stmt->execute([$ownerId]);
     return $stmt->fetchAll();
@@ -100,8 +122,20 @@ function rrp_save_pet_image(?array $file, ?string $existing = null): ?string
 
 function rrp_create_pet(int $ownerId, array $data, ?array $file = null): array
 {
-    if (rrp_pet_count($ownerId) >= RRP_MAX_PETS) {
-        return ['ok' => false, 'error' => 'You can register up to ' . RRP_MAX_PETS . ' pets.'];
+    $owner = rrp_current_owner();
+    $limit = $owner && (int) $owner['id'] === $ownerId
+        ? rrp_owner_pet_limit($owner)
+        : RRP_PLAN_FREE_PETS;
+    if (rrp_pet_count($ownerId, true) >= $limit) {
+        $plan = $owner ? rrp_owner_plan($owner) : 'free';
+        return [
+            'ok' => false,
+            'gate' => $plan === 'plus' ? 'pet_cap' : 'plus_required',
+            'error' => $plan === 'plus'
+                ? 'Plus allows up to 3 active pets.'
+                : 'Free includes 1 pet. Upgrade to Plus for up to 3, or archive your current pet.',
+            'upgrade_url' => 'plus.php',
+        ];
     }
 
     $parsed = rrp_parse_pet_input($data);
@@ -117,31 +151,78 @@ function rrp_create_pet(int $ownerId, array $data, ?array $file = null): array
 
     $publicId = rrp_public_id(8);
     $p = $parsed['data'];
-    $stmt = rrp_db()->prepare(
-        'INSERT INTO pets (
-            owner_id, public_id, name, type, custom_type, breed, color, magic_word,
-            identifying_marks, image_path, medical_vaccines, medical_next_due,
-            medical_pills, medical_conditions
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    $stmt->execute([
-        $ownerId,
-        $publicId,
-        $p['name'],
-        $p['type'],
-        $p['custom_type'],
-        $p['breed'],
-        $p['color'],
-        $p['magic_word'],
-        $p['identifying_marks'],
-        $imagePath,
-        $p['medical_vaccines'],
-        $p['medical_next_due'],
-        $p['medical_pills'],
-        $p['medical_conditions'],
-    ]);
+    $species = $p['type'] === 'custom' ? 'other' : $p['type'];
+    try {
+        $stmt = rrp_db()->prepare(
+            'INSERT INTO pets (
+                owner_id, public_id, name, type, custom_type, breed, color, magic_word,
+                identifying_marks, image_path, medical_vaccines, medical_next_due,
+                medical_pills, medical_conditions, species_key, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)'
+        );
+        $stmt->execute([
+            $ownerId,
+            $publicId,
+            $p['name'],
+            $p['type'],
+            $p['custom_type'],
+            $p['breed'],
+            $p['color'],
+            $p['magic_word'],
+            $p['identifying_marks'],
+            $imagePath,
+            $p['medical_vaccines'],
+            $p['medical_next_due'],
+            $p['medical_pills'],
+            $p['medical_conditions'],
+            $species,
+        ]);
+    } catch (Throwable $e) {
+        $stmt = rrp_db()->prepare(
+            'INSERT INTO pets (
+                owner_id, public_id, name, type, custom_type, breed, color, magic_word,
+                identifying_marks, image_path, medical_vaccines, medical_next_due,
+                medical_pills, medical_conditions
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $ownerId,
+            $publicId,
+            $p['name'],
+            $p['type'],
+            $p['custom_type'],
+            $p['breed'],
+            $p['color'],
+            $p['magic_word'],
+            $p['identifying_marks'],
+            $imagePath,
+            $p['medical_vaccines'],
+            $p['medical_next_due'],
+            $p['medical_pills'],
+            $p['medical_conditions'],
+        ]);
+    }
 
     return ['ok' => true, 'pet_id' => (int) rrp_db()->lastInsertId(), 'public_id' => $publicId];
+}
+
+/**
+ * Soft-archive pet (frees a Free/Plus slot). Does not hard-delete.
+ * @return array{ok:bool, error?:string}
+ */
+function rrp_archive_pet(int $ownerId, int $petId): array
+{
+    $pet = rrp_pet_by_id($petId, $ownerId);
+    if (!$pet) {
+        return ['ok' => false, 'error' => 'Pet not found.'];
+    }
+    try {
+        $stmt = rrp_db()->prepare('UPDATE pets SET is_active = 0 WHERE id = ? AND owner_id = ?');
+        $stmt->execute([$petId, $ownerId]);
+        return ['ok' => true];
+    } catch (Throwable $e) {
+        return rrp_delete_pet($ownerId, $petId);
+    }
 }
 
 function rrp_update_pet(int $ownerId, int $petId, array $data, ?array $file = null): array
@@ -224,7 +305,7 @@ function rrp_parse_pet_input(array $data): array
     if ($name === '') {
         return ['ok' => false, 'error' => 'Pet name is required.'];
     }
-    if (!in_array($type, ['dog', 'cat', 'rabbit', 'custom'], true)) {
+    if (!in_array($type, ['dog', 'cat', 'bird', 'rabbit', 'hamster', 'other', 'custom'], true)) {
         return ['ok' => false, 'error' => 'Choose a pet type.'];
     }
     if ($type === 'custom' && $customType === '') {

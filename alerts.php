@@ -25,7 +25,12 @@ rrp_app_start(['nav' => 'alerts']);
   <span style="width:40px"></span>
 </div>
 
-<div class="pad" style="padding-bottom:8px">
+<div class="pad stack" style="gap:12px;padding-bottom:8px">
+  <div class="box" id="pushNag" data-push-nag>
+    <p class="label">Stay in the loop</p>
+    <p class="sub" data-push-hint style="margin-top:8px;font-size:13px">Enable phone notifications for scans, Lost nearby, and care nudges.</p>
+    <button type="button" class="btn primary" id="pushEnableBtn" data-push-enable style="margin-top:12px">Enable notifications</button>
+  </div>
   <div class="chips" role="group" aria-label="Filter">
     <?php
     $chips = [
