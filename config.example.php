@@ -1,13 +1,18 @@
 <?php
 /**
- * RingRingPaw config template.
+ * siPaw config template.
  *
  * On Hostinger, copy this file OUTSIDE the web root to ONE of:
- *   /home/u233722910/domains/nakilab.com/config/ringringpaw.php
- *   /home/u233722910/domains/ringringpaw.nakilab.com/config/ringringpaw.php
+ *   /home/u233722910/domains/nakilab.com/config/sipaw.php          (preferred)
+ *   /home/u233722910/domains/nakilab.com/config/ringringpaw.php    (legacy filename OK)
+ *   /home/u233722910/domains/sipaw.nakilab.com/config/sipaw.php
  *
- * lib/bootstrap.php checks both absolute paths (subdomain may be its own site),
+ * lib/bootstrap.php checks sipaw.php first, then legacy ringringpaw.php,
  * then relative ../../config/ fallbacks. Never commit a real copy with passwords.
+ *
+ * After the Hostinger folder rename (ringringpaw → sipaw), set:
+ *   app_url => 'https://sipaw.nakilab.com'
+ * and point the subdomain document root at public_html/sipaw.
  */
 declare(strict_types=1);
 
@@ -22,11 +27,11 @@ return [
     ],
 
     // Public site origin (no trailing slash). Used in emails + QR URLs.
-    'app_url' => 'https://ringringpaw.nakilab.com',
+    'app_url' => 'https://sipaw.nakilab.com',
 
     // From-address for scan alert emails (must be allowed on Hostinger mail).
     'mail_from' => 'noreply@nakilab.com',
-    'mail_from_name' => 'Ring Ring Paw',
+    'mail_from_name' => 'siPaw',
 
     // Optional SMTP (leave 'enabled' => false to use PHP mail()).
     'smtp' => [
@@ -69,6 +74,6 @@ return [
     // Must send a valid User-Agent identifying the app + contact (Nominatim policy).
     'geocode' => [
         'provider' => 'nominatim',
-        'user_agent' => 'RingRingPaw/1 (https://ringringpaw.nakilab.com; noreply@nakilab.com)',
+        'user_agent' => 'siPaw/1 (https://sipaw.nakilab.com; noreply@nakilab.com)',
     ],
 ];

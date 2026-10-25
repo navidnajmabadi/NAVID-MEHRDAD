@@ -50,7 +50,7 @@ if (!rrp_vapid_configured()) {
         'ok' => true,
         'saved' => true,
         'configured' => false,
-        'note' => 'Subscription saved. Server VAPID keys are empty — email + inbox still notify. Admin: add vapid keys to ringringpaw.php.',
+        'note' => 'Subscription saved. Server VAPID keys are empty — email + inbox still notify. Admin: add vapid keys to sipaw.php.',
     ]);
 }
 

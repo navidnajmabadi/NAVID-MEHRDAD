@@ -1,7 +1,8 @@
-# Ring Ring Paw (PHP + MySQL PWA)
+# siPaw (PHP + MySQL PWA)
 
-**Live:** https://ringringpaw.nakilab.com  
-**Branch:** `PetFinder` · **Parent studio:** https://nakilab.com/
+**Live:** https://sipaw.nakilab.com  
+**Branch:** `PetFinder` · **Parent studio:** https://nakilab.com/  
+**Hostinger folder:** `domains/nakilab.com/public_html/sipaw`
 
 Scan a collar QR → see pet + owner phone → optional live location → owner gets email + inbox alert. Owners can broadcast **LOST HELP ME** to nearby app owners (~25 km). Navid & Mehrdad use the **admin** console.
 
@@ -29,13 +30,14 @@ Summary:
 
 1. Create MySQL DB + user in hPanel  
 2. Import `sql/001_schema.sql` → `002_lost_admin.sql` → `003_push_subscriptions.sql` → **`004_chat.sql`** → **`005_health.sql`**  
-3. Copy `config.example.php` → live `ringringpaw.php` (include `cron_secret` + `admin_setup_secret` + optional `vapid`)  
-4. Merge/push to `PetFinder` (auto `git pull`)  
-5. Create Navid + Mehrdad via `/admin/setup.php`  
-6. Schedule cron every 5–10 minutes:
+3. Copy `config.example.php` → live `sipaw.php` (or keep legacy `ringringpaw.php` filename) — include `cron_secret` + `admin_setup_secret` + optional `vapid`; set `app_url` to `https://sipaw.nakilab.com`  
+4. Point subdomain **sipaw.nakilab.com** document root at `public_html/sipaw`  
+5. Merge/push to `PetFinder` (auto `git pull` into `…/public_html/sipaw`)  
+6. Create Navid + Mehrdad via `/admin/setup.php`  
+7. Schedule cron every 5–10 minutes:
    - `cron/lost-escalate.php?key=…`
    - `cron/health-reminders.php?key=…` (same `cron_secret`)
-7. Optional: generate VAPID keys and enable PWA push (`docs/WEB_PUSH.md`)
+8. Optional: generate VAPID keys and enable PWA push (`docs/WEB_PUSH.md`)
 
 ## Local run
 
@@ -53,7 +55,7 @@ Open **`/sipo-preview.php`** after starting the PHP server — grid of 6 states 
 
 ## Deploy
 
-Push/merge to **`PetFinder`** → GitHub Action SSHs `git pull` on Hostinger.  
+Push/merge to **`PetFinder`** → GitHub Action SSHs `git pull` on Hostinger into `public_html/sipaw`.  
 Manual fallback: see `docs/HOSTINGER_INSTALL.md`.
 
 ## Notifications

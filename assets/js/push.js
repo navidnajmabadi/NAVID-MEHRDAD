@@ -1,5 +1,5 @@
 /**
- * Web Push subscribe for Ring Ring Paw (installed PWA + logged-in owners).
+ * Web Push subscribe for siPaw (installed PWA + logged-in owners).
  * Exposes window.RRPPush: ensure(), status(), enable().
  */
 (function () {
@@ -109,7 +109,7 @@
         base.configured = !!(v && v.configured && v.publicKey);
         if (!base.configured) {
           base.hint =
-            "Push is not configured on the server yet (empty VAPID keys). Email and inbox still work. Ask an admin to add vapid keys to ringringpaw.php.";
+            "Push is not configured on the server yet (empty VAPID keys). Email and inbox still work. Ask an admin to add vapid keys to sipaw.php.";
           return base;
         }
         return getRegistration().then(function (reg) {
@@ -118,7 +118,7 @@
             if (base.permission === "denied") {
               base.hint = isIos()
                 ? "Notifications blocked. On iPhone: Settings → Notifications → siPaw → Allow Notifications."
-                : "Notifications blocked. Open site settings in your browser and allow notifications for ringringpaw.nakilab.com, then tap Enable again.";
+                : "Notifications blocked. Open site settings in your browser and allow notifications for sipaw.nakilab.com, then tap Enable again.";
             } else if (!base.subscribed && base.permission === "granted") {
               base.hint = "Permission granted — finishing subscription…";
             } else if (!base.subscribed) {

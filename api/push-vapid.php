@@ -13,5 +13,5 @@ rrp_json([
     'publicKey' => $configured ? rrp_vapid_public_key() : '',
     'hint' => $configured
         ? null
-        : 'Add vapid.public_key and vapid.private_key to ringringpaw.php. Email + inbox still work.',
+        : 'Add vapid.public_key and vapid.private_key to sipaw.php. Email + inbox still work.',
 ]);

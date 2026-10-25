@@ -41,7 +41,7 @@ rrp_layout_head(
 );
 rrp_app_start(['nav' => false]);
 ?>
-<div class="browserbar data"><svg aria-hidden="true"><use href="#i-lock"/></svg>ringringpaw.nakilab.com/t/<?= rrp_h($tagTail) ?></div>
+<div class="browserbar data"><svg aria-hidden="true"><use href="#i-lock"/></svg>sipaw.nakilab.com/t/<?= rrp_h($tagTail) ?></div>
 
 <div class="pad stack" style="gap:16px">
   <div class="tilewrap" style="display:flex;justify-content:center;padding:8px 0 4px">

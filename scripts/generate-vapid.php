@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 /**
- * Generate VAPID keys for Ring Ring Paw Web Push.
+ * Generate VAPID keys for siPaw Web Push.
  * Usage: php scripts/generate-vapid.php
- * Paste public_key + private_key into domains/.../config/ringringpaw.php under 'vapid'.
+ * Paste public_key + private_key into domains/.../config/sipaw.php under 'vapid'.
  */
 
 require_once dirname(__DIR__) . '/lib/webpush.php';
@@ -22,10 +22,10 @@ try {
     exit(1);
 }
 
-echo "Add these to domains/.../config/ringringpaw.php under 'vapid':\n\n";
+echo "Add these to domains/.../config/sipaw.php under 'vapid':\n\n";
 echo "    'vapid' => [\n";
 echo "        'subject' => 'mailto:you@nakilab.com',\n";
 echo "        'public_key' => '{$keys['public_key']}',\n";
 echo "        'private_key' => '{$keys['private_key']}',\n";
 echo "    ],\n\n";
-echo "Keep private_key secret. Never commit ringringpaw.php.\n";
+echo "Keep private_key secret. Never commit sipaw.php.\n";

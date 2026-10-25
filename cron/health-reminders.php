@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Hostinger cron — vaccine / med / vet reminders.
  *
- * URL: https://ringringpaw.nakilab.com/cron/health-reminders.php?key=YOUR_CRON_SECRET
+ * URL: https://sipaw.nakilab.com/cron/health-reminders.php?key=YOUR_CRON_SECRET
  * Suggested: same schedule as lost-escalate (every 10 minutes).
  */
 

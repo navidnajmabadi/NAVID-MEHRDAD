@@ -1,6 +1,7 @@
 dist/
 config.php
 config.local.php
+config/sipaw.php
 config/ringringpaw.php
 uploads/pets/*
 !uploads/pets/.gitkeep

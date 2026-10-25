@@ -12,7 +12,7 @@ require_once __DIR__ . '/lib/bootstrap.php';
 
 $out = [
     'ok' => false,
-    'app' => 'RingRingPaw',
+    'app' => 'siPaw',
     'checks' => [
         'config_readable' => false,
         'config_path' => null,
@@ -35,7 +35,7 @@ try {
     $out['checks']['config_path'] = $path;
 
     if ($path === null) {
-        $out['hint'] = 'Place ringringpaw.php at an absolute Hostinger config path or {app}/config/ringringpaw.php';
+        $out['hint'] = 'Place sipaw.php (or legacy ringringpaw.php) at an absolute Hostinger config path or {app}/config/sipaw.php';
         http_response_code(503);
         echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         exit;
@@ -71,14 +71,14 @@ try {
     if (!$out['checks']['lost_alerts_table'] || !$out['checks']['admin_users_table']) {
         $out['hint'] = 'Phase 1 OK. Import sql/002_lost_admin.sql for LOST HELP ME + Admin tables.';
     } elseif (!$out['checks']['vapid_configured']) {
-        $out['hint'] = 'DB OK. Add vapid keys to ringringpaw.php for PWA push (docs/WEB_PUSH.md). Email + inbox still work.';
+        $out['hint'] = 'DB OK. Add vapid keys to sipaw.php for PWA push (docs/WEB_PUSH.md). Email + inbox still work.';
     } else {
         $out['hint'] = 'Config + DB + owners + lost/admin + VAPID OK.';
     }
     echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
     $out['error'] = rrp_safe_db_error($e, 'Health check failed');
-    $out['hint'] = 'Fix ringringpaw.php DB credentials and ensure sql/001_schema.sql was imported into the same database name.';
+    $out['hint'] = 'Fix sipaw.php (or legacy ringringpaw.php) DB credentials and ensure sql/001_schema.sql was imported into the same database name.';
     http_response_code(503);
     echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 }
