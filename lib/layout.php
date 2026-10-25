@@ -18,7 +18,7 @@ function rrp_layout_head(string $title, array $opts = []): void
 <meta name="theme-color" content="#000000" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="siPaw" />
+<meta name="apple-mobile-web-app-title" content="SIPAW" />
 <link rel="canonical" href="<?= rrp_h($canonical) ?>" />
 <link rel="manifest" href="<?= rrp_h(rrp_asset('manifest.webmanifest')) ?>" />
 <link rel="icon" type="image/png" href="<?= rrp_h(rrp_asset('assets/icons/icon-192.png')) ?>" />
@@ -31,6 +31,8 @@ function rrp_layout_head(string $title, array $opts = []): void
 <meta name="rrp-push-vapid" content="<?= rrp_h(rrp_asset('api/push-vapid.php')) ?>" />
 <meta name="rrp-push-subscribe" content="<?= rrp_h(rrp_asset('api/push-subscribe.php')) ?>" />
 <title><?= rrp_h($title) ?></title>
+<meta property="og:title" content="<?= rrp_h($title) ?>" />
+<meta property="og:site_name" content="SIPAW" />
 <?= $extra ?>
 </head>
 <body class="<?= rrp_h($bodyClass) ?>">

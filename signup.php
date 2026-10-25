@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-rrp_layout_head('Create account — siPaw', [
+rrp_layout_head('Create account — SIPAW', [
     'description' => 'Create your siPaw account — AI pet care companion by Nakilab.',
     'body_class' => 'page-auth',
 ]);

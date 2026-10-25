@@ -65,7 +65,7 @@ if ($open) {
 $pingOffsets = defined('RRP_LOST_PING_OFFSETS') ? RRP_LOST_PING_OFFSETS : [0, 3600, 10800, 28800];
 $pingCount = $open ? (int) ($open['ping_count'] ?? 0) : 0;
 
-rrp_layout_head('Lost mode — siPaw');
+rrp_layout_head('Lost mode — SIPAW');
 rrp_app_start(['nav' => 'lost']);
 ?>
 <div class="topbar">

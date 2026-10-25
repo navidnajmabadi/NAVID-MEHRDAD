@@ -1,6 +1,6 @@
 {
-  "name": "siPaw",
-  "short_name": "siPaw",
+  "name": "SIPAW",
+  "short_name": "SIPAW",
   "description": "Home is one scan away. Scan the tag. Call the owner. Pet goes home.",
   "start_url": "./index.php",
   "scope": "./",

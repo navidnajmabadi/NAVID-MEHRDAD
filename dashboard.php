@@ -77,7 +77,7 @@ foreach ($scans as $s) {
 
 $initial = strtoupper(substr((string) ($owner['name'] ?? 'U'), 0, 1));
 $extra = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />';
-rrp_layout_head('Home — siPaw', ['extra_head' => $extra]);
+rrp_layout_head('Home — SIPAW', ['extra_head' => $extra]);
 rrp_app_start(['nav' => 'home']);
 ?>
 <div class="homehead">

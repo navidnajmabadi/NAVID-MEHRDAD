@@ -62,7 +62,7 @@ $petName = $pet ? (string) $pet['name'] : 'pet';
 $lastId = $messages ? (int) $messages[count($messages) - 1]['id'] : 0;
 $av = strtoupper(mb_substr($ownerName, 0, 1));
 
-rrp_layout_head('Message owner — siPaw', ['body_class' => 'page-finder-chat']);
+rrp_layout_head('Message owner — SIPAW', ['body_class' => 'page-finder-chat']);
 rrp_app_start(['nav' => false, 'class' => 'chat-active']);
 ?>
 <div class="chat-screen">

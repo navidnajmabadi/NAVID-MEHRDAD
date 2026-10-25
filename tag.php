@@ -15,7 +15,7 @@ $petUrl = rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id']));
 $used = rrp_pet_count((int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
-rrp_layout_head('QR tag — ' . $pet['name'] . ' — siPaw', [
+rrp_layout_head('QR tag — ' . $pet['name'] . ' — SIPAW', [
     'extra_head' => '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>',
     'body_class' => 'page-tag',
 ]);

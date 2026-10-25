@@ -35,7 +35,7 @@ if ($thread) {
 $av = strtoupper(mb_substr($finderLabel, 0, 1));
 $lastId = $messages ? (int) $messages[count($messages) - 1]['id'] : 0;
 
-rrp_layout_head($thread ? ('Chat — ' . $finderLabel . ' — siPaw') : 'Chat — siPaw');
+rrp_layout_head($thread ? ('Chat — ' . $finderLabel . ' — SIPAW') : 'Chat — SIPAW');
 rrp_app_start(['nav' => 'chat', 'class' => $thread ? 'chat-active' : '']);
 ?>
 <?php if ($thread): ?>

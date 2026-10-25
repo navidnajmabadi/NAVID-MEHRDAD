@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $tickets = rrp_tickets_for_owner((int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
-rrp_layout_head('Support — siPaw');
+rrp_layout_head('Support — SIPAW');
 rrp_app_start(['nav' => 'home']);
 ?>
 <div class="topbar">

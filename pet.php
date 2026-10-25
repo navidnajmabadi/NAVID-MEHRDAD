@@ -30,7 +30,7 @@ if ($pet) {
 $tagTail = $pet ? substr((string) $pet['public_id'], -4) : '----';
 
 rrp_layout_head(
-    $pet ? ('Found ' . $pet['name'] . '? — siPaw') : 'Tag not found — siPaw',
+    $pet ? ('Found ' . $pet['name'] . '? — SIPAW') : 'Tag not found — SIPAW',
     [
         'canonical' => $pet ? rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id'])) : rrp_app_url(),
         'body_class' => 'page-scan',
