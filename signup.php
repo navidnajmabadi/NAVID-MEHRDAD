@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = rrp_register_owner($_POST);
             if (!empty($result['ok'])) {
                 rrp_flash_set('ok', 'Welcome! Add your first pet to get a QR tag.');
-                rrp_redirect('pet-form.php');
+                rrp_redirect('pet-register.php');
             }
             $error = $result['error'] ?? 'Could not create account.';
         }
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 rrp_layout_head('Create account — SIPAW', [
-    'description' => 'Create your siPaw account — AI pet care companion by Nakilab.',
+    'description' => 'Create your SIPAW account — SI pet care companion by NAKILAB.',
     'body_class' => 'page-auth',
 ]);
 rrp_app_start(['nav' => false]);

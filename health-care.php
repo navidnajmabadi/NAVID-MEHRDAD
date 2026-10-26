@@ -102,7 +102,7 @@ rrp_app_start(['nav' => 'health']);
 <?php rrp_render_flash(); ?>
 
 <?php if (!$pets): ?>
-  <div class="pad"><div class="box"><p class="sub" style="margin:0">Add a pet to track vaccines, meds, and food.</p><a class="btn primary" style="margin-top:12px" href="pet-form.php">Add a pet</a></div></div>
+  <div class="pad"><div class="box"><p class="sub" style="margin:0">Add a pet to track vaccines, meds, and food.</p><a class="btn primary" style="margin-top:12px" href="pet-register.php">Add a pet with SIPO</a></div></div>
 <?php else: ?>
   <div class="pets" role="group" aria-label="Pets" style="padding-top:4px;padding-bottom:12px">
     <?php foreach ($pets as $p): ?>

@@ -117,8 +117,8 @@ function rrp_logo_endorsed(string $class = ''): void
     $cls = trim('logo-endorsed ' . $class);
     $dark = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-black.svg');
     $light = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-white.svg');
-    echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="siPaw by Nakilab" width="210" height="154" />';
-    echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="siPaw by Nakilab" width="210" height="154" />';
+    echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="SI^PAW by NAKILAB" width="210" height="154" />';
+    echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="SI^PAW by NAKILAB" width="210" height="154" />';
 }
 
 function rrp_logo_wordmark(string $class = ''): void
@@ -126,15 +126,15 @@ function rrp_logo_wordmark(string $class = ''): void
     $cls = trim('logo-word wordmark ' . $class);
     $dark = rrp_asset('assets/img/logos/sipaw-wordmark-transparent-white.svg');
     $light = rrp_asset('assets/img/logos/sipaw-wordmark-transparent-black.svg');
-    echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="siPaw" width="92" height="54" />';
-    echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="siPaw" width="92" height="54" />';
+    echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="SI^PAW" width="92" height="54" />';
+    echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="SI^PAW" width="92" height="54" />';
 }
 
 function rrp_logo_tile(string $class = ''): void
 {
     $cls = trim('logo-tile ' . $class);
     $src = rrp_asset('assets/img/logos/sipaw-symbol-on-black.svg');
-    echo '<img class="' . rrp_h($cls) . '" src="' . rrp_h($src) . '" alt="siPaw" width="104" height="104" />';
+    echo '<img class="' . rrp_h($cls) . '" src="' . rrp_h($src) . '" alt="SI element tile" width="104" height="104" />';
 }
 
 function rrp_owner_nav_context(int $ownerId): array

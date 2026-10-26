@@ -81,7 +81,7 @@ rrp_layout_head('Home — SIPAW', ['extra_head' => $extra]);
 rrp_app_start(['nav' => 'home']);
 ?>
 <div class="homehead">
-  <a href="dashboard.php" aria-label="siPaw home"><?php rrp_logo_wordmark(); ?></a>
+  <a href="dashboard.php" aria-label="SIPAW home"><?php rrp_logo_endorsed(); ?></a>
   <div class="row" style="gap:10px">
     <a class="iconbtn" href="alerts.php" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg></a>
     <a class="avatar" href="account.php" aria-label="Account"><?= rrp_h($initial) ?></a>
@@ -110,7 +110,7 @@ rrp_app_start(['nav' => 'home']);
     $petActive = count($pets);
   ?>
   <?php if ($petActive < $petLimit): ?>
-    <a class="petchip add" href="pet-form.php">
+    <a class="petchip add" href="pet-register.php">
       <span class="ph"><svg aria-hidden="true"><use href="#i-plus"/></svg></span>
       Add
     </a>
@@ -150,8 +150,8 @@ rrp_app_start(['nav' => 'home']);
   <div class="pad stack" style="margin-top:24px">
     <div class="box">
       <p class="h2" style="margin-bottom:8px">Add your first pet</p>
-      <p class="sub" style="margin-bottom:16px">Generate a QR collar tag. Free = 1 pet · Plus = 3.</p>
-      <a class="btn primary" href="pet-form.php">Add a pet</a>
+      <p class="sub" style="margin-bottom:16px">Chat with SIPO to register — then pair a QR tag. Free = 1 · Plus = 3<?= rrp_is_super_owner($owner) ? ' · Super unlimited' : '' ?>.</p>
+      <a class="btn primary" href="pet-register.php">Add a pet with SIPO</a>
     </div>
   </div>
 <?php endif; ?>

@@ -8,7 +8,7 @@ function rrp_send_mail(string $to, string $subject, string $bodyText): bool
 {
     $cfg = rrp_load_config();
     $from = $cfg['mail_from'] ?? 'noreply@nakilab.com';
-    $fromName = $cfg['mail_from_name'] ?? 'siPaw';
+    $fromName = $cfg['mail_from_name'] ?? 'SIPAW';
     $smtp = $cfg['smtp'] ?? ['enabled' => false];
 
     if (!empty($smtp['enabled'])) {
@@ -20,7 +20,7 @@ function rrp_send_mail(string $to, string $subject, string $bodyText): bool
         'Content-Type: text/plain; charset=UTF-8',
         'From: ' . rrp_mail_encode_address($fromName, $from),
         'Reply-To: ' . $from,
-        'X-Mailer: siPaw/1',
+        'X-Mailer: SIPAW/1',
     ];
     return @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $bodyText, implode("\r\n", $headers));
 }

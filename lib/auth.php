@@ -64,6 +64,14 @@ function rrp_login(string $email, string $password): array
         rrp_start_session();
         session_regenerate_id(true);
         $_SESSION['owner_id'] = (int) $owner['id'];
+        // Keep super emails flagged + Admin rows present (idempotent).
+        if (in_array(strtolower((string) $owner['email']), rrp_super_owner_emails(), true)) {
+            try {
+                rrp_elevate_super_owners();
+            } catch (Throwable $e) {
+                error_log('rrp_login elevate: ' . $e->getMessage());
+            }
+        }
         return ['ok' => true, 'owner' => $owner];
     } catch (Throwable $e) {
         error_log('rrp_login: ' . $e->getMessage());

@@ -34,7 +34,7 @@ function rrp_admin_shell_start(string $title, string $active = 'home'): void
   <div class="app-top">
     <a class="app-brand" href="index.php">
       <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-symbol-on-black.svg')) ?>" alt="" width="40" height="40" />
-      <span>siPaw Admin</span>
+      <span>SIPAW Admin</span>
     </a>
     <a href="<?= rrp_h(rrp_asset('index.php')) ?>">Site</a>
   </div>

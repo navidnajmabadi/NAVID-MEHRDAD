@@ -23,7 +23,7 @@ rrp_app_start(['nav' => 'chat']);
 <div class="pad stack" style="gap:12px;flex:1;min-height:0;display:flex;flex-direction:column">
   <?php if (!$pets): ?>
     <p class="sub">Add a pet first, then chat with SIPO.</p>
-    <a class="btn primary" href="pet-form.php">Add pet</a>
+    <a class="btn primary" href="pet-register.php">Add pet</a>
   <?php else: ?>
     <form method="get" class="row between" style="gap:8px;align-items:center">
       <label class="label" for="pet">Pet</label>

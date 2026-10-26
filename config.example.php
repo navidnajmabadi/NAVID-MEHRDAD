@@ -1,18 +1,12 @@
 <?php
 /**
- * siPaw config template.
+ * SIPAW config template (match docs/sipaw-hostinger-config-template.php).
  *
- * On Hostinger, copy this file OUTSIDE the web root to ONE of:
- *   /home/u233722910/domains/nakilab.com/config/sipaw.php          (preferred)
- *   /home/u233722910/domains/nakilab.com/config/ringringpaw.php    (legacy filename OK)
- *   /home/u233722910/domains/sipaw.nakilab.com/config/sipaw.php
+ * On Hostinger, copy OUTSIDE the web root to:
+ *   /home/u233722910/domains/nakilab.com/config/sipaw.php
  *
- * lib/bootstrap.php checks sipaw.php first, then legacy ringringpaw.php,
- * then relative ../../config/ fallbacks. Never commit a real copy with passwords.
- *
- * After the Hostinger folder rename (ringringpaw → sipaw), set:
- *   app_url => 'https://sipaw.nakilab.com'
- * and point the subdomain document root at public_html/sipaw.
+ * Fill every CHANGE_ME / empty secret yourself. Never commit this file with real keys.
+ * Models: gpt-6-luna (product) · gpt-6.1-sol (heavier) · gpt-6-astra (SI Brain / Red Team).
  */
 declare(strict_types=1);
 
@@ -20,88 +14,83 @@ return [
     'db' => [
         'host' => 'localhost',
         'port' => 3306,
-        'name' => 'u233722910_sipaw', // Hostinger MySQL DB (legacy ringringpaw name OK if unchanged)
-        'user' => 'u233722910_rrp',   // change to your MySQL user
-        'pass' => 'CHANGE_ME',        // set a strong password
+        'name' => 'u233722910_sipaw',
+        'user' => 'u233722910_rrp',
+        'pass' => 'CHANGE_ME_DB_PASSWORD',
         'charset' => 'utf8mb4',
     ],
 
-    // Public site origin (no trailing slash). Used in emails + QR URLs.
     'app_url' => 'https://sipaw.nakilab.com',
 
-    // OpenAI (SI chatbot) — set keys ONLY in live sipaw.php outside web root. Never commit secrets.
-    // WHEN: leave empty until T05–T06; app returns graceful missing_api_key / fallback copy.
-    // v1: pay-as-you-go. Free teaser + Plus daily caps enforced in lib/si.php.
+    // -------------------------------------------------------------------------
+    // OpenAI — TWO keys
+    // 1) api_key        → SIPO / product SI (chat, vision, mod, register flow)
+    // 2) brain_api_key  → NAKILAB Red Team / Admin SI Brain (eval, improve, KPI)
+    // Leave empty until ready; app must degrade gracefully without 500s.
+    // -------------------------------------------------------------------------
     'openai' => [
-        'api_key' => '',              // sk-… product traffic
-        'brain_api_key' => '',        // optional Admin SI Brain isolation
-        'model' => 'gpt-4o-mini',     // fallback default
+        'api_key' => '',              // KEY 1 — sk-… SIPO / SI product traffic
+        'brain_api_key' => '',        // KEY 2 — sk-… NAKILAB Red Team + Admin SI Brain
         'base_url' => 'https://api.openai.com/v1',
+        'model' => 'gpt-6-luna',      // default fallback = product chat
         'models' => [
-            'si_chat' => 'gpt-4o-mini',
-            'food_vision' => 'gpt-4o-mini',
-            'forum_mod' => 'gpt-4o-mini',
-            'si_brain' => 'gpt-4o',
+            'si_chat' => 'gpt-6-luna',
+            'food_vision' => 'gpt-6-luna',
+            'forum_mod' => 'gpt-6-luna',
+            'places_copy' => 'gpt-6-luna',
+            'landing_copy' => 'gpt-6-luna',
+            'template_research' => 'gpt-6.1-sol',
+            'medical_explain' => 'gpt-6.1-sol',
+            'kpi_weekly' => 'gpt-6.1-sol',
+            'si_brain' => 'gpt-6-astra',
+            'pet_register' => 'gpt-6-luna',
         ],
         'si_transcript' => [
-            'master_key' => '',       // base64 32-byte; Navid-only; enables si_message_secrets
+            // Navid-only master for encrypt/decrypt SI logs (Admin SI Brain)
+            // Generate: php -r "echo base64_encode(random_bytes(32)), PHP_EOL;"
+            'master_key' => '',
             'cipher' => 'aes-256-gcm',
         ],
     ],
 
-    // Google SSO — NOT wired in UI yet (RRP-1 style confirm). Placeholders for T03+.
-    // Create OAuth Web client; redirect must match exactly when callback ships.
     'google' => [
         'client_id' => '',
         'client_secret' => '',
         'redirect_uri' => 'https://sipaw.nakilab.com/oauth/google-callback.php',
     ],
 
-    // From-address for scan alert emails (must be allowed on Hostinger mail).
     'mail_from' => 'noreply@nakilab.com',
-    'mail_from_name' => 'siPaw',
-
-    // Optional SMTP (leave 'enabled' => false to use PHP mail()).
+    'mail_from_name' => 'SIPAW',
     'smtp' => [
-        'enabled' => false,
+        'enabled' => true,
         'host' => 'smtp.hostinger.com',
         'port' => 465,
-        'encryption' => 'ssl', // ssl | tls
-        'user' => '',
-        'pass' => '',
+        'encryption' => 'ssl',
+        'user' => 'CHANGE_ME_SMTP_USER',
+        'pass' => 'CHANGE_ME_SMTP_PASS',
     ],
 
-    // Session cookie settings
     'session_name' => 'rrp_session',
-
-    // Live location TTL (seconds) when finder shares live.
     'live_ttl_seconds' => 30 * 60,
 
-    // Web Push (VAPID) for installed PWA notifications.
-    // Leave keys empty to skip push (no crash; email + inbox still work).
-    // Generate: php scripts/generate-vapid.php  OR https://vapidkeys.com
-    // Full steps: docs/WEB_PUSH.md
     'vapid' => [
-        'subject' => 'mailto:you@nakilab.com',
+        'subject' => 'mailto:navid.najmabadi@gmail.com',
         'public_key' => '',
         'private_key' => '',
     ],
 
-    // LOST HELP ME broadcast radius (km) from owner's registered address.
     'lost_radius_km' => 25,
-
-    // Shared secret for Hostinger cron hitting cron/lost-escalate.php?key=...
-    // Generate a long random string and keep it only in this config file.
     'cron_secret' => 'CHANGE_ME_CRON_SECRET_LONG_RANDOM',
-
-    // Admin bootstrap (admin/setup.php) — only used when admin_users is empty.
-    // Set to a long random string; remove or blank after creating Navid + Mehrdad.
     'admin_setup_secret' => 'CHANGE_ME_ADMIN_SETUP_SECRET',
 
-    // Geocoding: OpenStreetMap Nominatim (free). Cache in geocode_cache table.
-    // Must send a valid User-Agent identifying the app + contact (Nominatim policy).
+    // Super / unlimited owners (emails, lowercased). Bypass Free/Plus pet caps; full Admin.
+    'super_owners' => [
+        'navid.najmabadi@gmail.com',
+        'm.kiazade@gmail.com',
+    ],
+
     'geocode' => [
         'provider' => 'nominatim',
-        'user_agent' => 'siPaw/1 (https://sipaw.nakilab.com; noreply@nakilab.com)',
+        'user_agent' => 'SIPAW/1 (https://sipaw.nakilab.com; noreply@nakilab.com)',
     ],
 ];
