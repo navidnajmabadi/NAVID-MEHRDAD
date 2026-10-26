@@ -27,12 +27,15 @@ rrp_app_start(['nav' => false, 'class' => 'app-pet-register']);
   </div>
 
   <div class="sipo-reg-hero">
-    <div class="sipo-reg-mascot" aria-hidden="true">
-      <?php if (is_readable(__DIR__ . '/assets/mascot/sipo-idle.svg')): ?>
-        <img src="<?= rrp_h(rrp_asset('assets/mascot/sipo-idle.svg')) ?>" alt="" width="72" height="72" />
-      <?php else: ?>
-        <span class="sipo-reg-dot"></span>
-      <?php endif; ?>
+    <div class="sipo-reg-mascot">
+      <sipo-mascot
+        id="sipo"
+        state="idle"
+        theme="ice-blue"
+        size="72"
+        animated="true"
+        label="SIPO, SIPAW assistant"
+      ></sipo-mascot>
     </div>
     <div>
       <h1 class="title" style="font-size:1.35rem;margin:0">Let’s meet your pet</h1>
@@ -60,14 +63,18 @@ rrp_app_start(['nav' => false, 'class' => 'app-pet-register']);
     <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" />
     <input type="hidden" id="sipoSessionId" value="<?= $session ? (int) $session['id'] : 0 ?>" />
     <label class="sr-only" for="sipoRegInput">Message SIPO</label>
-    <input id="sipoRegInput" type="text" maxlength="1900" placeholder="Type your answer…" <?= $session ? '' : 'disabled' ?> />
-    <button type="button" id="sipoRegStart" class="btn <?= $session ? 'ghost' : 'primary' ?>" <?= $session ? 'hidden' : '' ?>>Start</button>
-    <button type="submit" id="sipoRegSend" class="btn primary" <?= $session ? '' : 'hidden' ?>>Send</button>
+    <input id="sipoRegInput" class="sipo-reg-input" type="text" maxlength="1900" placeholder="Type your answer…" enterkeyhint="send" <?= $session ? '' : 'disabled' ?> />
+    <button type="button" id="sipoRegStart" class="btn primary sipo-reg-btn" <?= $session ? 'hidden' : '' ?>>Start</button>
+    <button type="submit" id="sipoRegSend" class="btn primary sipo-reg-btn" <?= $session ? '' : 'hidden' ?>>Send</button>
   </form>
   <p class="sub sipo-reg-alt"><a class="link" href="pet-form.php?classic=1">Prefer the classic form?</a></p>
   <?php endif; ?>
 </div>
 
+<script>
+window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+</script>
+<script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
 <script>
 (function(){
   var log = document.getElementById('sipoRegLog');
@@ -77,9 +84,15 @@ rrp_app_start(['nav' => false, 'class' => 'app-pet-register']);
   var sessionEl = document.getElementById('sipoSessionId');
   var startBtn = document.getElementById('sipoRegStart');
   var sendBtn = document.getElementById('sipoRegSend');
+  var sipo = document.getElementById('sipo');
   var csrf = form.querySelector('[name=csrf]').value;
   var apiStart = <?= json_encode(rrp_asset('api/pets/register-start.php')) ?>;
   var apiSend = <?= json_encode(rrp_asset('api/pets/register-send.php')) ?>;
+
+  function setSipo(state){
+    if (!sipo) return;
+    try { sipo.setAttribute('state', state || 'idle'); } catch (e) {}
+  }
 
   function bubble(role, text){
     var d = document.createElement('div');
@@ -101,12 +114,14 @@ rrp_app_start(['nav' => false, 'class' => 'app-pet-register']);
     input.disabled = false;
     startBtn.hidden = true;
     sendBtn.hidden = false;
+    setSipo('listening');
     input.focus();
   }
 
   if (startBtn){
     startBtn.addEventListener('click', function(){
       startBtn.disabled = true;
+      setSipo('thinking');
       fetch(apiStart, {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
@@ -114,13 +129,16 @@ rrp_app_start(['nav' => false, 'class' => 'app-pet-register']);
       }).then(function(r){ return r.json(); }).then(function(data){
         startBtn.disabled = false;
         if (!data || !data.ok){
+          setSipo('alert');
           bubble('sipo', (data && data.error) || 'Could not start.');
           return;
         }
+        setSipo('writing');
         renderMessages(data.messages || []);
         activateComposer(data.session && data.session.id);
       }).catch(function(){
         startBtn.disabled = false;
+        setSipo('alert');
         bubble('sipo', 'Network snag — try again.');
       });
     });
@@ -132,6 +150,7 @@ rrp_app_start(['nav' => false, 'class' => 'app-pet-register']);
     var sid = parseInt(sessionEl.value, 10) || 0;
     if (!text || !sid) return;
     sendBtn.disabled = true;
+    setSipo('thinking');
     bubble('owner', text);
     input.value = '';
     fetch(apiSend, {
@@ -141,16 +160,21 @@ rrp_app_start(['nav' => false, 'class' => 'app-pet-register']);
     }).then(function(r){ return r.json(); }).then(function(data){
       sendBtn.disabled = false;
       if (!data || !data.ok){
+        setSipo('alert');
         bubble('sipo', (data && data.error) || 'Could not send.');
         if (data && data.messages) renderMessages(data.messages);
         return;
       }
+      setSipo(data.done ? 'happy' : 'writing');
       renderMessages(data.messages || []);
       if (data.done && data.pet_id){
         setTimeout(function(){ location.href = 'tag.php?id=' + data.pet_id; }, 900);
+      } else {
+        setTimeout(function(){ setSipo('listening'); input.focus(); }, 400);
       }
     }).catch(function(){
       sendBtn.disabled = false;
+      setSipo('alert');
       bubble('sipo', 'Network snag — try again.');
     });
   });

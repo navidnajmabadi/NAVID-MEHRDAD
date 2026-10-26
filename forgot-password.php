@@ -31,11 +31,17 @@ rrp_app_start(['nav' => false]);
 <div class="auth-hero">
   <?php rrp_logo_endorsed(); ?>
   <p class="tagline">Forgot password</p>
-  <p class="sub" style="font-size:14px">We’ll email a reset link. SMTP must be configured in Hostinger config.</p>
+  <p class="sub" style="font-size:14px">We’ll email a reset link. Needs working SMTP in Hostinger <code>config/sipaw.php</code>.</p>
 </div>
 
 <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
 <?php if ($ok): ?><div class="flash flash-ok" role="status"><?= rrp_h($ok) ?></div><?php endif; ?>
+<?php
+$smtpHint = rrp_password_reset_smtp_ready();
+if (empty($smtpHint['ok']) && !$ok && !$error):
+?>
+  <div class="flash flash-error" role="status"><?= rrp_h((string) ($smtpHint['error'] ?? 'SMTP not ready.')) ?></div>
+<?php endif; ?>
 
 <form method="post" class="auth-form" novalidate>
   <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
