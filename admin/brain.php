@@ -5,6 +5,7 @@ declare(strict_types=1);
  * Decrypt only when openai.si_transcript.master_key is set server-side.
  */
 require_once dirname(__DIR__) . '/lib/bootstrap.php';
+require_once dirname(__DIR__) . '/lib/layout.php';
 require_once dirname(__DIR__) . '/lib/admin_layout.php';
 
 $admin = rrp_require_admin();

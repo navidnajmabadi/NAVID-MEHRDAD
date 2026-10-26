@@ -10,7 +10,7 @@ $stats = rrp_admin_stats();
 rrp_admin_shell_start('Overview', 'home');
 ?>
   <h1>Overview</h1>
-  <p class="lede">Hi <?= rrp_h($admin['name']) ?> — live ops snapshot for siPaw.</p>
+  <p class="lede">Hi <?= rrp_h($admin['name']) ?> — live ops snapshot for SIPAW.</p>
   <?php rrp_render_flash(); ?>
 
   <div class="admin-stat-grid">
