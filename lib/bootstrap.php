@@ -79,13 +79,23 @@ function rrp_db(): PDO
     }
 
     $cfg = rrp_load_config()['db'];
-    $dsn = sprintf(
-        'mysql:host=%s;port=%d;dbname=%s;charset=%s',
-        $cfg['host'],
-        (int) ($cfg['port'] ?? 3306),
-        $cfg['name'],
-        $cfg['charset'] ?? 'utf8mb4'
-    );
+    $charset = $cfg['charset'] ?? 'utf8mb4';
+    if (!empty($cfg['unix_socket'])) {
+        $dsn = sprintf(
+            'mysql:unix_socket=%s;dbname=%s;charset=%s',
+            $cfg['unix_socket'],
+            $cfg['name'],
+            $charset
+        );
+    } else {
+        $dsn = sprintf(
+            'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+            $cfg['host'],
+            (int) ($cfg['port'] ?? 3306),
+            $cfg['name'],
+            $charset
+        );
+    }
 
     try {
         $pdo = new PDO($dsn, $cfg['user'], $cfg['pass'], [
@@ -266,6 +276,7 @@ require_once __DIR__ . '/plan.php';
 require_once __DIR__ . '/pets.php';
 require_once __DIR__ . '/scans.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/password_reset.php';
 require_once __DIR__ . '/webpush.php';
 require_once __DIR__ . '/notify.php';
 require_once __DIR__ . '/geocode.php';
@@ -281,3 +292,5 @@ require_once __DIR__ . '/forum.php';
 require_once __DIR__ . '/wellness.php';
 require_once __DIR__ . '/routines.php';
 require_once __DIR__ . '/food_photo.php';
+require_once __DIR__ . '/pet_register.php';
+require_once __DIR__ . '/si_brain.php';

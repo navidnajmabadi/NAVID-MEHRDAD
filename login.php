@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 rrp_layout_head('Log in — SIPAW', [
-    'description' => 'Log in to siPaw — AI pet care companion by Nakilab.',
+    'description' => 'Log in to SIPAW — SI pet care companion by NAKILAB.',
     'body_class' => 'page-auth',
 ]);
 rrp_app_start(['nav' => false]);
@@ -68,7 +68,10 @@ rrp_app_start(['nav' => false]);
   </div>
   <button class="btn primary" type="submit">Log in</button>
   <p class="sub" style="font-size:14px;text-align:center;margin-top:6px">
-    New to siPaw? <a class="link" href="signup.php">Create an account</a>
+    <a class="link" href="forgot-password.php">Forgot password?</a>
+  </p>
+  <p class="sub" style="font-size:14px;text-align:center;margin-top:6px">
+    New to SIPAW? <a class="link" href="signup.php">Create an account</a>
   </p>
 </form>
 <script>

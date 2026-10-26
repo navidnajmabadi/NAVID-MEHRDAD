@@ -9,6 +9,11 @@ $pet = $petId ? rrp_pet_by_id($petId, (int) $owner['id']) : null;
 $editing = (bool) $pet;
 $error = null;
 
+// New pets: conversational SIPO flow is default (classic form via ?classic=1).
+if (!$editing && empty($_GET['classic']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    rrp_redirect('pet-register.php');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!rrp_verify_csrf($_POST['csrf'] ?? null)) {
         $error = 'Session expired. Try again.';

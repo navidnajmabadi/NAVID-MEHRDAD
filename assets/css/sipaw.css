@@ -864,3 +864,36 @@ a.chip{display:inline-flex;align-items:center}
 .tabs a[aria-pressed="true"]{color:var(--text)}
 button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .field .in input:disabled{opacity:.7}
+
+/* —— SIPO conversational pet register + responsive app chrome (final build) —— */
+.sipo-reg{background:var(--void,#000);color:#fff;max-width:720px;margin:0 auto}
+.sipo-reg-hero{display:flex;gap:14px;align-items:center;padding:12px 16px 8px}
+.sipo-reg-mascot img{display:block;width:72px;height:72px;object-fit:contain}
+.sipo-reg-dot{display:block;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#6b9bff,#2E6AFF 55%,#0a1a44)}
+.sipo-reg-log{flex:1;overflow:auto;padding:12px 16px 8px;display:flex;flex-direction:column;gap:10px;min-height:42vh}
+.sipo-reg-bubble{max-width:min(92%,420px);padding:12px 14px;border:1px solid var(--line,#222);line-height:1.45;font-size:15px;white-space:pre-wrap}
+.sipo-reg-bubble.sipo{align-self:flex-start;background:#0a0a0b;border-color:#1a1a1c}
+.sipo-reg-bubble.owner{align-self:flex-end;background:#0d1a33;border-color:#2E6AFF}
+.sipo-reg-composer{display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--line,#222);background:#000;position:sticky;bottom:0}
+.sipo-reg-composer input{flex:1;min-width:0;background:#0a0a0b;border:1px solid #333;color:#fff;padding:12px 14px;font:inherit}
+.sipo-reg-composer input:focus{outline:2px solid #2E6AFF;outline-offset:1px}
+.sipo-reg-alt{padding:0 16px 20px;font-size:13px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.brain-wrap .btn{cursor:pointer}
+@media (min-width:768px){
+  .app-pet-register .app-main,.sipo-reg{max-width:820px}
+  .sipo-reg-log{min-height:48vh}
+  .sipo-reg-bubble{font-size:16px}
+}
+@media (min-width:1280px){
+  .sipo-reg{max-width:880px}
+  .admin-main{max-width:1100px;margin:0 auto}
+}
+@media (max-width:520px){
+  .sipo-reg-hero{padding:8px 12px}
+  .sipo-reg-composer{padding:10px 12px calc(10px + env(safe-area-inset-bottom,0))}
+  .sipo-reg-composer .btn{padding-left:14px;padding-right:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sipo-reg-bubble{transition:none}
+}

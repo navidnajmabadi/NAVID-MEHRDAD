@@ -72,8 +72,18 @@ rrp_app_start(['nav' => 'home']);
   ?>
   <div class="box">
     <span class="label">Plan</span>
-    <p class="sub" style="margin:10px 0 0;font-size:14px"><?= rrp_h(strtoupper($plan)) ?> · <?= (int) rrp_pet_count((int) $owner['id']) ?> / <?= (int) rrp_owner_pet_limit($owner) ?> pets</p>
-    <p style="margin-top:10px"><a class="link" href="plus.php"><?= $plan === 'plus' ? 'Plus details' : 'Upgrade to Plus' ?></a></p>
+    <p class="sub" style="margin:10px 0 0;font-size:14px">
+      <?php if (rrp_is_super_owner($owner)): ?>
+        SUPER · unlimited pets · full Admin
+      <?php else: ?>
+        <?= rrp_h(strtoupper($plan)) ?> · <?= (int) rrp_pet_count((int) $owner['id']) ?> / <?= (int) rrp_owner_pet_limit($owner) ?> pets
+      <?php endif; ?>
+    </p>
+    <?php if (rrp_is_super_owner($owner)): ?>
+      <p style="margin-top:10px"><a class="link" href="<?= rrp_h(rrp_asset('admin/')) ?>">Open Admin</a></p>
+    <?php else: ?>
+      <p style="margin-top:10px"><a class="link" href="plus.php"><?= $plan === 'plus' ? 'Plus details' : 'Upgrade to Plus' ?></a></p>
+    <?php endif; ?>
   </div>
 
   <div class="box">

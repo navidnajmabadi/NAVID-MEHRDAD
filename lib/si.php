@@ -58,6 +58,10 @@ function rrp_si_bump_usage(int $ownerId, int $msgs = 1, int $tokens = 0): void
  */
 function rrp_si_gate(array $owner): array
 {
+    if (rrp_is_super_owner($owner)) {
+        return ['ok' => true, 'teaser' => false, 'super' => true];
+    }
+
     $plan = rrp_owner_plan($owner);
     $day = rrp_si_toronto_day();
     $usage = rrp_si_usage_row((int) $owner['id'], $day);
