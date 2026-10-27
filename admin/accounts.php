@@ -45,8 +45,8 @@ rrp_admin_shell_start('Accounts', 'accounts');
           <strong><?= rrp_h($o['name']) ?></strong>
           <span class="pill <?= $o['status'] === 'active' ? 'pill-unread' : 'pill-ended' ?>"><?= rrp_h($o['status']) ?></span>
           <div class="meta">
-            <?= rrp_h($o['email']) ?> · <?= rrp_h($o['phone']) ?><br />
-            <?= rrp_h($o['address']) ?><br />
+            <?= rrp_h($o['email']) ?><?= !empty($o['phone']) ? ' · ' . rrp_h($o['phone']) : '' ?><br />
+            <?php if (!empty($o['address'])): ?><?= rrp_h($o['address']) ?><br /><?php endif; ?>
             <?= rrp_h((string) ($o['city'] ?? '—')) ?>, <?= rrp_h((string) ($o['country'] ?? '—')) ?>
             <?php if ($o['lat'] !== null): ?>
               · <?= rrp_h((string) $o['lat']) ?>, <?= rrp_h((string) $o['lng']) ?>

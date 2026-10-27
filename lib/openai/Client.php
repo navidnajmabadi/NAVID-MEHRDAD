@@ -78,6 +78,22 @@ final class RrpOpenAiClient
      */
     public function chat(array $messages, ?string $model = null, float $temperature = 0.6): array
     {
+        $res = $this->complete($messages, [], $model, $temperature);
+        if (!empty($res['ok']) && ($res['content'] ?? '') === '') {
+            return ['ok' => false, 'error' => 'Empty assistant response.', 'latency_ms' => $res['latency_ms'] ?? 0];
+        }
+        return $res;
+    }
+
+    /**
+     * One Chat Completions call, optionally with function tools.
+     *
+     * @param list<array<string,mixed>> $messages
+     * @param list<array<string,mixed>> $tools OpenAI "tools" array (type=function)
+     * @return array{ok:bool, error?:string, content?:string, tool_calls?:list<array>, model?:string, usage?:array, gate?:string, latency_ms?:int}
+     */
+    public function complete(array $messages, array $tools = [], ?string $model = null, float $temperature = 0.6): array
+    {
         if (!$this->configured()) {
             $which = $this->keyRole === self::KEY_BRAIN ? 'openai.brain_api_key (or api_key)' : 'openai.api_key';
             return [
@@ -96,6 +112,10 @@ final class RrpOpenAiClient
             'temperature' => $temperature,
             'messages' => $messages,
         ];
+        if ($tools !== []) {
+            $payload['tools'] = $tools;
+            $payload['tool_choice'] = 'auto';
+        }
 
         $t0 = (int) floor(microtime(true) * 1000);
         $ch = curl_init($this->baseUrl . '/chat/completions');
@@ -107,32 +127,35 @@ final class RrpOpenAiClient
                 'Authorization: Bearer ' . $this->apiKey,
             ],
             CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
+            CURLOPT_CONNECTTIMEOUT => 10,
             CURLOPT_TIMEOUT => 90,
         ]);
         $raw = curl_exec($ch);
         $errno = curl_errno($ch);
         $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         $latency = (int) floor(microtime(true) * 1000) - $t0;
 
         if ($errno || $raw === false) {
             return ['ok' => false, 'error' => 'OpenAI request failed (network).', 'latency_ms' => $latency];
         }
-        $data = json_decode($raw, true);
+        $data = json_decode((string) $raw, true);
         if (!is_array($data)) {
             return ['ok' => false, 'error' => 'OpenAI returned invalid JSON.', 'latency_ms' => $latency];
         }
         if ($status >= 400) {
             $msg = (string) ($data['error']['message'] ?? 'OpenAI error ' . $status);
-            return ['ok' => false, 'error' => $msg, 'latency_ms' => $latency];
+            return ['ok' => false, 'error' => $msg, 'latency_ms' => $latency, 'gate' => $status === 429 ? 'provider_rate_limit' : null];
         }
-        $content = (string) ($data['choices'][0]['message']['content'] ?? '');
-        if ($content === '') {
+        $msg = $data['choices'][0]['message'] ?? [];
+        $toolCalls = is_array($msg['tool_calls'] ?? null) ? $msg['tool_calls'] : [];
+        $content = (string) ($msg['content'] ?? '');
+        if ($content === '' && $toolCalls === []) {
             return ['ok' => false, 'error' => 'Empty assistant response.', 'latency_ms' => $latency];
         }
         return [
             'ok' => true,
             'content' => $content,
+            'tool_calls' => $toolCalls,
             'model' => $model,
             'usage' => $data['usage'] ?? [],
             'latency_ms' => $latency,

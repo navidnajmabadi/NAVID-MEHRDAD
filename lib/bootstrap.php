@@ -103,6 +103,8 @@ function rrp_db(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
+        // All stored times are UTC; SIPO converts to the owner's timezone for display.
+        $pdo->exec("SET time_zone = '+00:00'");
     } catch (PDOException $e) {
         throw new RuntimeException(rrp_safe_db_error($e, 'Database connection failed'), 0, $e);
     }
@@ -165,14 +167,25 @@ function rrp_start_session(): void
     }
     $cfg = rrp_load_config();
     session_name($cfg['session_name'] ?? 'rrp_session');
+    // Remember-me (lib/auth.php) carries long logins; this just avoids 24-min GC drops.
+    ini_set('session.gc_maxlifetime', (string) (8 * 3600));
+    ini_set('session.use_strict_mode', '1');
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
-        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        'secure' => rrp_request_is_https(),
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
     session_start();
+}
+
+function rrp_request_is_https(): bool
+{
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        return true;
+    }
+    return strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
 }
 
 function rrp_app_url(string $path = ''): string
@@ -272,6 +285,7 @@ function rrp_client_ua(): ?string
 }
 
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/api.php';
 require_once __DIR__ . '/plan.php';
 require_once __DIR__ . '/pets.php';
 require_once __DIR__ . '/scans.php';
@@ -294,3 +308,4 @@ require_once __DIR__ . '/routines.php';
 require_once __DIR__ . '/food_photo.php';
 require_once __DIR__ . '/pet_register.php';
 require_once __DIR__ . '/si_brain.php';
+require_once __DIR__ . '/viewmodels/chat_vm.php';

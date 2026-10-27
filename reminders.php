@@ -6,7 +6,7 @@ require_once __DIR__ . '/lib/layout.php';
 $owner = rrp_require_owner();
 $plan = rrp_owner_plan($owner);
 $pets = rrp_pets_by_owner((int) $owner['id']);
-$petId = isset($_GET['pet']) ? (int) $_GET['pet'] : (int) ($pets[0]['id'] ?? 0);
+$petId = rrp_page_pet_id($owner, $pets);
 $error = null;
 
 if ($plan === 'plus' && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {

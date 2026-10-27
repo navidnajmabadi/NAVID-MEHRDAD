@@ -44,7 +44,7 @@ php scripts/create-admin.php "Navid" navid@example.com 'ChooseALongPassword'
 php scripts/create-admin.php "Mehrdad" mehrdad@example.com 'ChooseALongPassword'
 ```
 
-## 4. Cron (escalation: t0 already sent; +1h, +3h, +8h)
+## 4. Cron (escalation: t0 already sent; +1h, +5h — brief §D, 20 km)
 
 **URL:**
 
@@ -72,8 +72,7 @@ Schedule meaning:
 |------|------|
 | t0 | Immediate on owner tap LOST HELP ME |
 | +1h | Cron when `next_ping_at` due |
-| +3h | Cron |
-| +8h | Cron, then stop |
+| +5h | Cron (final), then stop |
 | Found | Owner marks Found → status `found`, no more pings + helpers get “Yoho rescued” |
 
 ## 5. Smoke-test checklist

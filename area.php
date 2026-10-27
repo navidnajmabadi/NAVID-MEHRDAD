@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             (int) $owner['id'],
             (float) ($_POST['lat'] ?? 0),
             (float) ($_POST['lng'] ?? 0),
-            (float) ($_POST['radius_km'] ?? 25),
+            rrp_lost_radius_km(),
             (string) ($_POST['label'] ?? '')
         );
         if (!empty($result['ok'])) {
@@ -43,14 +43,15 @@ rrp_app_start(['nav' => 'home']);
 <div class="pad stack" style="gap:16px">
   <?php rrp_render_flash(); ?>
   <?php if ($error): ?><div class="flash flash-error"><?= rrp_h($error) ?></div><?php endif; ?>
-  <p class="sub" style="font-size:14px">Pin your area for Finder (~25 km) and Places. Not shown on public pet pages.</p>
+  <p class="sub" style="font-size:14px">Pin your home area so SIPO knows your weather and nearby vets, and Lost mode can alert neighbours. It is never shown on public pet pages.</p>
   <div id="map" style="height:280px;border:1px solid var(--line);background:var(--raised)"></div>
   <form method="post" class="stack" style="gap:12px" id="area-form">
     <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
     <input type="hidden" name="lat" id="lat" value="<?= rrp_h((string) $lat) ?>" />
     <input type="hidden" name="lng" id="lng" value="<?= rrp_h((string) $lng) ?>" />
     <div class="field"><label for="label">Area label</label><div class="in"><input id="label" name="label" value="<?= rrp_h((string) ($area['label'] ?? '')) ?>" placeholder="e.g. East Toronto" /></div></div>
-    <div class="field"><label for="radius_km">Radius (km)</label><div class="in"><input id="radius_km" name="radius_km" type="number" min="5" max="50" step="0.5" value="<?= rrp_h((string) ($area['radius_km'] ?? 25)) ?>" /></div></div>
+    <button type="button" class="btn outline" id="useGps"><svg aria-hidden="true"><use href="#i-pin"/></svg>Use my location</button>
+    <p class="sub" id="gpsNote" style="font-size:13px" hidden></p>
     <button class="btn primary" type="submit">Save area</button>
   </form>
   <div class="gap"></div>
@@ -63,16 +64,25 @@ rrp_app_start(['nav' => 'home']);
   var map = L.map('map').setView([lat,lng], 11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:18, attribution:'&copy; OSM'}).addTo(map);
   var marker = L.marker([lat,lng], {draggable:true}).addTo(map);
-  var circle = L.circle([lat,lng], {radius:(parseFloat(document.getElementById('radius_km').value)||25)*1000, color:'#2E6AFF'}).addTo(map);
   function sync(ll){
-    document.getElementById('lat').value = ll.lat.toFixed(6);
-    document.getElementById('lng').value = ll.lng.toFixed(6);
-    circle.setLatLng(ll);
+    // Approximate is enough (brief §D): round to ~100 m.
+    document.getElementById('lat').value = ll.lat.toFixed(3);
+    document.getElementById('lng').value = ll.lng.toFixed(3);
   }
   marker.on('dragend', function(){ sync(marker.getLatLng()); });
   map.on('click', function(e){ marker.setLatLng(e.latlng); sync(e.latlng); });
-  document.getElementById('radius_km').addEventListener('change', function(){
-    circle.setRadius((parseFloat(this.value)||25)*1000);
+  var gps = document.getElementById('useGps');
+  var note = document.getElementById('gpsNote');
+  gps.addEventListener('click', function(){
+    if (!navigator.geolocation) { note.hidden = false; note.textContent = 'This browser cannot share location. Tap the map instead.'; return; }
+    gps.disabled = true;
+    navigator.geolocation.getCurrentPosition(function(p){
+      var ll = L.latLng(p.coords.latitude, p.coords.longitude);
+      marker.setLatLng(ll); map.setView(ll, 14); sync(ll);
+      gps.disabled = false; note.hidden = false; note.textContent = 'Got it. Drag the pin if it is a bit off, then Save.';
+    }, function(){
+      gps.disabled = false; note.hidden = false; note.textContent = 'Location was not shared. Tap the map near home instead.';
+    }, {enableHighAccuracy:false, timeout:10000, maximumAge:600000});
   });
 })();
 </script>

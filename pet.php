@@ -83,9 +83,11 @@ rrp_app_start(['nav' => false]);
       </div>
     <?php endif; ?>
 
-    <a class="btn primary" href="tel:<?= rrp_h(preg_replace('/\s+/', '', $owner['phone'])) ?>">
-      <svg aria-hidden="true"><use href="#i-phone"/></svg>Call <?= rrp_h($owner['name']) ?>
+    <?php if (!empty($owner['phone'])): ?>
+    <a class="btn primary" href="tel:<?= rrp_h(preg_replace('/\s+/', '', (string) $owner['phone'])) ?>">
+      <svg aria-hidden="true"><use href="#i-phone"/></svg>Call <?= rrp_h($owner['nickname'] ?? $owner['name']) ?>
     </a>
+    <?php endif; ?>
 
     <?php if ($scanId): ?>
       <a class="btn outline" href="finder-chat.php?scan=<?= (int) $scanId ?>">

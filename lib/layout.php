@@ -27,6 +27,7 @@ function rrp_layout_head(string $title, array $opts = []): void
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipaw.css', true)) ?>" />
+<link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipo-app.css', true)) ?>" />
 <meta name="rrp-sw" content="<?= rrp_h(rrp_asset('sw.js')) ?>" />
 <meta name="rrp-push-vapid" content="<?= rrp_h(rrp_asset('api/push-vapid.php')) ?>" />
 <meta name="rrp-push-subscribe" content="<?= rrp_h(rrp_asset('api/push-subscribe.php')) ?>" />
@@ -83,9 +84,28 @@ function rrp_app_end(array $opts = []): void
     $nav = $opts['nav'] ?? false;
     if ($nav) {
         rrp_tabbar((string) $nav, (int) ($opts['unread'] ?? 0), !empty($opts['lost_active']));
+        rrp_install_sheet();
     }
     echo "</div>\n"; // .app
     rrp_layout_foot($opts);
+}
+
+/** Add to Home Screen ask (assets/js/install.js decides when/if it shows). */
+function rrp_install_sheet(): void
+{
+    ?>
+<div class="a2hs" id="a2hs" role="dialog" aria-labelledby="a2hsText" hidden>
+  <img src="<?= rrp_h(rrp_asset('assets/icons/icon-192.png')) ?>" alt="" width="44" height="44" />
+  <div>
+    <p id="a2hsText">Add SIPAW to your Home Screen so SIPO can reach you.</p>
+    <p class="a2hs-steps" hidden>Tap <svg class="a2hs-share" viewBox="0 0 24 24" aria-label="Share"><path d="M12 3v12M7 8l5-5 5 5M5 12v8h14v-8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg> Share, then <b>Add to Home Screen</b>.</p>
+    <div class="a2hs-actions">
+      <button type="button" class="btn primary" data-a2hs-add>Add</button>
+      <button type="button" class="btn outline" data-a2hs-later>Not now</button>
+    </div>
+  </div>
+</div>
+<?php
 }
 
 function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): void
@@ -110,6 +130,50 @@ function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): 
         echo '</a>' . "\n";
     }
     echo "</nav>\n";
+}
+
+/**
+ * Instagram-style pet switcher: avatar + name; tap opens a sheet with every pet
+ * and "Add a pet". Switching changes chat, dashboards and forms.
+ * @param array{pets:list<array>, current:?array, can_add:bool} $switcher from rrp_vm_pet_switcher()
+ */
+function rrp_pet_switcher(array $switcher, ?array $showing = null): void
+{
+    $cur = $showing ?? $switcher['current'];
+    ?>
+<button type="button" class="petswitch" data-petswitch data-csrf="<?= rrp_h(rrp_csrf_token()) ?>" aria-haspopup="dialog" aria-controls="petsheet">
+  <?php rrp_pet_avatar($cur); ?>
+  <span class="petswitch-name"><?= rrp_h($cur['name'] ?? 'New pet') ?></span>
+  <svg class="petswitch-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+</button>
+<dialog class="petsheet" id="petsheet" aria-label="Switch pet">
+  <div class="petsheet-head"><span class="label">Your pets</span><button type="button" class="iconbtn" data-close aria-label="Close">×</button></div>
+  <ul class="petsheet-list" role="list">
+    <?php foreach ($switcher['pets'] as $p): ?>
+      <li><button type="button" class="petsheet-row" data-pet-id="<?= (int) $p['id'] ?>" <?= ($cur && (int) $cur['id'] === (int) $p['id']) ? 'aria-current="true"' : '' ?>>
+        <?php rrp_pet_avatar($p); ?>
+        <span><b><?= rrp_h($p['name']) ?></b><small><?= rrp_h($p['kind']) ?></small></span>
+        <svg class="petsheet-check" aria-hidden="true"><use href="#i-check"/></svg>
+      </button></li>
+    <?php endforeach; ?>
+  </ul>
+  <?php if ($switcher['can_add']): ?>
+    <a class="petsheet-row petsheet-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add a pet</b><small>SIPO will set it up with you</small></span></a>
+  <?php else: ?>
+    <p class="sub petsheet-note">Free includes 1 pet for now.</p>
+  <?php endif; ?>
+</dialog>
+<?php
+}
+
+function rrp_pet_avatar(?array $pet): void
+{
+    if ($pet && !empty($pet['avatar'])) {
+        echo '<img class="pet-avatar" src="' . rrp_h($pet['avatar']) . '" alt="" width="36" height="36" loading="lazy" />';
+        return;
+    }
+    $initial = $pet['initial'] ?? '+';
+    echo '<span class="pet-avatar" aria-hidden="true">' . rrp_h($initial) . '</span>';
 }
 
 function rrp_logo_endorsed(string $class = ''): void
@@ -165,6 +229,8 @@ function rrp_layout_foot(array $opts = []): void
 <script src="<?= rrp_h(rrp_asset('assets/js/push.js', true)) ?>" defer></script>
 <?php endif; ?>
 <script src="<?= rrp_h(rrp_asset('assets/js/app.js', true)) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/pet-switcher.js', true)) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/install.js', true)) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
 <script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>
