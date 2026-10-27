@@ -116,7 +116,7 @@ final class RrpOpenAiClient
         if (!self::quirk($model, 'no_temperature')) {
             $payload['temperature'] = $temperature;
         }
-        if ($tools !== [] && !self::quirk($model, 'no_tools')) {
+        if ($tools !== []) {
             $payload['tools'] = $tools;
             $payload['tool_choice'] = 'auto';
         }
@@ -124,6 +124,7 @@ final class RrpOpenAiClient
 
         $res = ['ok' => false, 'error' => 'OpenAI request not sent.'];
         $retried5xx = false;
+        $toolsDropped = false;
         for ($attempt = 0; $attempt < 5; $attempt++) {
             $res = $this->send($payload);
             if (!empty($res['ok'])) {
@@ -139,8 +140,9 @@ final class RrpOpenAiClient
             }
             if (isset($payload['tools']) && (in_array($param, ['tools', 'tool_choice'], true)
                     || preg_match('/\b(tools?|tool_choice|function calling|functions)\b.*(not supported|unsupported|does not support)/', $err))) {
+                // Drop tools for THIS call only — never permanently, or SIPO could talk but never save.
                 unset($payload['tools'], $payload['tool_choice']);
-                self::rememberQuirk((string) $payload['model'], 'no_tools');
+                $toolsDropped = true;
                 continue;
             }
             if (isset($payload['response_format']) && ($param === 'response_format' || str_contains($err, 'response_format'))) {
@@ -162,8 +164,10 @@ final class RrpOpenAiClient
         }
         if (empty($res['ok'])) {
             self::recordError($res, (string) $payload['model']);
+        } elseif ($toolsDropped) {
+            self::recordError(['status' => 400, 'error' => 'Model rejected tools; replied without them (profile saved by server extraction).'], (string) $payload['model']);
         }
-        return $res + ['model' => $payload['model']];
+        return $res + ['model' => $payload['model'], 'tools_dropped' => $toolsDropped];
     }
 
     /** @return array{ok:bool, status:int, error?:string, param?:string, content?:string, tool_calls?:list<array>, model?:string, usage?:array, latency_ms:int} */
