@@ -140,6 +140,7 @@
 
   function post(url, body) {
     body.csrf = api.csrf;
+    try { body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
     return fetch(url, {
       method: "POST",
       credentials: "same-origin",
@@ -338,6 +339,7 @@
       showTyping(true);
       var fd = new FormData();
       fd.append("csrf", api.csrf);
+      try { fd.append("tz", Intl.DateTimeFormat().resolvedOptions().timeZone); } catch (e) {}
       fd.append("thread_id", String(threadId));
       fd.append("file", f);
       fetch(api.upload, { method: "POST", credentials: "same-origin", body: fd })

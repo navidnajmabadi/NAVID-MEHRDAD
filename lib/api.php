@@ -26,5 +26,7 @@ function rrp_api_owner_post(): array
     if (!rrp_verify_csrf($data['csrf'] ?? null)) {
         rrp_json(['ok' => false, 'error' => 'Session expired. Refresh the page.'], 403);
     }
+    // Every app call carries the phone's timezone (assets/js/*): SIPO's clock follows the owner.
+    $owner = rrp_auth_sync_timezone($owner, $data['tz'] ?? null);
     return [$owner, $data];
 }

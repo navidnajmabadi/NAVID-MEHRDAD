@@ -44,6 +44,14 @@ rrp_admin_shell_start('SIPO check', 'sipo');
     </div>
   <?php endforeach; ?>
 
+  <?php $ex = json_decode((string) @file_get_contents(sys_get_temp_dir() . '/sipaw-last-extract.json'), true); ?>
+  <?php if (is_array($ex)): ?>
+    <div class="panel panel-soft" style="margin-bottom:10px">
+      <strong>Last profile reading (new-pet setup)</strong>
+      <div class="meta"><?= rrp_h((string) $ex['at']) ?> · chat #<?= (int) $ex['thread_id'] ?> · <?= $ex['onboarding'] ? 'pet not created yet' : 'pet exists' ?> · <?= $ex['ok'] ? 'OK' : 'FAILED' ?></div>
+      <div class="meta"><?= $ex['ok'] ? 'Read: ' . rrp_h(json_encode($ex['data'], JSON_UNESCAPED_UNICODE)) : 'Error: ' . rrp_h((string) $ex['error']) ?></div>
+    </div>
+  <?php endif; ?>
   <?php if ($last): ?>
     <div class="panel panel-soft">
       <strong>Last error seen by SIPO</strong>

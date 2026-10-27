@@ -351,3 +351,21 @@ function rrp_auth_clean_timezone(string $tz): ?string
     }
     return $tz;
 }
+
+/**
+ * Keep owners.timezone equal to the phone's timezone (Intl API). Accounts made before PR 1 had
+ * none, so SIPO used Toronto time: reminders and "good morning" were hours off (live bug).
+ */
+function rrp_auth_sync_timezone(array $owner, mixed $tz): array
+{
+    $clean = is_string($tz) ? rrp_auth_clean_timezone($tz) : null;
+    if ($clean === null || $clean === (string) ($owner['timezone'] ?? '')) {
+        return $owner;
+    }
+    try {
+        rrp_db()->prepare('UPDATE owners SET timezone = ? WHERE id = ?')->execute([$clean, (int) $owner['id']]);
+        $owner['timezone'] = $clean;
+    } catch (Throwable $e) {
+    }
+    return $owner;
+}

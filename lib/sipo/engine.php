@@ -354,6 +354,7 @@ function rrp_sipo_extract_profile(array &$ctx): void
             . 'only when they clearly refer to the pet.'],
         ['role' => 'user', 'content' => implode("\n", $lines)],
     ]);
+    rrp_sipo_note_extract($ctx, $res);
     if (empty($res['ok']) || !is_array($res['data'] ?? null)) {
         return;
     }
@@ -371,6 +372,7 @@ function rrp_sipo_extract_profile(array &$ctx): void
             'name' => $name, 'kind' => $kind, 'other_kind' => (string) ($x['other_kind'] ?? ''), 'breed' => (string) ($x['breed'] ?? ''),
         ], $ctx);
         if (empty($made['ok'])) {
+            rrp_sipo_note_extract($ctx, ['ok' => false, 'error' => 'create_pet_profile failed: ' . ($made['error'] ?? '?')]);
             return;
         }
         $pet = $ctx['pet'];
@@ -391,6 +393,20 @@ function rrp_sipo_extract_profile(array &$ctx): void
         $ctx['pet'] = rrp_pet_by_id((int) $pet['id'], $ownerId) ?: $pet;
         $ctx['events'][] = 'profile_updated';
     }
+}
+
+/** Last profile-extraction result, shown on Admin → SIPO check (live debugging without logs). */
+function rrp_sipo_note_extract(array $ctx, array $res): void
+{
+    $info = [
+        'at' => gmdate('c'),
+        'thread_id' => (int) ($ctx['thread']['id'] ?? 0),
+        'onboarding' => $ctx['pet'] === null,
+        'ok' => !empty($res['ok']),
+        'data' => $res['data'] ?? null,
+        'error' => $res['error'] ?? null,
+    ];
+    @file_put_contents(sys_get_temp_dir() . '/sipaw-last-extract.json', json_encode($info), LOCK_EX);
 }
 
 function rrp_sipo_pick_mascot(array $ctx): string
