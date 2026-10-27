@@ -112,7 +112,7 @@ function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): 
 {
     $tabs = [
         'home' => ['href' => 'dashboard.php', 'label' => 'Home', 'icon' => 'i-home'],
-        'health' => ['href' => 'health-care.php', 'label' => 'Health', 'icon' => 'i-heart'],
+        'health' => ['href' => 'care.php', 'label' => 'Health', 'icon' => 'i-heart'],
         'lost' => ['href' => 'lost.php', 'label' => 'Lost', 'icon' => 'i-lost'],
         'alerts' => ['href' => 'alerts.php', 'label' => 'Alerts', 'icon' => 'i-bell'],
         'chat' => ['href' => 'si-chat.php', 'label' => 'SIPO', 'icon' => 'i-chat'],
