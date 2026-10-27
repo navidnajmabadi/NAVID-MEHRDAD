@@ -153,7 +153,10 @@ function rrp_owners_within_km(float $lat, float $lng, float $radiusKm, int $excl
     // Bounding box prefilter (~1 deg lat ≈ 111 km)
     $delta = max(0.05, ($radiusKm / 111.0) * 1.2);
     $stmt = rrp_db()->prepare(
-        'SELECT id, name, email, lat, lng FROM owners
+        // Home area from the map wins over the geocoded address (signup has no address since PR 1).
+        'SELECT id, name, email, lat, lng FROM (
+             SELECT id, name, email, status, COALESCE(home_lat, lat) AS lat, COALESCE(home_lng, lng) AS lng FROM owners
+         ) o
          WHERE status = \'active\'
            AND id <> ?
            AND lat IS NOT NULL AND lng IS NOT NULL

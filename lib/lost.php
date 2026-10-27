@@ -78,7 +78,7 @@ function rrp_lost_inbox_for_owner(int $ownerId, int $limit = 20): array
 /**
  * @return array{ok:bool, alert_id?:int, recipients?:int, error?:string}
  */
-function rrp_trigger_lost(int $ownerId, int $petId): array
+function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?float $seenLng = null): array
 {
     $pet = rrp_pet_by_id($petId, $ownerId);
     if (!$pet) {
@@ -88,15 +88,17 @@ function rrp_trigger_lost(int $ownerId, int $petId): array
         return ['ok' => false, 'error' => 'An open LOST alert already exists for this pet. Mark Found first.'];
     }
 
-    $stmt = rrp_db()->prepare('SELECT id, name, email, address, lat, lng, status FROM owners WHERE id = ? LIMIT 1');
+    $stmt = rrp_db()->prepare('SELECT id, name, email, address, lat, lng, home_lat, home_lng, status FROM owners WHERE id = ? LIMIT 1');
     $stmt->execute([$ownerId]);
     $owner = $stmt->fetch();
     if (!$owner || $owner['status'] !== 'active') {
         return ['ok' => false, 'error' => 'Account not active.'];
     }
 
-    $lat = $owner['lat'] !== null ? (float) $owner['lat'] : null;
-    $lng = $owner['lng'] !== null ? (float) $owner['lng'] : null;
+    // Centre: home area from the map (since PR 1 signup has no address) → geocoded address →
+    // the owner's GPS at the last-seen spot.
+    $lat = $owner['home_lat'] !== null ? (float) $owner['home_lat'] : ($owner['lat'] !== null ? (float) $owner['lat'] : null);
+    $lng = $owner['home_lng'] !== null ? (float) $owner['home_lng'] : ($owner['lng'] !== null ? (float) $owner['lng'] : null);
 
     if (($lat === null || $lng === null) && trim((string) ($owner['address'] ?? '')) !== '') {
         rrp_owner_apply_geocode($ownerId, (string) $owner['address']);
@@ -106,10 +108,15 @@ function rrp_trigger_lost(int $ownerId, int $petId): array
         $lng = $owner['lng'] !== null ? (float) $owner['lng'] : null;
     }
 
+    if (($lat === null || $lng === null) && $seenLat !== null && $seenLng !== null) {
+        $lat = $seenLat;
+        $lng = $seenLng;
+    }
+
     if ($lat === null || $lng === null) {
         return [
             'ok' => false,
-            'error' => 'We could not map your registered address. Update your address on the Account page, then try again.',
+            'error' => 'SIPAW needs to know roughly where to alert. Tap "I\'m where they were last seen", or set your home area on the map, then try again.',
         ];
     }
 
@@ -306,10 +313,11 @@ function rrp_lost_cron_tick(int $limit = 50): array
 {
     $stats = ['processed' => 0, 'pinged' => 0, 'expired' => 0];
 
-    // Expire open alerts that finished all pings and next_ping is null past grace
+    // Alerts stay open after the last ping until the owner taps Found (brief §D); SIPO checks in daily.
+    // Only abandoned alerts close by themselves, after 30 days.
     $expire = rrp_db()->prepare(
         "UPDATE lost_alerts SET status = 'expired'
-         WHERE status = 'open' AND next_ping_at IS NULL AND ping_count >= ?"
+         WHERE status = 'open' AND next_ping_at IS NULL AND ping_count >= ? AND started_at < (UTC_TIMESTAMP() - INTERVAL 30 DAY)"
     );
     $expire->execute([count(RRP_LOST_PING_OFFSETS)]);
     $stats['expired'] = $expire->rowCount();

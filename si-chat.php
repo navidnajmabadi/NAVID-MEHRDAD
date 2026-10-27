@@ -44,6 +44,20 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
       <?php rrp_pet_switcher($vm['switcher'], $vm['thread']['pet']); ?>
     </header>
 
+    <?php
+    $openLost = null;
+    if (!empty($vm['thread']['pet']['id'])) {
+        try {
+            $st = rrp_db()->prepare("SELECT id FROM lost_alerts WHERE pet_id = ? AND status = 'open' LIMIT 1");
+            $st->execute([(int) $vm['thread']['pet']['id']]);
+            $openLost = $st->fetchColumn() ?: null;
+        } catch (Throwable $e) {
+        }
+    }
+    ?>
+    <?php if ($openLost): ?>
+      <a class="lost-banner" href="lost.php?pet=<?= (int) $vm['thread']['pet']['id'] ?>">🔴 <?= rrp_h($petName) ?> is in Lost mode. Home? Tap Found <span aria-hidden="true">›</span></a>
+    <?php endif; ?>
     <?php if ($vm['note']): ?><div class="sipo-note" role="status"><?= rrp_h($vm['note']) ?></div><?php endif; ?>
 
     <div class="sipo-log" id="sipoLog" role="log" aria-live="polite" aria-label="Messages"></div>

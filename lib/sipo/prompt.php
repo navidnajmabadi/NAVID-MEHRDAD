@@ -149,7 +149,9 @@ function rrp_sipo_core_prompt(): string
 function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array $live, bool $emergency = false): string
 {
     $parts = [rrp_sipo_core_prompt()];
-    $parts[] = "# Owner\nNickname: " . rrp_sipo_owner_nickname($owner);
+    $area = rrp_owner_area($owner);
+    $parts[] = "# Owner\nNickname: " . rrp_sipo_owner_nickname($owner)
+        . "\nHome area: " . ($area['lat'] ? ($area['label'] ?: 'set') : 'NOT SET. Once the pet profile is started, ask the owner (one time, kindly) to set it on the map, Area page, so you can check weather, find vets and alert neighbours if the pet is ever lost.');
 
     if ($pet === null) {
         $parts[] = "# Pet card\nONBOARDING — no pet profile yet. Start the new-pet flow.";
@@ -193,6 +195,15 @@ function rrp_sipo_care_blocks(array $owner, array $pet): array
 {
     $out = [];
     $petId = (int) $pet['id'];
+    try {
+        $st = rrp_db()->prepare("SELECT * FROM lost_alerts WHERE pet_id = ? AND status = 'open' ORDER BY id DESC LIMIT 1");
+        $st->execute([$petId]);
+        $lost = $st->fetch();
+        if ($lost) {
+            $out['LOST MODE (top priority)'] = rrp_lost_prompt_block($owner, $pet, $lost);
+        }
+    } catch (Throwable $e) {
+    }
     $open = rrp_care_open_reminders($petId);
     if ($open) {
         $out['Open reminders'] = implode("\n", array_map(static function (array $r) use ($owner) {
