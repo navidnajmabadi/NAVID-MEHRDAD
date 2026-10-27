@@ -70,10 +70,14 @@ function rrp_pet_register_start(int $ownerId): array
         ];
     } catch (Throwable $e) {
         error_log('rrp_pet_register_start: ' . $e->getMessage());
+        $msg = $e->getMessage();
+        $missing = stripos($msg, 'pet_register') !== false || stripos($msg, "doesn't exist") !== false;
         return [
             'ok' => false,
-            'error' => 'Pet register chat needs sql/008_final_super_forgot_brain.sql imported.',
-            'gate' => 'missing_table',
+            'error' => $missing
+                ? 'Pet register chat needs sql/008_final_super_forgot_brain.sql imported.'
+                : ('Could not start register chat: ' . $msg),
+            'gate' => $missing ? 'missing_table' : 'server_error',
         ];
     }
 }
@@ -105,7 +109,12 @@ function rrp_pet_register_messages(int $sessionId): array
 function rrp_pet_register_add_message(int $sessionId, string $role, string $body): void
 {
     $role = $role === 'sipo' ? 'sipo' : 'owner';
-    $body = mb_substr(trim($body), 0, 2000);
+    $body = trim($body);
+    if (function_exists('mb_substr')) {
+        $body = mb_substr($body, 0, 2000);
+    } else {
+        $body = substr($body, 0, 2000);
+    }
     $stmt = rrp_db()->prepare(
         'INSERT INTO pet_register_messages (session_id, sender_role, body) VALUES (?, ?, ?)'
     );
@@ -139,7 +148,8 @@ function rrp_pet_register_save_draft(int $sessionId, array $draft): void
 function rrp_pet_register_send(int $ownerId, array $owner, int $sessionId, string $text): array
 {
     $text = trim($text);
-    if ($text === '' || mb_strlen($text) > 1900) {
+    $len = function_exists('mb_strlen') ? mb_strlen($text) : strlen($text);
+    if ($text === '' || $len > 1900) {
         return ['ok' => false, 'error' => 'Say something short (max 1900 chars).'];
     }
 

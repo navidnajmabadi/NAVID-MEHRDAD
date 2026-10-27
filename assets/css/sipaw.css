@@ -865,18 +865,37 @@ a.chip{display:inline-flex;align-items:center}
 button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .field .in input:disabled{opacity:.7}
 
-/* —— SIPO conversational pet register + responsive app chrome (final build) —— */
+/* —— SIPO conversational pet register + responsive app chrome —— */
 .sipo-reg{background:var(--void,#000);color:#fff;max-width:720px;margin:0 auto}
 .sipo-reg-hero{display:flex;gap:14px;align-items:center;padding:12px 16px 8px}
-.sipo-reg-mascot img{display:block;width:72px;height:72px;object-fit:contain}
-.sipo-reg-dot{display:block;width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#6b9bff,#2E6AFF 55%,#0a1a44)}
-.sipo-reg-log{flex:1;overflow:auto;padding:12px 16px 8px;display:flex;flex-direction:column;gap:10px;min-height:42vh}
+.sipo-reg-mascot{flex:0 0 auto;width:72px;height:72px;display:grid;place-items:center}
+.sipo-reg-mascot sipo-mascot{display:block;width:72px;height:72px}
+.sipo-reg-log{flex:1;overflow:auto;padding:12px 16px 8px;display:flex;flex-direction:column;gap:10px;min-height:42vh;-webkit-overflow-scrolling:touch}
 .sipo-reg-bubble{max-width:min(92%,420px);padding:12px 14px;border:1px solid var(--line,#222);line-height:1.45;font-size:15px;white-space:pre-wrap}
 .sipo-reg-bubble.sipo{align-self:flex-start;background:#0a0a0b;border-color:#1a1a1c}
 .sipo-reg-bubble.owner{align-self:flex-end;background:#0d1a33;border-color:#2E6AFF}
-.sipo-reg-composer{display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--line,#222);background:#000;position:sticky;bottom:0}
-.sipo-reg-composer input{flex:1;min-width:0;background:#0a0a0b;border:1px solid #333;color:#fff;padding:12px 14px;font:inherit}
-.sipo-reg-composer input:focus{outline:2px solid #2E6AFF;outline-offset:1px}
+/* Composer: override global .btn{width:100%} so input is the wide field */
+.sipo-reg-composer{
+  display:flex;flex-direction:row;align-items:stretch;gap:10px;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom,0));
+  border-top:1px solid var(--line,#222);background:#000;position:sticky;bottom:0;z-index:5
+}
+.sipo-reg-composer .sipo-reg-input,
+.sipo-reg-composer input.sipo-reg-input,
+.sipo-reg-composer #sipoRegInput{
+  flex:1 1 auto;width:auto;min-width:0;min-height:48px;height:48px;
+  box-sizing:border-box;background:#0a0a0b;border:1px solid #3a3a3c;color:#fff;
+  padding:12px 14px;font:inherit;font-size:16px;line-height:1.3;border-radius:0;
+  -webkit-appearance:none;appearance:none
+}
+.sipo-reg-composer .sipo-reg-input:focus,
+.sipo-reg-composer #sipoRegInput:focus{outline:2px solid #2E6AFF;outline-offset:1px;border-color:#2E6AFF}
+.sipo-reg-composer .sipo-reg-input:disabled{opacity:.55}
+.sipo-reg-composer .sipo-reg-btn,
+.sipo-reg-composer .btn.sipo-reg-btn{
+  flex:0 0 auto;width:auto!important;min-width:88px;max-width:36%;height:48px;padding:0 16px;letter-spacing:.1em
+}
+.sipo-reg-composer .sipo-reg-btn[hidden]{display:none!important}
 .sipo-reg-alt{padding:0 16px 20px;font-size:13px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 .brain-wrap .btn{cursor:pointer}
@@ -891,8 +910,18 @@ button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 }
 @media (max-width:520px){
   .sipo-reg-hero{padding:8px 12px}
-  .sipo-reg-composer{padding:10px 12px calc(10px + env(safe-area-inset-bottom,0))}
-  .sipo-reg-composer .btn{padding-left:14px;padding-right:14px}
+  .sipo-reg-composer{
+    flex-wrap:nowrap;gap:8px;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0))
+  }
+  .sipo-reg-composer .sipo-reg-input,
+  .sipo-reg-composer #sipoRegInput{
+    flex:1 1 0%;width:0;min-width:0;min-height:48px;height:48px;font-size:16px
+  }
+  .sipo-reg-composer .sipo-reg-btn,
+  .sipo-reg-composer .btn.sipo-reg-btn{
+    flex:0 0 auto;width:auto!important;min-width:76px;max-width:30%;padding:0 12px
+  }
 }
 @media (prefers-reduced-motion:reduce){
   .sipo-reg-bubble{transition:none}

@@ -92,7 +92,8 @@ function rrp_plus_required_payload(string $feature = 'feature'): array
 
 /**
  * Ensure config-listed super emails are flagged on owners + present in admin_users.
- * Password for new admin rows: must set via admin/setup or password reset — uses random until changed.
+ * NEVER updates owners.password_hash (login password stays whatever the owner set / CLI set).
+ * New admin rows only: random password unless $bootstrapPassword passed (admin panel login, not owner).
  *
  * @return array{owners_flagged:int, admins_ensured:int, notes:list<string>}
  */

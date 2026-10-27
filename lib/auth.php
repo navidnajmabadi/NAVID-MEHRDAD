@@ -65,9 +65,10 @@ function rrp_login(string $email, string $password): array
         session_regenerate_id(true);
         $_SESSION['owner_id'] = (int) $owner['id'];
         // Keep super emails flagged + Admin rows present (idempotent).
+        // Never touches owners.password_hash.
         if (in_array(strtolower((string) $owner['email']), rrp_super_owner_emails(), true)) {
             try {
-                rrp_elevate_super_owners();
+                rrp_elevate_super_owners(null);
             } catch (Throwable $e) {
                 error_log('rrp_login elevate: ' . $e->getMessage());
             }
