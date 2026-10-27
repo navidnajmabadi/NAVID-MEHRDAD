@@ -338,7 +338,8 @@ function rrp_sipo_extract_profile(array &$ctx): void
     if (!$client->configured()) {
         return;
     }
-    $recent = rrp_sipo_recent_for_model($ctx['thread'], 10);
+    // Onboarding: read further back so a name said early (e.g. Violet's chat) is still found.
+    $recent = rrp_sipo_recent_for_model($ctx['thread'], $pet === null ? 40 : 12);
     $lines = [];
     foreach ($recent as $m) {
         $lines[] = ($m['sender_role'] === 'assistant' ? 'SIPO' : 'Owner') . ': ' . mb_substr((string) $m['body'], 0, 500);
