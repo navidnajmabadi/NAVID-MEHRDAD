@@ -183,7 +183,9 @@ rrp_app_start(['nav' => 'lost']);
         <?php if (!empty($pet['magic_word'])): ?>
           <p><strong>Magic word:</strong> <?= rrp_h($pet['magic_word']) ?></p>
         <?php endif; ?>
-        <p><strong>Call:</strong> <?= rrp_h((string) $owner['phone']) ?></p>
+        <?php if (!empty($owner['phone'])): ?>
+          <p><strong>Call:</strong> <?= rrp_h((string) $owner['phone']) ?></p>
+        <?php endif; ?>
         <div class="bar">
           <span>Scan the collar tag or call via siPaw · <?= rrp_h(rrp_app_url('pet.php?id=' . rawurlencode((string) $pet['public_id']))) ?></span>
         </div>

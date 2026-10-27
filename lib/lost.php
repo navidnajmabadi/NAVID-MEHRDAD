@@ -98,7 +98,7 @@ function rrp_trigger_lost(int $ownerId, int $petId): array
     $lat = $owner['lat'] !== null ? (float) $owner['lat'] : null;
     $lng = $owner['lng'] !== null ? (float) $owner['lng'] : null;
 
-    if ($lat === null || $lng === null) {
+    if (($lat === null || $lng === null) && trim((string) ($owner['address'] ?? '')) !== '') {
         rrp_owner_apply_geocode($ownerId, (string) $owner['address']);
         $stmt->execute([$ownerId]);
         $owner = $stmt->fetch();

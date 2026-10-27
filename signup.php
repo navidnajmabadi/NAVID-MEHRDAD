@@ -19,8 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $result = rrp_register_owner($_POST);
             if (!empty($result['ok'])) {
-                rrp_flash_set('ok', 'Welcome! Add your first pet to get a QR tag.');
-                rrp_redirect('pet-register.php');
+                rrp_redirect('si-chat.php?new=1');
             }
             $error = $result['error'] ?? 'Could not create account.';
         }
@@ -38,26 +37,18 @@ rrp_app_start(['nav' => false]);
 ?>
 <div class="auth-hero">
   <?php rrp_logo_endorsed(); ?>
-  <p class="tagline">Join siPaw</p>
-  <p class="sub" style="font-size:14px">Create an account for AI pet care and community with other owners.</p>
+  <p class="tagline">Join SIPAW</p>
+  <p class="sub" style="font-size:14px">SIPO keeps track of your pet's care so you don't have to. No real name needed.</p>
 </div>
 
 <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
 
 <form method="post" class="auth-form" novalidate>
   <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+  <input type="hidden" name="timezone" id="tz" value="" />
   <div class="field">
-    <label for="name">Your name</label>
-    <div class="in"><input id="name" name="name" required autocomplete="name" value="<?= rrp_h($_POST['name'] ?? '') ?>" /></div>
-  </div>
-  <div class="field">
-    <label for="address">Address</label>
-    <div class="in"><input id="address" name="address" required autocomplete="street-address" value="<?= rrp_h($_POST['address'] ?? '') ?>" /></div>
-    <small>Used for nearby help alerts. Kept private from finders.</small>
-  </div>
-  <div class="field">
-    <label for="phone">Phone</label>
-    <div class="in"><input id="phone" name="phone" type="tel" required autocomplete="tel" value="<?= rrp_h($_POST['phone'] ?? '') ?>" /></div>
+    <label for="nickname">What should SIPO call you?</label>
+    <div class="in"><input id="nickname" name="nickname" required maxlength="60" autocomplete="nickname" placeholder="A nickname is perfect" value="<?= rrp_h($_POST['nickname'] ?? '') ?>" /></div>
   </div>
   <div class="field">
     <label for="email">Email</label>
@@ -68,18 +59,15 @@ rrp_app_start(['nav' => false]);
     <div class="in"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" /></div>
     <small>At least 8 characters.</small>
   </div>
-  <label class="checkrow" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--sub)">
+  <label class="checkrow" style="align-items:flex-start;font-size:13px;color:var(--sub)">
     <input type="checkbox" name="accept_terms" value="1" required <?= !empty($_POST['accept_terms']) ? 'checked' : '' ?> />
-    <span>I accept the <a class="link" href="legal.php?doc=terms">Terms</a> (stub until T27).</span>
-  </label>
-  <label class="checkrow" style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--sub)">
-    <input type="checkbox" name="accept_privacy" value="1" required <?= !empty($_POST['accept_privacy']) ? 'checked' : '' ?> />
-    <span>I accept the <a class="link" href="legal.php?doc=privacy">Privacy Policy</a> (stub until T27).</span>
+    <span>I accept the <a class="link" href="legal.php?doc=terms">Terms</a> and <a class="link" href="legal.php?doc=privacy">Privacy Policy</a>.</span>
   </label>
   <button class="btn primary" type="submit">Create account</button>
   <p class="sub" style="font-size:14px;text-align:center;margin-top:6px">
     Already have an account? <a class="link" href="login.php">Log in</a>
   </p>
 </form>
+<script>try{document.getElementById('tz').value=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch(e){}</script>
 <?php
 rrp_app_end(['nav' => false, 'push' => false]);

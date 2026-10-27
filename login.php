@@ -5,16 +5,13 @@ require_once __DIR__ . '/lib/layout.php';
 
 try {
     if (rrp_current_owner()) {
-        rrp_redirect('dashboard.php');
+        rrp_redirect(rrp_safe_next($_GET['next'] ?? null));
     }
 } catch (Throwable $e) {
     error_log('login current_owner: ' . $e->getMessage());
 }
 
-$next = $_GET['next'] ?? 'dashboard.php';
-if (!is_string($next) || !preg_match('#^[a-z0-9_\-./]+\.php(\?.*)?$#i', $next)) {
-    $next = 'dashboard.php';
-}
+$next = rrp_safe_next($_GET['next'] ?? null);
 
 $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -22,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!rrp_verify_csrf($_POST['csrf'] ?? null)) {
             $error = 'Session expired. Try again.';
         } else {
-            $result = rrp_login($_POST['email'] ?? '', $_POST['password'] ?? '');
+            $result = rrp_login((string) ($_POST['email'] ?? ''), (string) ($_POST['password'] ?? ''), !empty($_POST['remember']));
             if (!empty($result['ok'])) {
                 rrp_redirect($next);
             }
@@ -43,7 +40,7 @@ rrp_app_start(['nav' => false]);
 <div class="auth-hero">
   <?php rrp_logo_endorsed(); ?>
   <p class="tagline">Welcome back</p>
-  <p class="sub" style="font-size:14px">Log in for SI chat, health, and your pet community.</p>
+  <p class="sub" style="font-size:14px">SIPO has been keeping an eye on things. Log in to catch up.</p>
 </div>
 
 <?php rrp_render_flash(); ?>
@@ -66,6 +63,10 @@ rrp_app_start(['nav' => false]);
       <button type="button" id="peek" aria-label="Show password"><svg class="ico" aria-hidden="true"><use href="#i-eye"/></svg></button>
     </div>
   </div>
+  <label class="checkrow">
+    <input type="checkbox" name="remember" value="1" <?= ($_SERVER['REQUEST_METHOD'] !== 'POST' || !empty($_POST['remember'])) ? 'checked' : '' ?> />
+    <span>Keep me logged in on this device</span>
+  </label>
   <button class="btn primary" type="submit">Log in</button>
   <p class="sub" style="font-size:14px;text-align:center;margin-top:6px">
     <a class="link" href="forgot-password.php">Forgot password?</a>

@@ -166,6 +166,7 @@ function rrp_password_reset_complete(string $token, string $password): array
         $use = $pdo->prepare('UPDATE password_reset_tokens SET used_at = UTC_TIMESTAMP() WHERE id = ?');
         $use->execute([(int) $valid['token_id']]);
         $pdo->commit();
+        rrp_auth_forget_all_devices((int) $valid['owner_id']);
     } catch (Throwable $e) {
         if (rrp_db()->inTransaction()) {
             rrp_db()->rollBack();

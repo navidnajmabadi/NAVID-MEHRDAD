@@ -42,13 +42,13 @@ rrp_app_start(['nav' => 'home']);
   <?php rrp_render_flash(); ?>
   <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
 
-  <p class="sub" style="font-size:14px">Keep your address accurate — Lost mode alerts nearby owners within about 25 km.</p>
+  <p class="sub" style="font-size:14px">Only a nickname is needed. Phone and address are optional — set your home area on the map so Lost mode can alert neighbours.</p>
 
   <form method="post" class="stack" style="gap:16px" novalidate>
     <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
-    <div class="field"><label for="name">Your name</label><div class="in"><input id="name" name="name" required value="<?= rrp_h($profile['name'] ?? '') ?>" /></div></div>
-    <div class="field"><label for="phone">Phone</label><div class="in"><input id="phone" name="phone" type="tel" required value="<?= rrp_h($profile['phone'] ?? '') ?>" /></div></div>
-    <div class="field"><label for="address">Registered address</label><div class="in area"><textarea id="address" name="address" required rows="3"><?= rrp_h($profile['address'] ?? '') ?></textarea></div><small>Geocoded privately. Not shown on the public scan page.</small></div>
+    <div class="field"><label for="name">What SIPO calls you</label><div class="in"><input id="name" name="name" required maxlength="60" value="<?= rrp_h($profile['nickname'] ?? $profile['name'] ?? '') ?>" /></div></div>
+    <div class="field"><label for="phone">Phone (optional)</label><div class="in"><input id="phone" name="phone" type="tel" value="<?= rrp_h($profile['phone'] ?? '') ?>" /></div></div>
+    <div class="field"><label for="address">Address (optional)</label><div class="in area"><textarea id="address" name="address" rows="3"><?= rrp_h($profile['address'] ?? '') ?></textarea></div><small>Geocoded privately. Not shown on the public scan page.</small></div>
     <div class="field"><label for="email">Email</label><div class="in"><input id="email" value="<?= rrp_h($profile['email'] ?? '') ?>" disabled /></div><small>Email cannot be changed here yet.</small></div>
     <button type="submit" class="btn primary">Save</button>
   </form>
