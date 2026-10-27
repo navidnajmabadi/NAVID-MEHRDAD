@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'ok',
                     $n > 0
                         ? "Lost mode sent to {$n} nearby owner" . ($n === 1 ? '' : 's') . '.'
-                        : 'Lost mode started. No nearby owners within 25 km yet.'
+                        : 'Lost mode started. No owners nearby yet.'
                 );
             } else {
                 rrp_flash_set('error', $result['error'] ?? 'Could not start alert.');
@@ -97,7 +97,7 @@ rrp_app_start(['nav' => 'lost']);
   <div class="mapbox" aria-hidden="true">
     <svg viewBox="0 0 400 230" preserveAspectRatio="xMidYMid slice"><use href="#map"/></svg>
     <div class="pulse"></div><div class="pulse d2"></div>
-    <div class="maplabel data">~25 km · registered addresses</div>
+    <div class="maplabel data">Your home area</div>
   </div>
 
   <div class="pad stack" style="margin-top:16px;gap:16px">
@@ -115,8 +115,7 @@ rrp_app_start(['nav' => 'lost']);
           $labels = [
               ['t0', 'Alert sent to nearby owners'],
               ['+1h', 'Reminder ping'],
-              ['+3h', 'Second reminder'],
-              ['+8h', 'Final ping'],
+              ['+5h', 'Final ping'],
           ];
           foreach ($labels as $i => $row):
               $cls = 'tl';
@@ -129,7 +128,7 @@ rrp_app_start(['nav' => 'lost']);
             <div class="<?= $cls ?>">
               <span class="t"><?= rrp_h($row[0]) ?></span>
               <span class="rail"><i></i><span></span></span>
-              <div class="body"><b><?= rrp_h($row[1]) ?></b><small>Owners within ~25 km of your address</small></div>
+              <div class="body"><b><?= rrp_h($row[1]) ?></b><small>Owners near your home area</small></div>
             </div>
           <?php endforeach; ?>
         </div>
@@ -147,10 +146,10 @@ rrp_app_start(['nav' => 'lost']);
       <div class="box">
         <p style="margin:0 0 8px;font-weight:500">If <?= rrp_h($pet['name'] ?? 'your pet') ?> goes missing</p>
         <p class="sub" style="margin:0;font-size:13px">
-          Alert nearby registered owners (~25 km) with photo, distinctive marks, magic word, and medical that matters.
+          Alert nearby SIPAW owners with photo, distinctive marks, magic word, and medical that matters.
         </p>
       </div>
-      <form method="post" onsubmit="return confirm('Turn on Lost mode for <?= rrp_h($pet['name'] ?? 'this pet') ?>? Nearby owners within ~25 km will be alerted.');">
+      <form method="post" onsubmit="return confirm('Turn on Lost mode for <?= rrp_h($pet['name'] ?? 'this pet') ?>? Nearby SIPAW owners will be alerted now, again in 1 hour, and a last time after 5 hours.');">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
         <input type="hidden" name="action" value="lost_trigger" />
         <input type="hidden" name="pet_id" value="<?= (int) $petId ?>" />

@@ -79,7 +79,19 @@ return [
         'private_key' => '',
     ],
 
-    'lost_radius_km' => 25,
+    'lost_radius_km' => 20,   // brief §D; not shown to owners
+
+    // Feature switches. Leaderboard is built later (Navid 2026-10-28: paused).
+    'features' => [
+        'leaderboard' => false,
+    ],
+
+    // SIPO limits (lib/sipo/limits.php). free_daily_msgs 0 = unlimited (test mode).
+    'sipo' => [
+        'cooldown_tokens' => 100000,
+        'cooldown_minutes' => 120,
+        'free_daily_msgs' => 0,
+    ],
     'cron_secret' => 'CHANGE_ME_CRON_SECRET_LONG_RANDOM',
     'admin_setup_secret' => 'CHANGE_ME_ADMIN_SETUP_SECRET',
 

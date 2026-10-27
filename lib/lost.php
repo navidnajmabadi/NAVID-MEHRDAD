@@ -2,16 +2,16 @@
 declare(strict_types=1);
 
 /**
- * LOST HELP ME — 25 km broadcast + escalation schedule.
- * Pings at t0, +1h, +3h, +8h (offsets in seconds), then stop.
+ * LOST HELP ME — 20 km broadcast + escalation schedule (brief §D).
+ * Pings at t0, +1h, +5h (final), then stop. The distance is never shown to owners.
  */
 
 /** Escalation offsets from started_at (seconds). Index = ping_count after send. */
-const RRP_LOST_PING_OFFSETS = [0, 3600, 10800, 28800];
+const RRP_LOST_PING_OFFSETS = [0, 3600, 18000];
 
 function rrp_lost_radius_km(): float
 {
-    return (float) (rrp_load_config()['lost_radius_km'] ?? 25);
+    return (float) (rrp_load_config()['lost_radius_km'] ?? 20);
 }
 
 function rrp_lost_medical_snapshot(array $pet): ?string
@@ -227,8 +227,7 @@ function rrp_lost_send_ping(array $alert, bool $isImmediate = false): void
     $waveLabel = match ($pingIndex) {
         0 => 'LOST HELP ME',
         1 => 'Still missing (1h)',
-        2 => 'Still missing (3h)',
-        default => 'Final alert (8h)',
+        default => 'Final alert (5h)',
     };
 
     $title = "{$waveLabel}: {$alert['pet_name']}";

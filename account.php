@@ -90,7 +90,7 @@ rrp_app_start(['nav' => 'home']);
     <span class="label">Home area</span>
     <p class="sub" style="margin:10px 0 0;font-size:13px">
       <?= !empty($area['has_home'])
-        ? rrp_h((string) ($area['label'] ?: 'Pinned')) . ' · ' . rrp_h((string) $area['radius_km']) . ' km'
+        ? rrp_h((string) ($area['label'] ?: 'Pinned'))
         : 'Not set — needed for Finder / Places.' ?>
     </p>
     <p style="margin-top:10px"><a class="link" href="area.php">Set home area</a></p>

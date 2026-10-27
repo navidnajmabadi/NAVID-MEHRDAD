@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'ok',
                     $n > 0
                         ? "Lost mode sent to {$n} nearby owner" . ($n === 1 ? '' : 's') . '.'
-                        : 'Lost mode started. No nearby owners within 25 km yet — alerts will still escalate on schedule.'
+                        : 'Lost mode started. No owners nearby yet — alerts will still go out on schedule.'
                 );
             } else {
                 rrp_flash_set('error', $result['error'] ?? 'Could not start alert.');
@@ -248,7 +248,7 @@ rrp_app_start(['nav' => 'home']);
     <?php else: ?>
       <a class="lostentry" href="lost.php?pet=<?= (int) $active['id'] ?>">
         <svg aria-hidden="true"><use href="#i-lost"/></svg>
-        <div><b>Lost mode</b><small>If <?= rrp_h($active['name']) ?> goes missing, alert owners within 25 km.</small></div>
+        <div><b>Lost mode</b><small>If <?= rrp_h($active['name']) ?> goes missing, SIPO alerts owners nearby.</small></div>
         <svg style="width:16px;height:16px;transform:rotate(180deg)" aria-hidden="true"><use href="#i-back"/></svg>
       </a>
     <?php endif; ?>

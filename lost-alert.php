@@ -98,7 +98,7 @@ rrp_app_start(['nav' => 'lost']);
         <button type="submit" class="btn solid">She / he is home</button>
       </form>
     <?php else: ?>
-      <p class="sub" style="font-size:13px">Keep an eye out nearby. You’ll get reminders at 1h, 3h, and 8h if still open.</p>
+      <p class="sub" style="font-size:13px">Keep an eye out nearby. You’ll get a reminder after 1 hour and a last one after 5 hours if the pet is still missing.</p>
     <?php endif; ?>
   <?php endif; ?>
   <div class="gap"></div>
