@@ -7,19 +7,36 @@ function rrp_health_pet_owned(int $petId, int $ownerId): ?array
     return rrp_pet_by_id($petId, $ownerId);
 }
 
-function rrp_health_next_remind_from_time(string $timeHhMmSs): string
+/**
+ * Next UTC time for a daily HH:MM in the owner's timezone (was UTC wall clock —
+ * an 08:00 pill fired at 04:00 in Toronto). Returns "Y-m-d H:i:s" UTC.
+ */
+function rrp_health_next_remind_from_time(string $timeHhMmSs, ?string $tzName = null): string
 {
-    // Interpret schedule_time as UTC wall clock for MVP.
-    $parts = explode(':', $timeHhMmSs);
-    $h = (int) ($parts[0] ?? 0);
-    $m = (int) ($parts[1] ?? 0);
-    $s = (int) ($parts[2] ?? 0);
-    $now = time();
-    $today = gmmktime($h, $m, $s, (int) gmdate('n', $now), (int) gmdate('j', $now), (int) gmdate('Y', $now));
-    if ($today <= $now) {
-        $today += 86400;
+    try {
+        $tz = new DateTimeZone($tzName ?: RRP_SIPO_DEFAULT_TZ);
+    } catch (Throwable $e) {
+        $tz = new DateTimeZone(RRP_SIPO_DEFAULT_TZ);
     }
-    return gmdate('Y-m-d H:i:s', $today);
+    $parts = explode(':', $timeHhMmSs);
+    $now = new DateTimeImmutable('now', $tz);
+    $at = $now->setTime((int) ($parts[0] ?? 0), (int) ($parts[1] ?? 0), (int) ($parts[2] ?? 0));
+    if ($at <= $now) {
+        $at = $at->modify('+1 day');
+    }
+    return $at->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+}
+
+function rrp_health_pet_tz(int $petId): ?string
+{
+    try {
+        $st = rrp_db()->prepare('SELECT o.timezone FROM pets p JOIN owners o ON o.id = p.owner_id WHERE p.id = ? LIMIT 1');
+        $st->execute([$petId]);
+        $tz = $st->fetchColumn();
+        return $tz ? (string) $tz : null;
+    } catch (Throwable $e) {
+        return null;
+    }
 }
 
 function rrp_normalize_time_input(string $raw): ?string
@@ -97,18 +114,24 @@ function rrp_med_add(int $petId, array $data): array
         return ['ok' => false, 'error' => 'Name and time (HH:MM) are required.'];
     }
     $dose = trim((string) ($data['dose_note'] ?? ''));
-    $next = rrp_health_next_remind_from_time($time);
-    $stmt = rrp_db()->prepare(
-        'INSERT INTO medication_schedules (pet_id, name, dose_note, schedule_time, active, next_remind_at)
-         VALUES (?, ?, ?, ?, 1, ?)'
-    );
-    $stmt->execute([
-        $petId,
-        mb_substr($name, 0, 120),
-        $dose !== '' ? mb_substr($dose, 0, 255) : null,
-        $time,
-        $next,
-    ]);
+    $next = rrp_health_next_remind_from_time($time, rrp_health_pet_tz($petId));
+    $kind = ($data['kind'] ?? '') === 'supplement' ? 'supplement' : 'medicine';
+    $ends = !empty($data['ends_on']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $data['ends_on']) ? $data['ends_on'] : null;
+    $treatmentId = !empty($data['treatment_id']) ? (int) $data['treatment_id'] : null;
+    try {
+        $stmt = rrp_db()->prepare(
+            'INSERT INTO medication_schedules (pet_id, treatment_id, kind, name, dose_note, schedule_time, ends_on, active, next_remind_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)'
+        );
+        $stmt->execute([$petId, $treatmentId, $kind, mb_substr($name, 0, 120), $dose !== '' ? mb_substr($dose, 0, 255) : null, $time, $ends, $next]);
+    } catch (Throwable $e) {
+        // pre-010 columns
+        $stmt = rrp_db()->prepare(
+            'INSERT INTO medication_schedules (pet_id, name, dose_note, schedule_time, active, next_remind_at)
+             VALUES (?, ?, ?, ?, 1, ?)'
+        );
+        $stmt->execute([$petId, mb_substr($name, 0, 120), $dose !== '' ? mb_substr($dose, 0, 255) : null, $time, $next]);
+    }
     return ['ok' => true, 'id' => (int) rrp_db()->lastInsertId()];
 }
 
@@ -305,7 +328,7 @@ function rrp_health_cron_tick(int $limit = 50): array
 
     // Medication reminders
     $meds = rrp_db()->prepare(
-        "SELECT m.*, p.name AS pet_name, p.owner_id
+        "SELECT m.*, p.name AS pet_name, p.owner_id, o.timezone AS owner_tz
          FROM medication_schedules m
          INNER JOIN pets p ON p.id = m.pet_id
          INNER JOIN owners o ON o.id = p.owner_id AND o.status = 'active'
@@ -318,6 +341,11 @@ function rrp_health_cron_tick(int $limit = 50): array
     $meds->bindValue(1, $limit, PDO::PARAM_INT);
     $meds->execute();
     foreach ($meds->fetchAll() as $row) {
+        // Course finished (vet's end date passed): stop reminding.
+        if (!empty($row['ends_on']) && $row['ends_on'] < gmdate('Y-m-d')) {
+            rrp_db()->prepare('UPDATE medication_schedules SET active = 0 WHERE id = ?')->execute([(int) $row['id']]);
+            continue;
+        }
         $dose = $row['dose_note'] ? " ({$row['dose_note']})" : '';
         $title = "Med time: {$row['name']}";
         $body = "Time for {$row['pet_name']}'s {$row['name']}{$dose}.\n\n"
@@ -328,7 +356,17 @@ function rrp_health_cron_tick(int $limit = 50): array
         if ($email) {
             rrp_send_mail($email, $title, $body);
         }
-        $next = rrp_health_next_remind_from_time((string) $row['schedule_time']);
+        if (!empty($row['treatment_id'])) {
+            // Treatment medicine: SIPO asks in the pet's chat so the answer lands in the log.
+            $thread = rrp_sipo_thread_for_pet((int) $row['owner_id'], (int) $row['pet_id']);
+            if ($thread) {
+                $as = $row['dose_note'] ? ' (as your vet prescribed: ' . $row['dose_note'] . ')' : '';
+                rrp_sipo_insert_message((int) $thread['id'], 'assistant',
+                    "Time for {$row['pet_name']}'s {$row['name']}{$as}. Tell me once it's given 💊", 0,
+                    ['mascot' => 'listening', 'proactive' => 'medicine', 'medication_id' => (int) $row['id']]);
+            }
+        }
+        $next = rrp_health_next_remind_from_time((string) $row['schedule_time'], $row['owner_tz'] ?? null);
         // If still in the past (clock skew), push another day
         if (strtotime($next . ' UTC') <= time()) {
             $next = gmdate('Y-m-d H:i:s', strtotime($next . ' UTC') + 86400);

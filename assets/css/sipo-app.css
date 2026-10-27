@@ -133,3 +133,8 @@
 .homeswitch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 24px 16px}
 .homeswitch .petswitch{max-width:60%}
 .homeswitch-chat{width:auto;min-height:44px;padding:0 16px}
+
+/* —— Chat attach (PR 2) —— */
+.sipo-attach{width:46px;min-width:46px;height:50px;display:grid;place-items:center;color:var(--sub);cursor:pointer;border-right:1px solid var(--line)}
+.sipo-attach:hover,.sipo-attach:focus-within{color:var(--text)}
+.sipo-attach svg{width:20px;height:20px}

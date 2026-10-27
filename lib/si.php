@@ -60,6 +60,12 @@ require_once __DIR__ . '/sipo/prompt.php';
 require_once __DIR__ . '/sipo/tools.php';
 require_once __DIR__ . '/sipo/engine.php';
 require_once __DIR__ . '/sipo/nudges.php';
+require_once __DIR__ . '/care/catalog.php';
+require_once __DIR__ . '/care/routines.php';
+require_once __DIR__ . '/care/treatments.php';
+require_once __DIR__ . '/care/labs.php';
+require_once __DIR__ . '/care/food.php';
+require_once __DIR__ . '/care/uploads.php';
 
 /**
  * Legacy entry points — SIPO logic now lives in lib/sipo/ (PR 1).
