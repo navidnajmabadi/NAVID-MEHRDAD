@@ -68,7 +68,6 @@ function rrp_rate_food_photo(array $owner, int $petId, string $imageDataUrlOrPat
     ]);
     $raw = curl_exec($ch);
     $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     if ($raw === false || $status >= 400) {
         return ['ok' => false, 'error' => 'Food rating failed. Check API key / model vision support.'];
     }

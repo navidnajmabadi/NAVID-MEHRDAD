@@ -293,7 +293,6 @@ function rrp_webpush_send(array $sub, string $title, string $body, ?string $url 
     $resp = curl_exec($ch);
     $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $cerr = curl_error($ch);
-    curl_close($ch);
 
     if ($resp === false && $status === 0) {
         error_log('rrp_webpush_send curl: ' . $cerr);

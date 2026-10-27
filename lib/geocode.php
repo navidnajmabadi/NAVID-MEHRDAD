@@ -201,7 +201,6 @@ function rrp_http_get_json(string $url, string $userAgent): ?array
         ]);
         $body = curl_exec($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
         if ($body === false || $code >= 400) {
             error_log("rrp_http_get_json HTTP $code for geocode");
             return null;

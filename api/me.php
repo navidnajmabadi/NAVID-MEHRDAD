@@ -33,6 +33,6 @@ rrp_json([
         'day' => $day,
         'message_count' => (int) ($usage['message_count'] ?? 0),
         'token_count' => (int) ($usage['token_count'] ?? 0),
-        'daily_msg_cap' => $plan === 'plus' ? RRP_SI_PLUS_DAILY_MSGS : RRP_SI_TEASER_MSGS,
+        'daily_msg_cap' => $plan === 'plus' ? 0 : (int) rrp_sipo_cfg('free_daily_msgs', 0),
     ],
 ]);

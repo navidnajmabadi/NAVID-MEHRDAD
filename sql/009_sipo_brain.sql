@@ -128,3 +128,7 @@ ALTER TABLE si_prompt_versions
 
 -- Lost Mode: brief schedule is 0 / +1h / +5h within 20 km (code constants follow)
 UPDATE owners SET home_radius_km = 20.00 WHERE home_radius_km = 25.00;
+
+-- Pre-009 prompt rows were a 5-line stub; keep them as history, let the layered
+-- default in lib/sipo/prompt.php run until NAKI publishes a new core version.
+UPDATE si_prompt_versions SET layer = 'legacy', is_live = 0, replaced_at = UTC_TIMESTAMP() WHERE layer = 'core' AND system_prompt NOT LIKE '%# Scope (strict)%';

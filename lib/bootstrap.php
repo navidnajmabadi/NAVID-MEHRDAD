@@ -103,6 +103,8 @@ function rrp_db(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
+        // All stored times are UTC; SIPO converts to the owner's timezone for display.
+        $pdo->exec("SET time_zone = '+00:00'");
     } catch (PDOException $e) {
         throw new RuntimeException(rrp_safe_db_error($e, 'Database connection failed'), 0, $e);
     }
@@ -283,6 +285,7 @@ function rrp_client_ua(): ?string
 }
 
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/api.php';
 require_once __DIR__ . '/plan.php';
 require_once __DIR__ . '/pets.php';
 require_once __DIR__ . '/scans.php';
@@ -305,3 +308,4 @@ require_once __DIR__ . '/routines.php';
 require_once __DIR__ . '/food_photo.php';
 require_once __DIR__ . '/pet_register.php';
 require_once __DIR__ . '/si_brain.php';
+require_once __DIR__ . '/viewmodels/chat_vm.php';
