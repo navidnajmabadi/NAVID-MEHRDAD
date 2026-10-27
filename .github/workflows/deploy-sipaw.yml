@@ -1,4 +1,5 @@
-# Auto-deploy siPaw: push to PetFinder → SSH git pull on Hostinger.
+# Auto-deploy siPaw: push to PetFinder → SSH git pull on Hostinger → apply new sql/ migrations
+# (scripts/migrate.php: 009+ only, skips what is already done, records each file).
 # Requires repo secret HOSTINGER_SSH_KEY (private deploy key; not the Mac key).
 # Setup: docs/HOSTINGER_INSTALL.md → deploy section.
 # Hostinger folder must be public_html/sipaw (renamed from ringringpaw).
@@ -16,4 +17,4 @@ jobs:
         run: |
           echo "${{ secrets.HOSTINGER_SSH_KEY }}" > key && chmod 600 key
           ssh -i key -p 65002 -o StrictHostKeyChecking=accept-new u233722910@46.202.198.223 \
-            "cd domains/nakilab.com/public_html/sipaw && git pull --ff-only"
+            "cd domains/nakilab.com/public_html/sipaw && git pull --ff-only && php scripts/migrate.php"
