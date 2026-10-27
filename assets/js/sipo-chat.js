@@ -162,6 +162,7 @@
       }
     }
     if (j.progress) showProgress(j.progress);
+    if (j.reminders && j.reminders.length) j.reminders.forEach(armReminder);
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.
       vm.thread.onboarding = false;
@@ -171,6 +172,51 @@
       try { history.replaceState(null, "", "si-chat.php"); } catch (e) {}
       input.placeholder = "Tell SIPO about " + j.pet.name + "…";
     }
+  }
+
+  // Short reminders ("in 10 minutes") fire from the open app exactly on time; the cron covers the rest.
+  function armReminder(r) {
+    var due = Date.parse(String(r.due_utc).replace(" ", "T") + "Z");
+    var wait = due - Date.now();
+    if (!(wait > -60000 && wait < 3 * 3600000)) return;
+    askNotifications();
+    setTimeout(function () {
+      var text = "⏰ Reminder: " + r.title;
+      try {
+        if (window.Notification && Notification.permission === "granted" && navigator.serviceWorker) {
+          navigator.serviceWorker.ready.then(function (reg) {
+            reg.showNotification("SIPO", { body: text, icon: "assets/icons/icon-192.png", tag: "sipo-rem-" + r.id });
+          });
+        }
+      } catch (e) {}
+      setFace("happy");
+      post(api.reminderFired, { reminder_id: r.id }).then(function (j) {
+        if (j.assistant) bubble(j.assistant);
+      }).catch(function () {
+        bubble({ role: "assistant", body: text, created_at: new Date().toISOString() });
+      });
+    }, Math.max(0, wait));
+  }
+
+  var notifAsked = false;
+  function askNotifications() {
+    if (notifAsked || !window.Notification || Notification.permission === "granted") return;
+    notifAsked = true;
+    var box = document.createElement("div");
+    box.className = "sipo-msg from-sipo sipo-notif";
+    box.innerHTML = "<p>Turn on notifications so I can reach you when it's time 🔔</p>";
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn primary";
+    b.textContent = "Turn on notifications";
+    b.addEventListener("click", function () {
+      var done = function () { box.remove(); };
+      if (window.RRPPush && window.RRPPush.enable) window.RRPPush.enable().then(done, done);
+      else Notification.requestPermission().then(done, done);
+    });
+    box.appendChild(b);
+    log.appendChild(box);
+    scrollDown();
   }
 
   // Profile progress in the header (owner asked to "show the progress").
