@@ -161,6 +161,7 @@
         setTimeout(function () { if (!busy) setFace("idle"); }, 4000);
       }
     }
+    if (j.progress) showProgress(j.progress);
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.
       vm.thread.onboarding = false;
@@ -170,6 +171,17 @@
       try { history.replaceState(null, "", "si-chat.php"); } catch (e) {}
       input.placeholder = "Tell SIPO about " + j.pet.name + "…";
     }
+  }
+
+  // Profile progress in the header (owner asked to "show the progress").
+  var progressEl = document.getElementById("sipoProgress");
+  function showProgress(p) {
+    if (!progressEl || !p) return;
+    progressEl.hidden = p.done >= p.total;
+    progressEl.setAttribute("aria-valuenow", String(p.done));
+    progressEl.querySelector("span").style.width = p.percent + "%";
+    progressEl.querySelector("b").textContent = p.done + "/" + p.total;
+    if (p.done >= p.total) setStatus("Profile complete 🎉");
   }
 
   function send(text) {

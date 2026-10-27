@@ -49,6 +49,7 @@ function rrp_vm_chat(array $owner, bool $newPet = false): array
             'id' => (int) $thread['id'],
             'onboarding' => $pet === null,
             'pet' => $pet ? rrp_sipo_pet_brief($pet) : null,
+            'progress' => $pet ? rrp_sipo_profile_progress($pet) : null,
         ],
         'messages' => rrp_sipo_messages((int) $thread['id'], 60),
         'gate' => $gate['ok'] ? null : ['kind' => $gate['gate'] ?? 'blocked', 'message' => $gate['error'] ?? ''],

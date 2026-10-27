@@ -119,6 +119,9 @@ function rrp_push_subscriptions_for_owner(int $ownerId): array
  */
 function rrp_try_web_push(int $ownerId, string $title, string $body, ?string $url = null): void
 {
+    if (function_exists('rrp_sipo_clean_text')) {
+        $body = rrp_sipo_clean_text($body);
+    }
     if (!rrp_vapid_configured()) {
         return;
     }

@@ -97,9 +97,28 @@ function rrp_sipo_current_pet(array $owner, ?array $pets = null): ?array
 // Messages
 // -----------------------------------------------------------------------------
 
+/**
+ * Owner feedback (2026-10-28): no dashes in SIPO's voice. Number ranges keep a plain hyphen,
+ * dash punctuation becomes a comma, "- " bullets become "• ", divider lines are dropped.
+ */
+function rrp_sipo_clean_text(string $text): string
+{
+    $t = preg_replace('/(\d)\s*[—–]\s*(\d)/u', '$1-$2', $text) ?? $text;
+    $t = preg_replace('/^\s*[-—–_*]{3,}\s*$/mu', '', $t) ?? $t;
+    $t = preg_replace('/^(\s*)[-–—]\s+/mu', '$1• ', $t) ?? $t;
+    $t = preg_replace('/\s*[—–]\s*/u', ', ', $t) ?? $t;
+    $t = preg_replace('/(\p{L}) - (\p{L})/u', '$1, $2', $t) ?? $t;
+    $t = preg_replace('/,\s*([,.!?])/u', '$1', $t) ?? $t;
+    $t = preg_replace("/\n{3,}/", "\n\n", $t) ?? $t;
+    return trim($t);
+}
+
 function rrp_sipo_insert_message(int $threadId, string $role, string $body, int $tokens = 0, ?array $meta = null): ?array
 {
     $role = in_array($role, ['user', 'assistant'], true) ? $role : 'user';
+    if ($role === 'assistant') {
+        $body = rrp_sipo_clean_text($body);
+    }
     $body = mb_substr($body, 0, RRP_SIPO_MAX_BODY);
     $stmt = rrp_db()->prepare(
         'INSERT INTO chat_messages (thread_id, sender_role, body, token_count, meta_json) VALUES (?, ?, ?, ?, ?)'
@@ -209,6 +228,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'message' => $userMsg,
         'assistant' => $assistant,
         'pet' => $ctx['pet'] ? rrp_sipo_pet_brief($ctx['pet']) : null,
+        'progress' => $ctx['pet'] ? rrp_sipo_profile_progress(rrp_pet_by_id((int) $ctx['pet']['id'], $ownerId) ?: $ctx['pet']) : null,
         'events' => $ctx['events'],
         'warning' => $reply['warning'] ?? null,
     ];
