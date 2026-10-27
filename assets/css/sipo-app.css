@@ -36,7 +36,7 @@
 .petsheet-row[aria-current="true"] .pet-avatar{border-color:var(--blue);box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--blue)}
 .petsheet-add{border-top:1px solid var(--line);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
 .petsheet-note{padding:12px 16px 18px;font-size:13px;border-top:1px solid var(--line);margin:0}
-@media (prefers-reduced-motion:reduce){.petsheet[open]{animation:none}}
+@media (prefers-reduced-motion:reduce){.petsheet[open],.a2hs{animation:none}}
 
 /* —— Chat screen —— */
 .page-sipo .app.chat-active .app-main.has-tab{padding-bottom:0;display:flex;flex-direction:column;overflow:hidden}
@@ -82,8 +82,8 @@
 .sipo-panel{display:none}
 
 /* —— Install (Add to Home Screen) sheet —— */
-.a2hs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:40;
-  width:min(420px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--blue);padding:14px 14px 12px;
+.a2hs{position:fixed;left:12px;right:12px;margin:0 auto;max-width:420px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:40;
+  background:var(--panel);border:1px solid var(--blue);padding:14px 14px 12px;
   display:flex;gap:12px;align-items:flex-start;animation:sheet-up .25s ease-out}
 .a2hs[hidden]{display:none}
 .a2hs img{width:44px;height:44px;flex:none}
@@ -109,7 +109,7 @@
   .sipo-log{padding:20px 24px}
   .sipo-composer{margin:10px 24px 18px}
   .sipo-msg{font-size:15.5px}
-  .a2hs{bottom:24px;left:auto;right:24px;transform:none}
+  .a2hs{bottom:24px;left:auto;right:24px;margin:0;width:400px}
   .petsheet{margin:auto}
 }
 @media (min-width:1100px){

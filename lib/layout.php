@@ -84,9 +84,28 @@ function rrp_app_end(array $opts = []): void
     $nav = $opts['nav'] ?? false;
     if ($nav) {
         rrp_tabbar((string) $nav, (int) ($opts['unread'] ?? 0), !empty($opts['lost_active']));
+        rrp_install_sheet();
     }
     echo "</div>\n"; // .app
     rrp_layout_foot($opts);
+}
+
+/** Add to Home Screen ask (assets/js/install.js decides when/if it shows). */
+function rrp_install_sheet(): void
+{
+    ?>
+<div class="a2hs" id="a2hs" role="dialog" aria-labelledby="a2hsText" hidden>
+  <img src="<?= rrp_h(rrp_asset('assets/icons/icon-192.png')) ?>" alt="" width="44" height="44" />
+  <div>
+    <p id="a2hsText">Add SIPAW to your Home Screen so SIPO can reach you.</p>
+    <p class="a2hs-steps" hidden>Tap <svg class="a2hs-share" viewBox="0 0 24 24" aria-label="Share"><path d="M12 3v12M7 8l5-5 5 5M5 12v8h14v-8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg> Share, then <b>Add to Home Screen</b>.</p>
+    <div class="a2hs-actions">
+      <button type="button" class="btn primary" data-a2hs-add>Add</button>
+      <button type="button" class="btn outline" data-a2hs-later>Not now</button>
+    </div>
+  </div>
+</div>
+<?php
 }
 
 function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): void
@@ -211,6 +230,7 @@ function rrp_layout_foot(array $opts = []): void
 <?php endif; ?>
 <script src="<?= rrp_h(rrp_asset('assets/js/app.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/pet-switcher.js', true)) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/install.js', true)) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
 <script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>
