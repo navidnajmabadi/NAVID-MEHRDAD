@@ -25,6 +25,10 @@ if ($secret === '' || $secret === 'CHANGE_ME_CRON_SECRET_LONG_RANDOM' || !hash_e
 
 try {
     $stats = rrp_health_cron_tick(50);
+    // PR 2: reminder follow-ups ("did you go?"), meal check-ins, food running out.
+    $stats['followups'] = rrp_care_followup_tick(60);
+    $stats['meals'] = rrp_food_meal_tick();
+    $stats['supply'] = rrp_food_supply_tick();
     echo json_encode([
         'ok' => true,
         'at' => gmdate('c'),

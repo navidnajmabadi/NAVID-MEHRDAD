@@ -56,9 +56,30 @@ then routines (last vaccine, last deworming / flea treatment, meals per day and 
 dogs). Mention a photo later, without pressure.
 
 # Routines and reminders
-When the owner agrees on a care date or routine, call set_reminder with a clear title and date.
-After a due date passes, follow up kindly: "Did you manage to go?" / "Want me to find a vet?",
-until you know what happened.
+Care routines below come from vet guidelines for the owner's region. Ask the last date of an
+UNKNOWN item one at a time, then call care_record_done (it books the next one). If the owner
+doesn't know, suggest checking the vet record or certificate — never guess a date.
+For other agreed dates call set_reminder. When the owner answers a reminder ("done", "moved to
+Friday", "booked the vet") call reminder_outcome with its id. Keep following up kindly until
+you know what happened.
+
+# Under vet treatment
+If the pet is being treated, store it with treatment_start and the vet's instructions word for
+word. Medicines: treatment_add_medicine with the dose EXACTLY as prescribed and times agreed with
+the owner — never suggest, change, or calculate a dose. Once a day ask how it's going and log it
+with treatment_log. Worse two days in a row, or any emergency sign → advise calling the vet now.
+Vitamins or supplements: only if the vet recommended them; otherwise suggest asking the vet.
+
+# Lab results
+Explain results in plain words: what each flagged value usually relates to, whether the trend is
+improving, and when to show the vet. Don't diagnose. If most values are in range, say so warmly.
+
+# Food
+Use the daily calorie target and foods below. When the owner tells you a meal or treat, call
+food_log_meal (grams or cups, and liked: loved/ok/refused). Ask about the meal routine once and
+save it with set_meal_times. When food packages are known, keep the supply updated with
+food_supply. Warn clearly about toxic ingredients. Calorie numbers are estimates unless the vet
+gave one; weight loss plans come from the vet. If food runs out, remind — don't send shop links.
 
 # Coins
 Do not explain how coins work or list ways to earn them. If asked, say caring for the pet earns
@@ -114,9 +135,8 @@ function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array
             );
             $parts[] = "# Saved facts\n" . implode("\n", $lines);
         }
-        $upcoming = rrp_sipo_upcoming_reminders((int) $pet['id']);
-        if ($upcoming) {
-            $parts[] = "# Upcoming / overdue reminders\n" . implode("\n", $upcoming);
+        foreach (rrp_sipo_care_blocks($owner, $pet) as $title => $block) {
+            $parts[] = "# {$title}\n" . $block;
         }
     }
 
@@ -138,6 +158,46 @@ function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array
         $parts[] = "# EMERGENCY MODE\nThe owner may be facing an urgent problem. Help first, keep it calm and concrete.";
     }
     return implode("\n\n", $parts);
+}
+
+/** Health + food context (PR 2). Each block is short; empty ones are skipped. @return array<string,string> */
+function rrp_sipo_care_blocks(array $owner, array $pet): array
+{
+    $out = [];
+    $petId = (int) $pet['id'];
+    $open = rrp_care_open_reminders($petId);
+    if ($open) {
+        $out['Open reminders'] = implode("\n", array_map(static function (array $r) use ($owner) {
+            $local = (new DateTimeImmutable((string) $r['due_at'], new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($owner));
+            return "- [reminder_id {$r['id']}] " . $local->format('Y-m-d H:i') . " · {$r['title']}"
+                . ((int) $r['followup_stage'] >= 3 ? ' · OVERDUE, no answer yet — ask what happened' : '');
+        }, $open));
+    }
+    $status = rrp_care_status($owner, $pet);
+    if ($status) {
+        $region = ['na' => 'USA/Canada (AAHA, CAPC)', 'eu' => 'Europe/UK (WSAVA, ESCCAP)', 'global' => 'WSAVA global'][rrp_care_region($owner, $pet)] ?? 'WSAVA global';
+        $lines = ["Region guidelines: {$region}. Ask about UNKNOWN items one at a time when it fits; never all at once."];
+        foreach ($status as $s) {
+            $lines[] = "- [{$s['key']}] {$s['title']}: " . strtoupper($s['state'])
+                . ($s['last_done'] ? " · last {$s['last_done']}" : '')
+                . ($s['next_due'] ? " · next {$s['next_due']}" : '')
+                . " · guideline: {$s['when']}"
+                . ($s['state'] === 'unknown' ? " · ask: \"{$s['ask']}\"" : '');
+        }
+        $out['Care routines'] = implode("\n", $lines);
+    }
+    $t = rrp_treatments_prompt_block($petId);
+    if ($t) {
+        $out['Under vet treatment'] = $t;
+    }
+    $labs = rrp_labs_prompt_block($petId);
+    if ($labs) {
+        $out['Lab results (latest per test)'] = $labs;
+    }
+    if (in_array($pet['type'] ?? '', ['dog', 'cat'], true) || rrp_foods_for_pet($petId)) {
+        $out['Food'] = rrp_food_prompt_block($owner, $pet);
+    }
+    return $out;
 }
 
 function rrp_sipo_owner_nickname(array $owner): string

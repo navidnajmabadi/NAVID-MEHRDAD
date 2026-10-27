@@ -92,7 +92,7 @@ final class RrpOpenAiClient
      * @param list<array<string,mixed>> $tools OpenAI "tools" array (type=function)
      * @return array{ok:bool, error?:string, content?:string, tool_calls?:list<array>, model?:string, usage?:array, gate?:string, latency_ms?:int}
      */
-    public function complete(array $messages, array $tools = [], ?string $model = null, float $temperature = 0.6): array
+    public function complete(array $messages, array $tools = [], ?string $model = null, float $temperature = 0.6, array $extra = []): array
     {
         if (!$this->configured()) {
             $which = $this->keyRole === self::KEY_BRAIN ? 'openai.brain_api_key (or api_key)' : 'openai.api_key';
@@ -116,6 +116,7 @@ final class RrpOpenAiClient
             $payload['tools'] = $tools;
             $payload['tool_choice'] = 'auto';
         }
+        $payload = array_merge($payload, $extra);
 
         $t0 = (int) floor(microtime(true) * 1000);
         $ch = curl_init($this->baseUrl . '/chat/completions');
@@ -128,7 +129,7 @@ final class RrpOpenAiClient
             ],
             CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE),
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT => 90,
+            CURLOPT_TIMEOUT => 120,
         ]);
         $raw = curl_exec($ch);
         $errno = curl_errno($ch);
@@ -160,5 +161,22 @@ final class RrpOpenAiClient
             'usage' => $data['usage'] ?? [],
             'latency_ms' => $latency,
         ];
+    }
+
+    /**
+     * JSON-mode call (vision/files allowed in $messages content parts).
+     * @return array{ok:bool, data?:array, error?:string, usage?:array, gate?:string}
+     */
+    public function json(array $messages, ?string $model = null): array
+    {
+        $res = $this->complete($messages, [], $model, 0.1, ['response_format' => ['type' => 'json_object']]);
+        if (empty($res['ok'])) {
+            return $res;
+        }
+        $data = json_decode((string) $res['content'], true);
+        if (!is_array($data)) {
+            return ['ok' => false, 'error' => 'Model did not return JSON.'];
+        }
+        return ['ok' => true, 'data' => $data, 'usage' => $res['usage'] ?? [], 'model' => $res['model'] ?? null];
     }
 }
