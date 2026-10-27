@@ -90,3 +90,22 @@ function rrp_vm_pet_panel(array $pet): array
         'upcoming' => $upcoming,
     ];
 }
+
+/**
+ * Pet a page should show: ?pet= (also becomes the current pet), else the
+ * switcher's current pet. Keeps dashboards, forms and SIPO on the same pet.
+ */
+function rrp_page_pet_id(array $owner, array $pets): int
+{
+    $want = (int) ($_GET['pet'] ?? 0);
+    if ($want > 0) {
+        foreach ($pets as $p) {
+            if ((int) $p['id'] === $want) {
+                rrp_sipo_set_current_pet((int) $owner['id'], $want);
+                return $want;
+            }
+        }
+    }
+    $cur = rrp_sipo_current_pet($owner, $pets);
+    return $cur ? (int) $cur['id'] : 0;
+}

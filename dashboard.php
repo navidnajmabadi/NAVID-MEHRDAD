@@ -55,7 +55,7 @@ foreach ($myLost as $la) {
     }
 }
 
-$activeId = isset($_GET['pet']) ? (int) $_GET['pet'] : 0;
+$activeId = rrp_page_pet_id($owner, $pets);
 $active = null;
 foreach ($pets as $p) {
     if ($activeId === (int) $p['id']) {
@@ -87,6 +87,10 @@ rrp_app_start(['nav' => 'home']);
     <a class="avatar" href="account.php" aria-label="Account"><?= rrp_h($initial) ?></a>
   </div>
 </div>
+<?php if ($pets): ?>
+<div class="homeswitch"><?php rrp_pet_switcher(rrp_vm_pet_switcher($owner)); ?>
+  <a class="btn outline homeswitch-chat" href="si-chat.php">Talk to SIPO</a></div>
+<?php endif; ?>
 
 <?php rrp_render_flash(); ?>
 
@@ -110,7 +114,7 @@ rrp_app_start(['nav' => 'home']);
     $petActive = count($pets);
   ?>
   <?php if ($petActive < $petLimit): ?>
-    <a class="petchip add" href="pet-register.php">
+    <a class="petchip add" href="si-chat.php?new=1">
       <span class="ph"><svg aria-hidden="true"><use href="#i-plus"/></svg></span>
       Add
     </a>
@@ -151,7 +155,7 @@ rrp_app_start(['nav' => 'home']);
     <div class="box">
       <p class="h2" style="margin-bottom:8px">Add your first pet</p>
       <p class="sub" style="margin-bottom:16px">Chat with SIPO to register — then pair a QR tag. Free = 1 · Plus = 3<?= rrp_is_super_owner($owner) ? ' · Super unlimited' : '' ?>.</p>
-      <a class="btn primary" href="pet-register.php">Add a pet with SIPO</a>
+      <a class="btn primary" href="si-chat.php?new=1">Add a pet with SIPO</a>
     </div>
   </div>
 <?php endif; ?>

@@ -24,6 +24,7 @@
   var restState = "idle";
   var idleStatus = status.textContent;
   var seen = {};
+  var booted = false; // history renders without the entrance animation
 
   function setFace(state) {
     if (face) face.setAttribute("state", state);
@@ -87,6 +88,7 @@
     var row = document.createElement("div");
     row.className = "sipo-msg " + (msg.role === "assistant" ? "from-sipo" : "from-me");
     if (msg.mascot === "alert") row.className += " is-alert";
+    if (booted) row.className += " is-new";
     var p = document.createElement("p");
     renderBody(p, String(msg.body || ""));
     row.appendChild(p);
@@ -261,6 +263,7 @@
 
   // Initial render
   (vm.messages || []).forEach(bubble);
+  booted = true;
   showGate(vm.gate);
   if (!vm.gate) greet();
   setInterval(poll, vm.poll_ms || 20000);

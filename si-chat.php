@@ -73,7 +73,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
     <?php else: ?>
       <p class="sub" style="font-size:13px">Nothing yet. SIPO will set reminders with you.</p>
     <?php endif; ?>
-    <p class="meta sipo-panel-mem">SIPO remembers <?= (int) $vm['panel']['facts_count'] ?> things about <?= rrp_h($petName) ?>.</p>
+    <p class="meta sipo-panel-mem">SIPO remembers <?= (int) $vm['panel']['facts_count'] ?> <?= (int) $vm['panel']['facts_count'] === 1 ? 'thing' : 'things' ?> about <?= rrp_h($petName) ?>.</p>
   </aside>
   <?php endif; ?>
 </div>
@@ -94,5 +94,5 @@ rrp_app_end([
     'nav' => 'chat',
     'unread' => $nav['unread'],
     'lost_active' => $nav['lost_active'],
-    'scripts' => ['assets/js/sipo.js', 'assets/js/sipo-chat.js', 'assets/js/pet-switcher.js'],
+    'scripts' => ['assets/js/sipo.js', 'assets/js/sipo-chat.js'],
 ]);
