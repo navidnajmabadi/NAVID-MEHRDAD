@@ -1,0 +1,49 @@
+/* Boards (PR 5). Tokens from sipaw.css; square hairlines, one blue. */
+.boards{gap:14px;padding-bottom:24px}
+.b-compose{border:1px solid var(--line);background:var(--panel);padding:12px;display:grid;gap:10px}
+.b-compose-top{display:flex;align-items:center;gap:10px}
+.b-compose select{flex:1;min-height:40px;background:var(--bg);color:var(--text);border:1px solid var(--line);padding:0 10px;font:inherit;font-size:14px}
+.b-compose textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:64px;background:var(--bg);color:var(--text);border:1px solid var(--line);padding:10px;font:inherit;font-size:16px}
+.b-compose textarea:focus{outline:2px solid var(--blue);outline-offset:-1px}
+.b-preview{max-height:240px;width:auto;object-fit:cover;border:1px solid var(--line)}
+.b-compose-bar{display:flex;align-items:center;gap:10px}
+.b-photo{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1px solid var(--line);cursor:pointer;font-size:13px;color:var(--sub)}
+.b-photo svg{width:18px;height:18px}
+.b-compose-bar .meta{margin-left:auto}
+.b-compose-bar .btn{width:auto;margin:0;min-height:40px;padding:0 18px}
+.b-note{margin:0}
+.b-tabs{margin-top:2px}
+.b-feed{display:grid;gap:12px}
+.b-card{border:1px solid var(--line);background:var(--bg)}
+.b-head{display:flex;align-items:center;justify-content:space-between;padding:10px 12px}
+.b-who{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;min-width:0}
+.b-who span{display:flex;flex-direction:column}
+.b-who b{font-size:14px}
+.b-who small{font-size:12px;color:var(--sub)}
+.b-menu{background:none;border:0;color:var(--sub);font-size:20px;min-width:44px;min-height:44px;cursor:pointer}
+.b-img{display:block;width:100%;height:auto;max-height:70dvh;object-fit:cover;background:var(--raised)}
+.b-body{margin:0;padding:10px 12px 0;font-size:15px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.b-bar{display:flex;align-items:center;gap:6px;padding:8px 8px 10px}
+.b-vote{display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:0 10px;background:none;border:1px solid transparent;color:var(--text);font:inherit;font-size:14px;cursor:pointer;text-decoration:none}
+.b-vote:hover{border-color:var(--line)}
+.b-vote.is-on{border-color:var(--blue);color:var(--blue)}
+.b-followlink{margin-left:auto;background:none;border:1px solid var(--line);color:var(--text);min-height:34px;padding:0 12px;font-family:var(--f-display);font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.b-followlink.is-on{border-color:var(--blue);color:var(--blue)}
+.b-reported{border:1px dashed var(--line);padding:14px;font-size:14px;color:var(--sub);margin:0}
+.b-profile{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;border:1px solid var(--line);padding:16px}
+.b-profile .pet-avatar{width:72px;height:72px;font-size:28px}
+.b-profile h1{margin:0;font-family:var(--f-display);font-size:24px;letter-spacing:.04em}
+.b-profile .meta,.b-profile .sub{margin:2px 0 0;font-size:13px}
+.b-stats{margin:6px 0 0;font-size:13px;color:var(--sub)}
+.b-follow{grid-column:1/-1;margin:0}
+.b-report{padding:6px 0 calc(10px + env(safe-area-inset-bottom,0px))}
+.b-empty{text-align:center;padding:24px 0}
+@media (min-width:768px){
+  .page-boards .app-main > .pad,.page-boards .app-main > .topbar{max-width:640px}
+  .b-follow{grid-column:auto;width:auto;padding:0 22px}
+  .b-profile{grid-template-columns:auto 1fr auto}
+}
+.b-tabs{display:flex;gap:0;border:1px solid var(--line)}
+.b-tabs a{flex:1;text-align:center;padding:10px;font-family:var(--f-display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:var(--sub)}
+.b-tabs a[aria-current="page"]{background:var(--blue);color:#fff}
+.b-compose label.b-photo{display:inline-flex;align-items:center;gap:6px;margin:0;letter-spacing:.06em}

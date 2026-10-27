@@ -313,4 +313,48 @@ final class RrpOpenAiClient
         }
         return ['ok' => true, 'data' => $data, 'usage' => $res['usage'] ?? [], 'model' => $res['model'] ?? null];
     }
+
+    /**
+     * OpenAI Moderation (text + optional image data URL). Free endpoint; returns flagged + categories.
+     * @return array{ok:bool, flagged?:bool, categories?:array<string,bool>, scores?:array<string,float>, error?:string}
+     */
+    public function moderate(string $text, ?string $imageDataUrl = null): array
+    {
+        if (!$this->configured()) {
+            return ['ok' => false, 'gate' => 'missing_api_key', 'error' => 'OpenAI not configured.'];
+        }
+        $input = [];
+        if ($text !== '') {
+            $input[] = ['type' => 'text', 'text' => $text];
+        }
+        if ($imageDataUrl) {
+            $input[] = ['type' => 'image_url', 'image_url' => ['url' => $imageDataUrl]];
+        }
+        $model = $this->modelFor('moderation', 'omni-moderation-latest');
+        if ($model === '' || str_starts_with($model, 'gpt-')) {
+            $model = 'omni-moderation-latest';
+        }
+        $ch = curl_init($this->baseUrl . '/moderations');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Authorization: Bearer ' . $this->apiKey],
+            CURLOPT_POSTFIELDS => json_encode(['model' => $model, 'input' => $input], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_TIMEOUT => 30,
+        ]);
+        $raw = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $data = is_string($raw) ? json_decode($raw, true) : null;
+        if (!is_array($data) || $status >= 400 || empty($data['results'][0])) {
+            return ['ok' => false, 'error' => (string) ($data['error']['message'] ?? 'Moderation failed (HTTP ' . $status . ').')];
+        }
+        $r = $data['results'][0];
+        return [
+            'ok' => true,
+            'flagged' => !empty($r['flagged']),
+            'categories' => array_filter((array) ($r['categories'] ?? [])),
+            'scores' => (array) ($r['category_scores'] ?? []),
+        ];
+    }
 }

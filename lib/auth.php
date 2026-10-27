@@ -65,7 +65,7 @@ function rrp_login(string $email, string $password, bool $remember = true): arra
             return ['ok' => false, 'error' => 'Email or password is incorrect.'];
         }
         if ($owner['status'] !== 'active') {
-            return ['ok' => false, 'error' => 'This account is suspended. Contact Support to review it.'];
+            return ['ok' => false, 'error' => 'This account is paused for review because several posts were removed. Our Support team will email you within 7 days. Your pets\' data is safe.'];
         }
         rrp_auth_record_attempt($email, true);
         if (password_needs_rehash($owner['password_hash'], PASSWORD_DEFAULT)) {
