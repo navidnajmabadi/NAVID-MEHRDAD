@@ -53,6 +53,9 @@ rrp_app_start(['nav' => 'health']);
 
 <div class="pad stack care-page">
   <?php rrp_render_flash(); ?>
+  <nav class="daily-tabs" aria-label="Health sections">
+    <a href="care.php" aria-current="page">Health</a><a href="daily.php">Daily</a>
+  </nav>
 
   <div class="care-actions">
     <label class="btn primary care-upload">

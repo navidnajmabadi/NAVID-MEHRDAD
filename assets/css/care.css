@@ -113,3 +113,40 @@
   .care-card,.care-status{break-inside:avoid}
 }
 .care-lab .watch{color:var(--text);font-weight:600}
+
+/* —— Daily (PR 3) —— */
+.daily-tabs{display:flex;gap:0;border:1px solid var(--line)}
+.daily-tabs a{flex:1;text-align:center;padding:10px;font-family:var(--f-display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:var(--sub)}
+.daily-tabs a[aria-current="page"]{background:var(--blue);color:#fff}
+.daily-quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:6px}
+.daily-quick .btn{width:auto;min-height:48px;padding:0 6px;font-size:11px;margin:0}
+.daily-counts{margin-top:12px}
+.daily-counts .data{font-size:20px}
+.daily-signal{margin:8px 0 0;font-size:14px;padding:8px 10px;border:1px solid var(--line)}
+.daily-signal.is-vet{border-color:var(--red);color:var(--text)}
+.daily-bars,.daily-week{display:flex;align-items:flex-end;gap:3px;height:70px;margin-top:14px}
+.daily-bar{flex:1;display:flex;flex-direction:column-reverse;height:100%}
+.daily-bar i{display:block}
+.b-pee{background:var(--blue)}
+.b-poop{background:var(--edge)}
+.key{display:inline-block;width:8px;height:8px;margin:0 4px 0 8px}
+.daily-window{margin:0 0 10px;padding:8px 10px;background:var(--panel);border:1px solid var(--line);font-size:14px}
+.daily-walk-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.daily-walk-top .btn{width:auto;padding:0 18px;margin:0;white-space:nowrap;flex:none}
+.daily-big{font-size:28px}
+.daily-week span{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+.daily-week i{display:block;width:100%;background:var(--raised);min-height:2px}
+.daily-week i.is-goal{background:var(--blue)}
+.daily-week small{font-size:10px;color:var(--meta)}
+.daily-manual{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-top:14px}
+.daily-manual label{display:contents}
+.daily-manual label::before{content:none}
+.daily-manual input[type=number]{width:100%;min-width:0;height:44px;min-height:44px;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:0 10px;font:inherit;font-size:16px;margin:0;box-sizing:border-box}
+.daily-manual .btn{width:auto;margin:0;padding:0 16px;height:44px;min-height:44px}
+.daily-map{height:200px;margin-top:12px;border:1px solid var(--line)}
+.page-walk .app-main{display:flex;flex-direction:column}
+.walk-map{flex:1;min-height:52dvh}
+.walk-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.walk-stats b{display:block;font-size:26px}
+.walk-stats small{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.12em}
+@media (min-width:768px){.daily-quick{grid-template-columns:repeat(5,minmax(0,1fr))}}

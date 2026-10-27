@@ -211,6 +211,7 @@ rrp_app_start(['nav' => 'home']);
         <a class="link" href="si-chat.php?pet=<?= (int) $active['id'] ?>">SIPO</a>
         <a class="link" href="forum.php">Boards</a>
         <a class="link" href="wellness.php?pet=<?= (int) $active['id'] ?>">Wellness</a>
+        <a class="link" href="daily.php?pet=<?= (int) $active['id'] ?>">Daily</a>
         <a class="link" href="reminders.php?pet=<?= (int) $active['id'] ?>">Reminders</a>
         <a class="link" href="health-care.php?pet=<?= (int) $active['id'] ?>">Health</a>
       </span>
