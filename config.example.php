@@ -33,6 +33,9 @@ return [
         'brain_api_key' => '',        // KEY 2 — sk-… NAKILAB Red Team + Admin SI Brain
         'base_url' => 'https://api.openai.com/v1',
         'model' => 'gpt-6-luna',      // default fallback = product chat
+        // If the main model is unknown to your key (404 / "model does not exist"), SIPO retries with this.
+        // Use any chat model your OpenAI project can access. Admin → SIPO check shows the exact error.
+        'fallback_model' => '',
         'models' => [
             'si_chat' => 'gpt-6-luna',
             'food_vision' => 'gpt-6-luna',

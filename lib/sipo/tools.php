@@ -42,6 +42,9 @@ function rrp_sipo_tool_defs(bool $onboarding): array
             'neutered' => ['type' => 'boolean'],
             'color' => ['type' => 'string'],
             'conditions' => ['type' => 'string', 'description' => 'Known medical conditions, comma separated'],
+            'vet_kcal_per_day' => ['type' => 'integer', 'description' => 'Daily calories ONLY if the vet gave a number'],
+            'activity' => ['type' => 'string', 'enum' => ['low', 'normal', 'high']],
+            'lifestyle' => ['type' => 'string', 'enum' => ['indoor', 'outdoor', 'mixed']],
         ]);
         $defs[] = $fn('save_pet_fact', 'Remember a lasting fact about the pet or its routine (food brand, vet name, allergy, fear, last vaccine date…).', [
             'key' => ['type' => 'string', 'description' => 'short snake_case key, e.g. food_brand, vet_clinic, last_rabies_vaccine'],
@@ -52,6 +55,7 @@ function rrp_sipo_tool_defs(bool $onboarding): array
             'title' => ['type' => 'string', 'description' => 'e.g. "Rabies booster", "Flea treatment"'],
             'due' => ['type' => 'string', 'description' => 'YYYY-MM-DD or YYYY-MM-DD HH:MM in the owner\'s local time'],
         ], ['title', 'due']);
+        $defs = array_merge($defs, rrp_sipo_care_tool_defs($fn));
     }
     $defs[] = $fn('get_weather', 'Current weather and today\'s forecast at the owner\'s home area.', []);
     $defs[] = $fn('find_vets', 'Find veterinary clinics near the owner\'s home area, with phone numbers when known.', [
@@ -65,6 +69,78 @@ function rrp_sipo_tool_defs(bool $onboarding): array
         'reason' => ['type' => 'string'],
     ], ['reason']);
     return $defs;
+}
+
+/** Health + food tools (PR 2). */
+function rrp_sipo_care_tool_defs(callable $fn): array
+{
+    $date = ['type' => 'string', 'description' => 'YYYY-MM-DD (YYYY-MM if the day is unknown)'];
+    return [
+        $fn('care_record_done', 'Owner says a care routine was done (now or in the past). Uses a routine key from "Care routines". Books the next one.', [
+            'routine_key' => ['type' => 'string'], 'date' => $date, 'note' => ['type' => 'string'],
+            'interval_days' => ['type' => 'integer', 'description' => 'Only if the vet/certificate gives a different interval, e.g. 1095 for a 3-year rabies vaccine'],
+        ], ['routine_key', 'date']),
+        $fn('reminder_outcome', 'Close or move an open reminder (ids are in "Open reminders").', [
+            'reminder_id' => ['type' => 'integer'],
+            'outcome' => ['type' => 'string', 'enum' => ['done', 'rescheduled', 'vet_booked', 'skipped']],
+            'new_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD[ HH:MM] for rescheduled/vet_booked, or the done date'],
+            'note' => ['type' => 'string'],
+        ], ['reminder_id', 'outcome']),
+        $fn('treatment_start', 'The pet is under vet treatment for a condition. Store the vet instructions word for word.', [
+            'condition' => ['type' => 'string'], 'vet_name' => ['type' => 'string'], 'started_on' => $date,
+            'planned_end_on' => $date, 'instructions' => ['type' => 'string', 'description' => 'Exactly what the vet said, verbatim'],
+        ], ['condition']),
+        $fn('treatment_add_medicine', 'Add a prescribed medicine with reminder times. Never invent or change the dose.', [
+            'treatment_id' => ['type' => 'integer'], 'name' => ['type' => 'string'],
+            'dose_as_prescribed' => ['type' => 'string', 'description' => 'Owner/vet wording, verbatim'],
+            'times' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Local HH:MM, agreed with the owner'],
+            'ends_on' => $date,
+        ], ['treatment_id', 'name', 'times']),
+        $fn('treatment_log', 'Daily progress for a treatment.', [
+            'treatment_id' => ['type' => 'integer'], 'trend' => ['type' => 'string', 'enum' => ['better', 'same', 'worse']],
+            'med_given' => ['type' => 'boolean'], 'note' => ['type' => 'string'],
+        ], ['treatment_id', 'trend']),
+        $fn('treatment_recheck', 'Book a recheck visit for a treatment.', [
+            'treatment_id' => ['type' => 'integer'], 'when' => ['type' => 'string', 'description' => 'YYYY-MM-DD[ HH:MM] local'], 'clinic' => ['type' => 'string'],
+        ], ['treatment_id', 'when']),
+        $fn('treatment_finish', 'Treatment is over (vet said so or course finished).', [
+            'treatment_id' => ['type' => 'integer'], 'note' => ['type' => 'string'],
+        ], ['treatment_id']),
+        $fn('food_save', 'Save a food or treat the pet eats (from the owner or a label).', [
+            'name' => ['type' => 'string'], 'kind' => ['type' => 'string', 'enum' => ['dry', 'wet', 'treat', 'raw', 'homemade', 'other']],
+            'kcal_per_kg' => ['type' => 'number'], 'kcal_per_cup' => ['type' => 'number'], 'grams_per_cup' => ['type' => 'number'],
+            'package_grams' => ['type' => 'number'], 'ingredients' => ['type' => 'string'], 'just_opened' => ['type' => 'boolean'],
+        ], ['name', 'kind']),
+        $fn('food_log_meal', 'Log what the pet ate (meal or treat), how much, and whether it liked it.', [
+            'food_id' => ['type' => 'integer'], 'food_name' => ['type' => 'string'],
+            'grams' => ['type' => 'number'], 'cups' => ['type' => 'number'], 'kcal' => ['type' => 'number'],
+            'liked' => ['type' => 'string', 'enum' => ['loved', 'ok', 'refused']], 'note' => ['type' => 'string'],
+        ]),
+        $fn('food_supply', 'Update how much of a food is left, a new bag opened, or grams fed per day.', [
+            'food_id' => ['type' => 'integer'], 'remaining_grams' => ['type' => 'number'],
+            'new_package' => ['type' => 'boolean'], 'daily_grams' => ['type' => 'number'],
+        ], ['food_id']),
+        $fn('log_bathroom', 'Log a pee, poop, accident or vomit the owner reports (one call per event).', [
+            'kind' => ['type' => 'string', 'enum' => ['pee', 'poop', 'accident', 'vomit']],
+            'stool' => ['type' => 'string', 'enum' => ['normal', 'soft', 'diarrhea', 'hard', 'blood', 'mucus']],
+            'at' => ['type' => 'string', 'description' => 'Local HH:MM if not just now'],
+            'note' => ['type' => 'string'],
+        ], ['kind']),
+        $fn('log_walk', 'Log a walk: minutes, and km if known.', [
+            'minutes' => ['type' => 'integer'], 'km' => ['type' => 'number'], 'note' => ['type' => 'string'],
+        ], ['minutes']),
+        $fn('set_walk_goal', 'Daily walk goal in minutes (from the owner or their vet).', [
+            'minutes_per_day' => ['type' => 'integer'],
+        ], ['minutes_per_day']),
+        $fn('routine_plan', 'Start a routine at the owner\'s chosen rhythm (e.g. teeth every day, bath every 60 days).', [
+            'routine_key' => ['type' => 'string'], 'interval_days' => ['type' => 'integer'],
+            'start' => ['type' => 'string', 'description' => 'YYYY-MM-DD[ HH:MM] local; default today'],
+        ], ['routine_key', 'interval_days']),
+        $fn('set_meal_times', 'Save the meal routine; SIPO checks in after each meal.', [
+            'times' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Local HH:MM'],
+            'portion_note' => ['type' => 'string'],
+        ], ['times']),
+    ];
 }
 
 /**
@@ -147,6 +223,31 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
             }
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null];
 
+        case 'care_record_done':
+        case 'reminder_outcome':
+        case 'treatment_start':
+        case 'treatment_add_medicine':
+        case 'treatment_log':
+        case 'treatment_recheck':
+        case 'treatment_finish':
+        case 'food_save':
+        case 'food_log_meal':
+        case 'food_supply':
+        case 'set_meal_times':
+        case 'log_bathroom':
+        case 'log_walk':
+        case 'set_walk_goal':
+        case 'routine_plan':
+            if ($pet === null) {
+                return ['ok' => false, 'error' => 'No pet yet.'];
+            }
+            $res = rrp_sipo_run_care_tool($name, $args, $owner, $pet);
+            if (!empty($res['ok'])) {
+                $ctx['events'][] = $name;
+                $ctx['pet'] = rrp_pet_by_id((int) $pet['id'], $ownerId) ?: $pet;
+            }
+            return $res;
+
         case 'get_weather':
             $c = rrp_sipo_owner_coords($owner);
             if ($c['lat'] === null) {
@@ -183,6 +284,39 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
     return ['ok' => false, 'error' => 'Unknown tool ' . $name];
 }
 
+function rrp_sipo_run_care_tool(string $name, array $a, array $owner, array $pet): array
+{
+    $tid = (int) ($a['treatment_id'] ?? 0);
+    $str = static fn($k) => isset($a[$k]) && $a[$k] !== '' ? (string) $a[$k] : null;
+    try {
+        return match ($name) {
+            'care_record_done' => rrp_care_record_done($owner, $pet, (string) ($a['routine_key'] ?? ''), (string) ($a['date'] ?? ''), $str('note'),
+                isset($a['interval_days']) ? (int) $a['interval_days'] : null),
+            'reminder_outcome' => rrp_care_reminder_outcome($owner, $pet, (int) ($a['reminder_id'] ?? 0), (string) ($a['outcome'] ?? ''), $str('new_date'), $str('note')),
+            'treatment_start' => rrp_treatment_start($owner, $pet, $a),
+            'treatment_add_medicine' => rrp_treatment_add_med($owner, $pet, $tid, $a),
+            'treatment_log' => rrp_treatment_log($owner, $pet, $tid, (string) ($a['trend'] ?? ''), isset($a['med_given']) ? (bool) $a['med_given'] : null, $str('note')),
+            'treatment_recheck' => rrp_treatment_add_recheck($owner, $pet, $tid, (string) ($a['when'] ?? ''), $str('clinic')),
+            'treatment_finish' => rrp_treatment_finish($owner, $pet, $tid, $str('note')),
+            'food_save' => rrp_food_save($owner, $pet, $a),
+            'food_log_meal' => rrp_food_log_meal($owner, $pet, $a),
+            'food_supply' => rrp_food_update_supply($owner, $pet, (int) ($a['food_id'] ?? 0),
+                isset($a['remaining_grams']) ? (float) $a['remaining_grams'] : null, !empty($a['new_package']),
+                isset($a['daily_grams']) ? (float) $a['daily_grams'] : null),
+            'set_meal_times' => rrp_food_set_meal_times($pet, (array) ($a['times'] ?? []), $str('portion_note')),
+            'log_bathroom' => rrp_bath_log($owner, $pet, (string) ($a['kind'] ?? ''), $str('stool'), $str('note'), 'chat', $str('at')),
+            'log_walk' => rrp_walk_log($owner, $pet, (int) ($a['minutes'] ?? 0),
+                isset($a['km']) && is_numeric($a['km']) ? (int) round((float) $a['km'] * 1000) : null, null, 'chat', null, $str('note')),
+            'set_walk_goal' => rrp_walk_set_goal($pet, (int) ($a['minutes_per_day'] ?? 0)),
+            'routine_plan' => rrp_care_plan($owner, $pet, (string) ($a['routine_key'] ?? ''), (int) ($a['interval_days'] ?? 0), $str('start')),
+            default => ['ok' => false, 'error' => 'Unknown tool'],
+        };
+    } catch (Throwable $e) {
+        error_log('care tool ' . $name . ': ' . $e->getMessage());
+        return ['ok' => false, 'error' => 'Could not save that — try again.'];
+    }
+}
+
 function rrp_sipo_update_pet_fields(int $petId, int $ownerId, array $args): array
 {
     $sets = [];
@@ -213,6 +347,15 @@ function rrp_sipo_update_pet_fields(int $petId, int $ownerId, array $args): arra
     }
     if (!empty($args['conditions'])) {
         $sets[] = 'medical_conditions = ?'; $vals[] = $str($args['conditions'], 2000); $saved[] = 'conditions';
+    }
+    if (isset($args['vet_kcal_per_day']) && is_numeric($args['vet_kcal_per_day']) && $args['vet_kcal_per_day'] > 20 && $args['vet_kcal_per_day'] < 6000) {
+        $sets[] = 'vet_kcal_per_day = ?'; $vals[] = (int) $args['vet_kcal_per_day']; $saved[] = 'vet_kcal_per_day';
+    }
+    if (in_array($args['activity'] ?? null, ['low', 'normal', 'high'], true)) {
+        $sets[] = 'activity = ?'; $vals[] = $args['activity']; $saved[] = 'activity';
+    }
+    if (in_array($args['lifestyle'] ?? null, ['indoor', 'outdoor', 'mixed'], true)) {
+        $sets[] = 'lifestyle = ?'; $vals[] = $args['lifestyle']; $saved[] = 'lifestyle';
     }
     if (!$sets) {
         return [];

@@ -261,6 +261,57 @@
     send(text);
   });
 
+  // Attach: photo or PDF → SIPO reads it, saves the data, deletes the file, replies.
+  var fileInput = document.getElementById("sipoFile");
+  if (fileInput) {
+    fileInput.addEventListener("change", function () {
+      var f = fileInput.files && fileInput.files[0];
+      fileInput.value = "";
+      if (!f || busy) return;
+      if (f.size > 10 * 1024 * 1024) {
+        bubble({ role: "assistant", body: "That file is over 10 MB — try a smaller photo or the PDF.", created_at: new Date().toISOString() });
+        return;
+      }
+      busy = true;
+      sendBtn.disabled = true;
+      setFace("thinking");
+      setStatus("Reading your file…");
+      var mine = bubble({ role: "user", body: "📎 " + f.name, created_at: new Date().toISOString() });
+      showTyping(true);
+      var fd = new FormData();
+      fd.append("csrf", api.csrf);
+      fd.append("thread_id", String(threadId));
+      fd.append("file", f);
+      fetch(api.upload, { method: "POST", credentials: "same-origin", body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          showTyping(false);
+          if (!j.ok) {
+            setFace("idle");
+            bubble({ role: "assistant", body: j.error || "I couldn't read that file.", created_at: new Date().toISOString() });
+            return;
+          }
+          // Replace the placeholder with what SIPO saved from the file.
+          if (mine && j.message) {
+            mine.querySelector("p").textContent = j.message.body;
+            seen[j.message.id] = true;
+            if (j.message.id > lastId) lastId = j.message.id;
+          }
+          applyReply(j);
+        })
+        .catch(function () {
+          showTyping(false);
+          setFace("idle");
+          bubble({ role: "assistant", body: "Upload failed. Check your connection and try again.", created_at: new Date().toISOString() });
+        })
+        .then(function () {
+          busy = false;
+          sendBtn.disabled = false;
+          setStatus();
+        });
+    });
+  }
+
   // Initial render
   (vm.messages || []).forEach(bubble);
   booted = true;

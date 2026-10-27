@@ -1,0 +1,152 @@
+/* Health dashboard (care.php, vet.php). Tokens from sipaw.css. Square hairlines, one blue,
+   red only for out-of-range values and overdue items. */
+
+.care-top{align-items:center}
+.care-page{gap:14px;padding-bottom:24px}
+.care-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.care-actions .btn{width:auto;height:48px;min-height:48px;padding:0 14px;font-size:11px;display:inline-flex;align-items:center;justify-content:center;gap:8px;margin:0}
+.care-actions .care-upload{grid-column:1/-1}
+@media (min-width:768px){.care-actions{display:flex}.care-actions .care-upload{grid-column:auto}}
+.care-actions svg{width:16px;height:16px}
+.care-actions label.care-upload{display:inline-flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;color:#fff;letter-spacing:.16em}
+
+.care-status{display:flex;gap:14px;align-items:flex-start;padding:16px;border:1px solid var(--line);background:var(--panel)}
+.care-status .pet-avatar{width:52px;height:52px;font-size:20px}
+.care-status h2{margin:0 0 4px;font-family:var(--f-display);font-weight:600;font-size:20px;letter-spacing:.02em}
+.care-status.is-good{border-color:var(--blue)}
+.care-status.is-attention{border-color:var(--red)}
+.care-status.is-treatment{border-color:var(--edge)}
+.care-alerts{margin:6px 0 0;padding:0 0 0 16px;font-size:14px;color:var(--text)}
+.care-alerts li::marker{color:var(--red)}
+
+.care-card{border:1px solid var(--line);padding:16px;background:var(--bg)}
+.care-card > .label{margin:0 0 10px}
+.care-card .sub{margin:0;font-size:14px}
+.care-kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:0}
+.care-kv div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.care-kv dt{font-size:11px;color:var(--sub);letter-spacing:.08em;text-transform:uppercase}
+.care-kv dd{margin:0;font-size:14px;overflow-wrap:anywhere}
+.chip-s{font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);padding:3px 6px;color:var(--sub);white-space:nowrap}
+.chip-s.is-warn{border-color:var(--red);color:var(--red)}
+
+/* Charts */
+.care-chart-wrap{margin-top:14px}
+.care-chart{display:block;width:100%;height:96px;margin-top:6px;overflow:visible}
+.care-chart .band{fill:var(--blue);opacity:.12}
+.care-chart .line{fill:none;stroke:var(--sub);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.care-chart .pt{fill:var(--blue);stroke:var(--bg);stroke-width:1.5}
+.care-chart .pt.is-abnormal{fill:var(--red);animation:care-blink 1.2s ease-in-out infinite}
+@keyframes care-blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+.care-labs{display:grid;gap:10px}
+.care-lab{border:1px solid var(--line);padding:12px}
+.care-lab-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.care-lab-head b{font-size:15px}
+.care-lab .meta{margin:4px 0 0;font-size:12px}
+.care-lab.is-abnormal{border-color:var(--red)}
+.care-lab.is-abnormal .flag{color:var(--red);font-weight:600;animation:care-blink 1.2s ease-in-out infinite}
+.care-lab.is-watch{border-color:var(--edge)}
+
+/* Treatments */
+.care-treat{border-left:2px solid var(--blue);padding:4px 0 4px 12px;margin-bottom:14px}
+.care-treat.is-finished{border-left-color:var(--line);opacity:.75}
+.care-treat header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.care-treat blockquote{margin:8px 0;padding:8px 10px;background:var(--panel);border:1px solid var(--line);font-size:14px}
+.care-med{margin:6px 0 0;font-size:14px}
+.care-med.is-off{opacity:.5;text-decoration:line-through}
+.care-trendrow{display:flex;gap:3px;margin:10px 0 4px}
+.care-trendrow span{width:14px;height:14px;border:1px solid var(--line)}
+.care-trendrow .t-better{background:var(--blue);border-color:var(--blue)}
+.care-trendrow .t-same{background:var(--raised)}
+.care-trendrow .t-worse{background:var(--red);border-color:var(--red)}
+
+/* Food */
+.care-meter{height:10px;border:1px solid var(--line);background:var(--panel);margin:4px 0 8px}
+.care-meter span{display:block;height:100%;background:var(--blue)}
+.care-food{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.care-warn{flex-basis:100%;margin:0;color:var(--red);font-size:13px}
+.care-pref{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px;align-items:center;font-size:13px;margin-top:6px}
+.care-pref-bar{display:flex;height:8px;border:1px solid var(--line)}
+.care-pref-bar i{display:block;height:100%}
+.care-pref-bar .p-loved{background:var(--blue)}
+.care-pref-bar .p-ok{background:var(--edge)}
+.care-pref-bar .p-refused{background:var(--red)}
+
+/* Routines */
+.care-routines{list-style:none;margin:10px 0 0;padding:0}
+.care-routines li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.care-routines .dot{width:8px;height:8px;margin-top:6px;background:var(--line)}
+.care-routines .is-ok .dot{background:var(--blue)}
+.care-routines .is-due_soon .dot{background:var(--text)}
+.care-routines .is-overdue .dot{background:var(--red)}
+.care-routines .is-overdue .chip-s{border-color:var(--red);color:var(--red)}
+.care-routines b{display:block;font-size:14px}
+.care-routines small{display:block;font-size:12px;color:var(--sub)}
+.care-sources{margin-top:10px;font-size:12px}
+.care-sources ul{margin:6px 0 0;padding-left:16px}
+
+/* Share */
+.care-sharebox{display:flex;gap:8px;margin:10px 0 4px}
+.care-sharebox input{flex:1;min-width:0;min-height:44px;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:0 10px;font-family:var(--f-data);font-size:12px}
+.care-sharebox .btn{width:auto;padding:0 16px}
+.care-card form .btn{width:auto;margin-top:10px;padding:0 16px}
+.care-linkrow{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px}
+.care-linkrow .link{background:none;border:0;color:var(--blue);cursor:pointer;font:inherit;font-size:13px}
+
+/* Vet page */
+.page-vet .app{max-width:860px}
+.page-vet .app{padding-left:0}
+.vet-head{display:flex;flex-direction:column;gap:6px;padding:8px 0 4px}
+
+@media (min-width:768px){
+  .page-care .app-main > .pad,.page-care .app-main > .topbar{max-width:960px}
+}
+@media (min-width:1100px){
+  .care-labs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .care-kv{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){
+  .care-chart .pt.is-abnormal,.care-lab.is-abnormal .flag{animation:none}
+}
+@media print{
+  .tabbar,.care-actions,.care-card form,#careUploadNote{display:none!important}
+  .care-card,.care-status{break-inside:avoid}
+}
+.care-lab .watch{color:var(--text);font-weight:600}
+
+/* —— Daily (PR 3) —— */
+.daily-tabs{display:flex;gap:0;border:1px solid var(--line)}
+.daily-tabs a{flex:1;text-align:center;padding:10px;font-family:var(--f-display);font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;color:var(--sub)}
+.daily-tabs a[aria-current="page"]{background:var(--blue);color:#fff}
+.daily-quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:6px}
+.daily-quick .btn{width:auto;min-height:48px;padding:0 6px;font-size:11px;margin:0}
+.daily-counts{margin-top:12px}
+.daily-counts .data{font-size:20px}
+.daily-signal{margin:8px 0 0;font-size:14px;padding:8px 10px;border:1px solid var(--line)}
+.daily-signal.is-vet{border-color:var(--red);color:var(--text)}
+.daily-bars,.daily-week{display:flex;align-items:flex-end;gap:3px;height:70px;margin-top:14px}
+.daily-bar{flex:1;display:flex;flex-direction:column-reverse;height:100%}
+.daily-bar i{display:block}
+.b-pee{background:var(--blue)}
+.b-poop{background:var(--edge)}
+.key{display:inline-block;width:8px;height:8px;margin:0 4px 0 8px}
+.daily-window{margin:0 0 10px;padding:8px 10px;background:var(--panel);border:1px solid var(--line);font-size:14px}
+.daily-walk-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.daily-walk-top .btn{width:auto;padding:0 18px;margin:0;white-space:nowrap;flex:none}
+.daily-big{font-size:28px}
+.daily-week span{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+.daily-week i{display:block;width:100%;background:var(--raised);min-height:2px}
+.daily-week i.is-goal{background:var(--blue)}
+.daily-week small{font-size:10px;color:var(--meta)}
+.daily-manual{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-top:14px}
+.daily-manual label{display:contents}
+.daily-manual label::before{content:none}
+.daily-manual input[type=number]{width:100%;min-width:0;height:44px;min-height:44px;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:0 10px;font:inherit;font-size:16px;margin:0;box-sizing:border-box}
+.daily-manual .btn{width:auto;margin:0;padding:0 16px;height:44px;min-height:44px}
+.daily-map{height:200px;margin-top:12px;border:1px solid var(--line)}
+.page-walk .app-main{display:flex;flex-direction:column}
+.walk-map{flex:1;min-height:52dvh}
+.walk-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.walk-stats b{display:block;font-size:26px}
+.walk-stats small{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.12em}
+@media (min-width:768px){.daily-quick{grid-template-columns:repeat(5,minmax(0,1fr))}}

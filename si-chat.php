@@ -45,6 +45,12 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
     <div class="sipo-gate" id="sipoGate" role="status" hidden></div>
 
     <form class="sipo-composer" id="sipoForm" autocomplete="off">
+      <?php if (!$vm['thread']['onboarding']): ?>
+      <label class="sipo-attach" title="Send a photo or PDF (lab report, food label, prescription, pet photo)">
+        <input type="file" id="sipoFile" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
+        <svg aria-hidden="true"><use href="#i-camera"/></svg><span class="sr-only">Attach photo or PDF</span>
+      </label>
+      <?php endif; ?>
       <label for="sipoInput" class="sr-only">Message SIPO</label>
       <textarea id="sipoInput" rows="1" maxlength="4000" enterkeyhint="send"
         placeholder="<?= $petName ? 'Tell SIPO about ' . rrp_h($petName) . '…' : 'Say hi to SIPO…' ?>"></textarea>
@@ -85,6 +91,7 @@ window.SIPO_API = {
   send: <?= json_encode(rrp_asset('api/si/send.php')) ?>,
   greet: <?= json_encode(rrp_asset('api/si/greet.php')) ?>,
   messages: <?= json_encode(rrp_asset('api/si/messages.php')) ?>,
+  upload: <?= json_encode(rrp_asset('api/si/upload.php')) ?>,
   switchPet: <?= json_encode(rrp_asset('api/pets/switch.php')) ?>
 };
 window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;

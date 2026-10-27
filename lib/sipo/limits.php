@@ -91,6 +91,7 @@ function rrp_sipo_looks_urgent(string $text): bool
         '/\b(hit by a car|run over|attacked|bitten badly|broken (leg|bone))\b/u',
         '/\b(swollen|bloated) (belly|stomach)\b/u',
         '/\b(can\'?t|cannot|unable to) (pee|urinate|stand|walk)\b/u',
+        '/\bstraining (to|when) (pee|urinate|wee)|\bblood in (his|her|the)? ?(pee|urine)\b/u',
         '/\b(heat ?stroke|overheat(ed|ing))\b/u',
         '/\b(vomiting blood|bloody (poop|stool|diarrh))\b/u',
         '/\b(dying|is dying|going to die|lost (my|our) (dog|cat|pet))\b/u',

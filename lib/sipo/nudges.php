@@ -103,6 +103,22 @@ function rrp_sipo_pick_nudge(int $ownerId): ?array
         return ['thread' => $thread, 'kind' => 'reminder'];
     }
     $pet = rrp_pet_by_id($petId, $ownerId);
+    // Dogs: no walk yet today and the day isn't over → suggest a good walk time.
+    if ($pet && ($pet['type'] ?? '') === 'dog') {
+        $owner = rrp_db()->query('SELECT * FROM owners WHERE id = ' . $ownerId)->fetch() ?: [];
+        $local = rrp_sipo_local_now($owner);
+        $walked = rrp_db()->prepare('SELECT COUNT(*) FROM pet_walks WHERE pet_id = ? AND local_day = ?');
+        try {
+            $walked->execute([$petId, $local->format('Y-m-d')]);
+            $asked = rrp_db()->prepare("SELECT COUNT(*) FROM sipo_nudges WHERE pet_id = ? AND kind = 'walk' AND local_day = ?");
+            $asked->execute([$petId, $local->format('Y-m-d')]);
+            if ((int) $walked->fetchColumn() === 0 && (int) $asked->fetchColumn() === 0 && (int) $local->format('G') <= 17) {
+                return ['thread' => $thread, 'kind' => 'walk'];
+            }
+        } catch (Throwable $e) {
+            // pre-011
+        }
+    }
     $gaps = $pet && (empty($pet['weight_kg']) || empty($pet['birth_date']) && empty($pet['age_years']) || empty($pet['image_path']));
     if ($gaps) {
         $asked = rrp_db()->prepare(
