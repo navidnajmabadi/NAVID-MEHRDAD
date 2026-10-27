@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
     }
 }
 
-$post = rrp_forum_post_by_id($id);
-if (!$post) {
+$post = rrp_forum_post_by_id($id, (int) $owner['id']);
+if (!$post || ($post['moderation_status'] !== 'visible' && (int) $post['owner_id'] !== (int) $owner['id'])) {
     rrp_flash_set('error', 'Post not found.');
     rrp_redirect('forum.php');
 }
@@ -50,7 +50,8 @@ rrp_app_start(['nav' => 'home']);
   <?php if ($error): ?><div class="flash flash-error"><?= rrp_h($error) ?></div><?php endif; ?>
   <div class="box">
     <p class="label"><?= rrp_h($post['pet_name']) ?></p>
-    <p style="margin-top:10px"><?= rrp_h($post['body']) ?></p>
+    <?php if (!empty($post['image_path'])): ?><img src="<?= rrp_h(rrp_asset((string) $post['image_path'])) ?>" alt="" style="width:100%;height:auto;margin-top:10px;border:1px solid var(--line)" /><?php endif; ?>
+    <p style="margin-top:10px;white-space:pre-wrap"><?= rrp_h($post['body']) ?></p>
     <p class="sub data" style="margin-top:10px">+<?= (int) $post['like_count'] ?> · −<?= (int) $post['dislike_count'] ?></p>
     <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
       <form method="post"><input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="action" value="vote" /><input type="hidden" name="post_id" value="<?= $id ?>" /><input type="hidden" name="vote" value="1" /><button class="btn outline" type="submit">Like</button></form>
@@ -82,10 +83,13 @@ rrp_app_start(['nav' => 'home']);
     <input type="hidden" name="action" value="report" />
     <p class="label">Report</p>
     <select name="reason" style="min-height:44px;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:0 12px">
-      <option value="abuse">Abuse</option>
-      <option value="spam">Spam</option>
-      <option value="medical">Unsafe medical advice</option>
-      <option value="other">Other</option>
+      <option value="porn">Sexual content</option>
+      <option value="drugs">Drugs</option>
+      <option value="fraud">Scam or fraud</option>
+      <option value="spam">Spam or ads</option>
+      <option value="abuse">Bullying or hate</option>
+      <option value="animal_harm">Animal cruelty</option>
+      <option value="other">Something else</option>
     </select>
     <div class="field"><div class="in area"><textarea name="detail" rows="2" maxlength="500" placeholder="Optional detail"></textarea></div></div>
     <button class="btn outline" type="submit">Submit report</button>

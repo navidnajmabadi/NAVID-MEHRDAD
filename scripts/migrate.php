@@ -63,6 +63,24 @@ foreach ($files as $path) {
         } catch (PDOException $e) {
             $code = (int) ($e->errorInfo[1] ?? 0);
             if (in_array($code, RRP_MIGRATE_ALREADY, true)) {
+                // A multi-part ALTER fails as a whole when ONE part exists — run the parts one by one
+                // so the missing ones are still applied.
+                $parts = rrp_migrate_alter_parts($sql);
+                if (count($parts) > 1) {
+                    foreach ($parts as $part) {
+                        try {
+                            $pdo->exec($part);
+                        } catch (PDOException $e2) {
+                            $c2 = (int) ($e2->errorInfo[1] ?? 0);
+                            if (!in_array($c2, RRP_MIGRATE_ALREADY, true)) {
+                                fwrite(STDERR, "FAILED    {$name} statement " . ($i + 1) . " part (MySQL {$c2}): " . $e2->getMessage() . "\n");
+                                exit(1);
+                            }
+                            $skipped++;
+                        }
+                    }
+                    continue;
+                }
                 $skipped++;
                 continue;
             }
@@ -76,6 +94,46 @@ foreach ($files as $path) {
     $ran++;
 }
 echo $dry ? "Dry run: nothing changed.\n" : ($ran ? "Done: {$ran} migration(s) applied.\n" : "Database is up to date.\n");
+
+/**
+ * "ALTER TABLE t ADD a …, ADD b …" → ["ALTER TABLE t ADD a …", "ALTER TABLE t ADD b …"].
+ * Splits on top-level commas only (not inside parentheses or quotes).
+ */
+function rrp_migrate_alter_parts(string $sql): array
+{
+    if (!preg_match('/^\s*ALTER\s+TABLE\s+(`?\w+`?)\s+(.*)$/is', $sql, $m)) {
+        return [$sql];
+    }
+    $table = $m[1];
+    $body = $m[2];
+    $parts = [];
+    $depth = 0;
+    $quote = null;
+    $cur = '';
+    for ($i = 0, $n = strlen($body); $i < $n; $i++) {
+        $ch = $body[$i];
+        if ($quote !== null) {
+            if ($ch === $quote) {
+                $quote = null;
+            }
+        } elseif ($ch === "'" || $ch === '"' || $ch === '`') {
+            $quote = $ch;
+        } elseif ($ch === '(') {
+            $depth++;
+        } elseif ($ch === ')') {
+            $depth--;
+        } elseif ($ch === ',' && $depth === 0) {
+            $parts[] = trim($cur);
+            $cur = '';
+            continue;
+        }
+        $cur .= $ch;
+    }
+    if (trim($cur) !== '') {
+        $parts[] = trim($cur);
+    }
+    return array_map(static fn($p) => "ALTER TABLE {$table} {$p}", $parts);
+}
 
 /** Split a migration file into statements (no procedures/triggers in our SQL). */
 function rrp_migrate_split(string $sql): array

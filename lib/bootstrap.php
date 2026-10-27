@@ -299,6 +299,8 @@ require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/tickets.php';
 require_once __DIR__ . '/coupons.php';
 require_once __DIR__ . '/chat.php';
+require_once __DIR__ . '/social/photos.php';
+require_once __DIR__ . '/social/moderation.php';
 require_once __DIR__ . '/health.php';
 require_once __DIR__ . '/area.php';
 require_once __DIR__ . '/si.php';
