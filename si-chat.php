@@ -33,11 +33,31 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
           <p class="sipo-status" id="sipoStatus" aria-live="polite">
             <?= $petName ? 'Looking after ' . rrp_h($petName) : 'Let’s meet your pet' ?>
           </p>
+          <?php $pg = $vm['thread']['progress']; ?>
+          <div class="sipo-progress" id="sipoProgress" <?= $pg && $pg['done'] < $pg['total'] ? '' : 'hidden' ?>
+            role="progressbar" aria-valuemin="0" aria-valuemax="<?= (int) ($pg['total'] ?? 7) ?>" aria-valuenow="<?= (int) ($pg['done'] ?? 0) ?>" aria-label="Profile progress">
+            <span style="width:<?= (int) ($pg['percent'] ?? 0) ?>%"></span>
+            <small>Profile <b><?= (int) ($pg['done'] ?? 0) ?>/<?= (int) ($pg['total'] ?? 7) ?></b></small>
+          </div>
         </div>
       </div>
       <?php rrp_pet_switcher($vm['switcher'], $vm['thread']['pet']); ?>
     </header>
 
+    <?php
+    $openLost = null;
+    if (!empty($vm['thread']['pet']['id'])) {
+        try {
+            $st = rrp_db()->prepare("SELECT id FROM lost_alerts WHERE pet_id = ? AND status = 'open' LIMIT 1");
+            $st->execute([(int) $vm['thread']['pet']['id']]);
+            $openLost = $st->fetchColumn() ?: null;
+        } catch (Throwable $e) {
+        }
+    }
+    ?>
+    <?php if ($openLost): ?>
+      <a class="lost-banner" href="lost.php?pet=<?= (int) $vm['thread']['pet']['id'] ?>">🔴 <?= rrp_h($petName) ?> is in Lost mode. Home? Tap Found <span aria-hidden="true">›</span></a>
+    <?php endif; ?>
     <?php if ($vm['note']): ?><div class="sipo-note" role="status"><?= rrp_h($vm['note']) ?></div><?php endif; ?>
 
     <div class="sipo-log" id="sipoLog" role="log" aria-live="polite" aria-label="Messages"></div>

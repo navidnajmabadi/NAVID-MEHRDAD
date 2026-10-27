@@ -27,6 +27,8 @@ if ($secret === '' || $secret === 'CHANGE_ME_CRON_SECRET_LONG_RANDOM' || !hash_e
 
 try {
     $stats = rrp_lost_cron_tick(50);
+    // After the last ping: ask the owner daily "Is X home?" until they tap Found.
+    $stats['owner_nudges'] = rrp_lost_owner_nudge_tick();
     echo json_encode([
         'ok' => true,
         'at' => gmdate('c'),

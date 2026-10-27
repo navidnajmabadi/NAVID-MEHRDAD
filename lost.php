@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/layout.php';
+require_once __DIR__ . '/lib/views/lost_playbook.php';
 
 $owner = rrp_require_owner();
 
@@ -9,7 +10,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
     if (rrp_verify_csrf($_POST['csrf'] ?? null)) {
         if ($action === 'lost_trigger') {
-            $result = rrp_trigger_lost((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0));
+            // Brief §D: type the pet's name once to confirm before neighbours are alerted.
+            $confirmPet = rrp_pet_by_id((int) ($_POST['pet_id'] ?? 0), (int) $owner['id']);
+            $typed = mb_strtolower(trim((string) ($_POST['confirm_name'] ?? '')));
+            if (!$confirmPet || $typed === '' || $typed !== mb_strtolower(trim((string) $confirmPet['name']))) {
+                rrp_flash_set('error', 'Type ' . ($confirmPet['name'] ?? 'the pet\'s name') . ' exactly to confirm. No alert was sent.');
+                rrp_redirect('lost.php?pet=' . (int) ($_POST['pet_id'] ?? 0));
+            }
+            $lat = is_numeric($_POST['seen_lat'] ?? null) ? round((float) $_POST['seen_lat'], 4) : null;
+            $lng = is_numeric($_POST['seen_lng'] ?? null) ? round((float) $_POST['seen_lng'], 4) : null;
+            $result = rrp_trigger_lost((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0), $lat, $lng);
+            if (!empty($result['ok']) && !empty($result['alert_id'])) {
+                $note = trim((string) ($_POST['seen_note'] ?? ''));
+                try {
+                    rrp_db()->prepare('UPDATE lost_alerts SET last_seen_lat = ?, last_seen_lng = ?, last_seen_note = ? WHERE id = ?')
+                        ->execute([$lat, $lng, $note !== '' ? mb_substr($note, 0, 255) : null, (int) $result['alert_id']]);
+                } catch (Throwable $e) {
+                    // pre-012
+                }
+            }
             if (!empty($result['ok'])) {
                 $n = (int) ($result['recipients'] ?? 0);
                 rrp_flash_set(
@@ -65,7 +84,7 @@ if ($open) {
 $pingOffsets = defined('RRP_LOST_PING_OFFSETS') ? RRP_LOST_PING_OFFSETS : [0, 3600, 10800, 28800];
 $pingCount = $open ? (int) ($open['ping_count'] ?? 0) : 0;
 
-rrp_layout_head('Lost mode — SIPAW');
+rrp_layout_head('Lost mode — SIPAW', ['extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />']);
 rrp_app_start(['nav' => 'lost']);
 ?>
 <div class="topbar">
@@ -140,8 +159,11 @@ rrp_app_start(['nav' => 'lost']);
         <input type="hidden" name="alert_id" value="<?= (int) $open['id'] ?>" />
         <button type="submit" class="btn solid">She / he is home</button>
       </form>
-      <a class="btn outline" href="lost-alert.php?id=<?= (int) $open['id'] ?>">Alert details</a>
-      <p class="sub" style="font-size:12px">Next ping: <?= rrp_h((string) ($open['next_ping_at'] ?? 'done')) ?> UTC</p>
+      <a class="btn outline" href="lost-alert.php?id=<?= (int) $open['id'] ?>">Alert details &amp; sightings</a>
+      <p class="sub" style="font-size:12px"><?= $open['next_ping_at']
+          ? 'Next reminder to neighbours: ' . rrp_h((new DateTimeImmutable((string) $open['next_ping_at'], new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($owner))->format('H:i'))
+          : 'All 3 alerts sent. SIPO will check in with you daily until ' . rrp_h($pet['name']) . ' is home.' ?></p>
+      <?php rrp_view_lost_playbook(rrp_lost_playbook($owner, $pet, $open), false); ?>
     <?php else: ?>
       <div class="box">
         <p style="margin:0 0 8px;font-weight:500">If <?= rrp_h($pet['name'] ?? 'your pet') ?> goes missing</p>
@@ -149,12 +171,37 @@ rrp_app_start(['nav' => 'lost']);
           Alert nearby SIPAW owners with photo, distinctive marks, magic word, and medical that matters.
         </p>
       </div>
-      <form method="post" onsubmit="return confirm('Turn on Lost mode for <?= rrp_h($pet['name'] ?? 'this pet') ?>? Nearby SIPAW owners will be alerted now, again in 1 hour, and a last time after 5 hours.');">
+      <form method="post" class="stack lost-trigger" style="gap:10px" id="lostTrigger">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
         <input type="hidden" name="action" value="lost_trigger" />
         <input type="hidden" name="pet_id" value="<?= (int) $petId ?>" />
-        <button type="submit" class="btn lost">Turn on Lost mode</button>
+        <input type="hidden" name="seen_lat" id="seenLat" />
+        <input type="hidden" name="seen_lng" id="seenLng" />
+        <div class="field"><label for="seenNote">Where was <?= rrp_h($pet['name'] ?? 'your pet') ?> last seen?</label>
+          <div class="in"><input id="seenNote" name="seen_note" maxlength="255" placeholder="e.g. back garden, park gate, 7 pm" /></div></div>
+        <button type="button" class="btn outline" id="seenHere"><svg aria-hidden="true"><use href="#i-pin"/></svg>I'm where they were last seen</button>
+        <div class="field"><label for="confirmName">Type <b><?= rrp_h($pet['name'] ?? '') ?></b> to confirm</label>
+          <div class="in"><input id="confirmName" name="confirm_name" autocomplete="off" required placeholder="<?= rrp_h($pet['name'] ?? '') ?>" /></div>
+          <small>Nearby SIPAW owners get <?= rrp_h($pet['name'] ?? 'your pet') ?>'s photo and details now, again in 1 hour, and a last time after 5 hours.</small></div>
+        <button type="submit" class="btn lost" id="lostGo" disabled>Turn on Lost mode</button>
       </form>
+      <script>
+      (function(){
+        var want = <?= json_encode(mb_strtolower(trim((string) ($pet['name'] ?? '')))) ?>;
+        var input = document.getElementById('confirmName'), go = document.getElementById('lostGo');
+        input.addEventListener('input', function(){ go.disabled = input.value.trim().toLowerCase() !== want; });
+        document.getElementById('seenHere').addEventListener('click', function(){
+          var b = this;
+          if (!navigator.geolocation) { b.textContent = 'Location not available'; return; }
+          b.disabled = true;
+          navigator.geolocation.getCurrentPosition(function(p){
+            document.getElementById('seenLat').value = p.coords.latitude.toFixed(4);
+            document.getElementById('seenLng').value = p.coords.longitude.toFixed(4);
+            b.textContent = '✓ Last-seen spot saved';
+          }, function(){ b.disabled = false; b.textContent = 'Location not shared, add a note instead'; }, {timeout:10000});
+        });
+      })();
+      </script>
     <?php endif; ?>
 
     <?php if ($pet): ?>

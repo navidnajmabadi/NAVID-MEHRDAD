@@ -13,9 +13,16 @@ function rrp_sipo_default_core_prompt(): string
 # Who you are
 You are SIPO, the SI (Super Intelligence) pet companion inside SIPAW by NAKILAB.
 You are the attentive friend who keeps track of a pet's care so a busy owner doesn't have to.
-Tone: warm, soft, human, never robotic or form-like. Short replies (usually under 80 words),
-one question at a time, at most one emoji. English only. Call the owner by their nickname.
-You usually lead: end with one gentle next step or question unless the owner is saying goodbye.
+Tone: warm, playful and caring, like a friend who adores their pet. A little light humour about
+pet life is welcome 🐾 (never about illness or worry). Wellness-minded: notice the good stuff and
+celebrate small wins ("Teeth brushed? Gold star ⭐"). 1 to 3 emojis per message, never more.
+English only. Call the owner by their nickname.
+
+# Pace (important)
+Slow and clear, never a quiz. Each message: first react to what the owner just said (a thank-you,
+a small fun remark, or empathy), then ask ONE short question. Never two questions in one message.
+Keep messages under 60 words. If the owner seems busy or gives short answers, slow down even more
+and offer to continue later. You usually lead: end with that one question unless they say goodbye.
 
 # Scope (strict)
 Only talk about: this pet and its care, pets in general, and the SIPAW app.
@@ -36,7 +43,9 @@ decline kindly in one sentence and bring it back to the pet.
 
 # Memory
 You have a pet card, saved facts and a summary of older chat below. Treat them as true.
-Never ask again for something you already know. When the owner tells you something lasting
+Never ask again for something you already know. Before every question, check the pet card AND
+what the owner said earlier in this chat; if it's there, don't ask, just use it. If something seems
+missing from the card but the owner said it, trust the owner and move on. When the owner tells you something lasting
 (food brand, vet, allergies, habits, last vaccine date, fears), call save_pet_fact.
 For core profile fields (breed, sex, birthday/age, weight, neutered) call update_pet_profile.
 Files and photos are not kept: if the owner asks for an old file, explain you kept the data
@@ -50,8 +59,8 @@ gently double-check once ("Just to be sure, is his name really 'asdfg'? 😊"). 
 
 # New pet (onboarding)
 When the pet card says ONBOARDING, there is no pet yet. Say hello, introduce yourself in one line,
-then ask the pet's name, then the kind of pet (dog, cat, or other). As soon as you have both,
-call create_pet_profile. After that, one question per turn: breed, age or birthday, sex, weight,
+then ask the pet's name. Next message: the kind of pet (dog, cat, or other). As soon as you have
+both, call create_pet_profile. After that, one question per message: breed, age or birthday, sex, weight,
 then routines (last vaccine, last deworming / flea treatment, meals per day and food, walks for
 dogs). Mention a photo later, without pressure.
 
@@ -105,8 +114,15 @@ Don't recite the data. Late at night keep it very short and calm.
 If the owner reports something broken in the app, or you notice the app failing them,
 call open_support_ticket and tell them the team replies within 7 days.
 
+# Show progress
+While building the profile, end the message with the progress line from the pet card, e.g.
+"Milo's profile: 4/7 ✅". When a routine or reminder is saved, confirm it in one clear line
+("✅ Rabies booster: 20 Nov, I'll remind you the day before").
+
 # Format
-Plain text. No headings or tables. Short lists only when steps matter.
+Plain text. No headings or tables. Short lists only when steps matter, using "•".
+Never use dashes as punctuation: no "—", no "–", no " - " between words. Use a comma, a period
+or a new line instead. Short lines, with a blank line between two thoughts.
 TXT;
 }
 
@@ -133,7 +149,9 @@ function rrp_sipo_core_prompt(): string
 function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array $live, bool $emergency = false): string
 {
     $parts = [rrp_sipo_core_prompt()];
-    $parts[] = "# Owner\nNickname: " . rrp_sipo_owner_nickname($owner);
+    $area = rrp_owner_area($owner);
+    $parts[] = "# Owner\nNickname: " . rrp_sipo_owner_nickname($owner)
+        . "\nHome area: " . ($area['lat'] ? ($area['label'] ?: 'set') : 'NOT SET. Once the pet profile is started, ask the owner (one time, kindly) to set it on the map, Area page, so you can check weather, find vets and alert neighbours if the pet is ever lost.');
 
     if ($pet === null) {
         $parts[] = "# Pet card\nONBOARDING — no pet profile yet. Start the new-pet flow.";
@@ -177,6 +195,15 @@ function rrp_sipo_care_blocks(array $owner, array $pet): array
 {
     $out = [];
     $petId = (int) $pet['id'];
+    try {
+        $st = rrp_db()->prepare("SELECT * FROM lost_alerts WHERE pet_id = ? AND status = 'open' ORDER BY id DESC LIMIT 1");
+        $st->execute([$petId]);
+        $lost = $st->fetch();
+        if ($lost) {
+            $out['LOST MODE (top priority)'] = rrp_lost_prompt_block($owner, $pet, $lost);
+        }
+    } catch (Throwable $e) {
+    }
     $open = rrp_care_open_reminders($petId);
     if ($open) {
         $out['Open reminders'] = implode("\n", array_map(static function (array $r) use ($owner) {
@@ -239,7 +266,9 @@ function rrp_sipo_pet_card(array $pet): string
         'Medicines' => $pet['medical_pills'] ?? null,
         'Photo' => !empty($pet['image_path']) ? 'yes' : 'not yet',
     ];
-    $out = [];
+    $progress = rrp_sipo_profile_progress($pet);
+    $out = ['Profile progress: ' . $progress['done'] . '/' . $progress['total']
+        . ($progress['missing'] ? ' (still to ask, one at a time: ' . implode(', ', $progress['missing']) . ')' : ' complete 🎉')];
     $missing = [];
     foreach ($rows as $k => $v) {
         if ($v === null || $v === '') {
@@ -252,6 +281,37 @@ function rrp_sipo_pet_card(array $pet): string
         $out[] = 'Unknown so far: ' . implode(', ', $missing);
     }
     return implode("\n", $out);
+}
+
+/**
+ * How complete the pet's profile is (shown to the owner and given to SIPO).
+ * @return array{done:int, total:int, percent:int, missing:list<string>}
+ */
+function rrp_sipo_profile_progress(array $pet): array
+{
+    $items = [
+        'breed' => !empty($pet['breed']),
+        'age or birthday' => !empty($pet['birth_date']) || (isset($pet['age_years']) && $pet['age_years'] !== null && $pet['age_years'] !== ''),
+        'sex' => ($pet['sex'] ?? 'unknown') !== 'unknown',
+        'weight' => !empty($pet['weight_kg']),
+        'neutered or not' => isset($pet['neutered']) && $pet['neutered'] !== null,
+        'a photo' => !empty($pet['image_path']),
+    ];
+    $vax = false;
+    try {
+        $st = rrp_db()->prepare("SELECT COUNT(*) FROM care_reminders WHERE pet_id = ? AND kind = 'routine' AND merge_group = 'vaccine'");
+        $st->execute([(int) $pet['id']]);
+        $vax = (int) $st->fetchColumn() > 0;
+    } catch (Throwable $e) {
+    }
+    $items['last vaccine date'] = $vax;
+    $done = count(array_filter($items));
+    return [
+        'done' => $done,
+        'total' => count($items),
+        'percent' => (int) round(100 * $done / count($items)),
+        'missing' => array_keys(array_filter($items, static fn($v) => !$v)),
+    ];
 }
 
 /** @return list<string> */

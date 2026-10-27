@@ -97,9 +97,28 @@ function rrp_sipo_current_pet(array $owner, ?array $pets = null): ?array
 // Messages
 // -----------------------------------------------------------------------------
 
+/**
+ * Owner feedback (2026-10-28): no dashes in SIPO's voice. Number ranges keep a plain hyphen,
+ * dash punctuation becomes a comma, "- " bullets become "• ", divider lines are dropped.
+ */
+function rrp_sipo_clean_text(string $text): string
+{
+    $t = preg_replace('/(\d)\s*[—–]\s*(\d)/u', '$1-$2', $text) ?? $text;
+    $t = preg_replace('/^\s*[-—–_*]{3,}\s*$/mu', '', $t) ?? $t;
+    $t = preg_replace('/^(\s*)[-–—]\s+/mu', '$1• ', $t) ?? $t;
+    $t = preg_replace('/\s*[—–]\s*/u', ', ', $t) ?? $t;
+    $t = preg_replace('/(\p{L}) - (\p{L})/u', '$1, $2', $t) ?? $t;
+    $t = preg_replace('/,\s*([,.!?])/u', '$1', $t) ?? $t;
+    $t = preg_replace("/\n{3,}/", "\n\n", $t) ?? $t;
+    return trim($t);
+}
+
 function rrp_sipo_insert_message(int $threadId, string $role, string $body, int $tokens = 0, ?array $meta = null): ?array
 {
     $role = in_array($role, ['user', 'assistant'], true) ? $role : 'user';
+    if ($role === 'assistant') {
+        $body = rrp_sipo_clean_text($body);
+    }
     $body = mb_substr($body, 0, RRP_SIPO_MAX_BODY);
     $stmt = rrp_db()->prepare(
         'INSERT INTO chat_messages (thread_id, sender_role, body, token_count, meta_json) VALUES (?, ?, ?, ?, ?)'
@@ -190,6 +209,10 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'emergency' => !empty($gate['emergency']),
         'events' => [],
     ];
+    // Safety net (live bug 2026-10-28: "Is Violet a dog?" asked twice): read profile facts from
+    // the owner's words ourselves, so nothing depends on the model remembering to call a tool.
+    rrp_sipo_extract_profile($ctx);
+
     $reply = rrp_sipo_generate($ctx, null);
 
     $assistant = rrp_sipo_insert_message(
@@ -209,6 +232,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'message' => $userMsg,
         'assistant' => $assistant,
         'pet' => $ctx['pet'] ? rrp_sipo_pet_brief($ctx['pet']) : null,
+        'progress' => $ctx['pet'] ? rrp_sipo_profile_progress(rrp_pet_by_id((int) $ctx['pet']['id'], $ownerId) ?: $ctx['pet']) : null,
         'events' => $ctx['events'],
         'warning' => $reply['warning'] ?? null,
     ];
@@ -297,6 +321,75 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
     }
     rrp_sipo_track_tokens((int) $owner['id'], $tokens);
     return ['text' => 'Done 💙', 'tokens' => $tokens, 'mascot' => 'happy', 'tools' => $used, 'model' => $model];
+}
+
+/**
+ * Server-side profile extraction while the profile is incomplete. One small JSON call reads the
+ * last few messages and returns only facts the OWNER stated; we create the pet (onboarding) or
+ * fill fields that are still empty. Never overwrites known values.
+ */
+function rrp_sipo_extract_profile(array &$ctx): void
+{
+    $pet = $ctx['pet'];
+    if ($pet !== null && rrp_sipo_profile_progress($pet)['done'] >= 6) {
+        return;
+    }
+    $client = RrpOpenAiClient::product();
+    if (!$client->configured()) {
+        return;
+    }
+    // Onboarding: read further back so a name said early (e.g. Violet's chat) is still found.
+    $recent = rrp_sipo_recent_for_model($ctx['thread'], $pet === null ? 40 : 12);
+    $lines = [];
+    foreach ($recent as $m) {
+        $lines[] = ($m['sender_role'] === 'assistant' ? 'SIPO' : 'Owner') . ': ' . mb_substr((string) $m['body'], 0, 500);
+    }
+    $res = $client->json([
+        ['role' => 'system', 'content' =>
+            'Extract pet profile facts that the OWNER clearly stated in this chat. Ignore guesses and SIPO\'s questions. '
+            . 'Return JSON only: {"name":string|null,"kind":"dog"|"cat"|"bird"|"rabbit"|"hamster"|"other"|null,"other_kind":string|null,'
+            . '"breed":string|null,"sex":"male"|"female"|null,"age_years":number|null,"birth_date":"YYYY-MM-DD"|null,'
+            . '"weight_kg":number|null,"neutered":boolean|null}. Convert lb to kg. Pronouns she/her → female, he/him → male '
+            . 'only when they clearly refer to the pet.'],
+        ['role' => 'user', 'content' => implode("\n", $lines)],
+    ]);
+    if (empty($res['ok']) || !is_array($res['data'] ?? null)) {
+        return;
+    }
+    rrp_sipo_track_tokens((int) $ctx['owner']['id'], (int) ($res['usage']['total_tokens'] ?? 0));
+    $x = $res['data'];
+    $ownerId = (int) $ctx['owner']['id'];
+
+    if ($pet === null) {
+        $name = trim((string) ($x['name'] ?? ''));
+        $kind = (string) ($x['kind'] ?? '');
+        if ($name === '' || !in_array($kind, ['dog', 'cat', 'bird', 'rabbit', 'hamster', 'other'], true)) {
+            return; // not enough yet; SIPO keeps asking
+        }
+        $made = rrp_sipo_run_tool('create_pet_profile', [
+            'name' => $name, 'kind' => $kind, 'other_kind' => (string) ($x['other_kind'] ?? ''), 'breed' => (string) ($x['breed'] ?? ''),
+        ], $ctx);
+        if (empty($made['ok'])) {
+            return;
+        }
+        $pet = $ctx['pet'];
+    }
+    $fill = [];
+    foreach (['breed', 'sex', 'age_years', 'birth_date', 'weight_kg', 'neutered'] as $k) {
+        if (!isset($x[$k]) || $x[$k] === null || $x[$k] === '') {
+            continue;
+        }
+        $have = $pet[$k] ?? null;
+        $empty = $have === null || $have === '' || ($k === 'sex' && $have === 'unknown');
+        if ($empty) {
+            $fill[$k] = $x[$k];
+        }
+    }
+    if ($fill) {
+        rrp_sipo_update_pet_fields((int) $pet['id'], $ownerId, $fill);
+        $ctx['pet'] = rrp_pet_by_id((int) $pet['id'], $ownerId) ?: $pet;
+        $ctx['events'][] = 'profile_updated';
+    }
 }
 
 function rrp_sipo_pick_mascot(array $ctx): string
