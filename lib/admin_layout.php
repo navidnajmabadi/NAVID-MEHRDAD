@@ -10,6 +10,7 @@ function rrp_admin_nav(string $active = 'home'): void
         'tickets' => ['tickets.php', 'Tickets'],
         'coupons' => ['coupons.php', 'Coupons'],
         'brain' => ['brain.php', 'SI Brain'],
+        'sipo' => ['sipo-check.php', 'SIPO check'],
         'logs' => ['logs.php', 'Logs'],
     ];
     echo '<nav class="admin-nav" aria-label="Admin">' . "\n";

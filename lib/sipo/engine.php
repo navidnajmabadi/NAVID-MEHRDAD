@@ -248,8 +248,15 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
         if (empty($res['ok'])) {
             error_log('SIPO model error: ' . ($res['error'] ?? '?'));
             rrp_sipo_track_tokens((int) $owner['id'], $tokens);
+            $text = 'I could not think that through just now — our side has a problem, not you. The team is being told. Please try again in a few minutes 💙';
+            if (rrp_is_super_owner($owner)) {
+                // Admins see the real cause instead of a silent "snag".
+                $text .= "\n\n[Admin] OpenAI said (HTTP " . (int) ($res['status'] ?? 0) . ', model ' . ($res['model'] ?? $model) . '): '
+                    . mb_substr((string) ($res['error'] ?? 'unknown error'), 0, 300)
+                    . "\nFix in config/sipaw.php: openai.api_key, openai.models.si_chat, or set openai.fallback_model.";
+            }
             return [
-                'text' => 'I hit a small snag thinking just now 💙 Could you send that again in a moment?',
+                'text' => $text,
                 'tokens' => $tokens,
                 'mascot' => 'idle',
                 'tools' => $used,
