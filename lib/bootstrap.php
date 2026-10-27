@@ -284,6 +284,8 @@ function rrp_client_ua(): ?string
     return is_string($ua) ? substr($ua, 0, 512) : null;
 }
 
+require_once __DIR__ . '/ops/health.php';
+rrp_ops_install_handlers();
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/api.php';
 require_once __DIR__ . '/plan.php';
@@ -304,6 +306,7 @@ require_once __DIR__ . '/social/moderation.php';
 require_once __DIR__ . '/rewards/coins.php';
 require_once __DIR__ . '/rewards/program.php';
 require_once __DIR__ . '/payments/billing.php';
+require_once __DIR__ . '/insights/metrics.php';
 require_once __DIR__ . '/health.php';
 require_once __DIR__ . '/area.php';
 require_once __DIR__ . '/si.php';
