@@ -59,6 +59,7 @@ require_once __DIR__ . '/sipo/memory.php';
 require_once __DIR__ . '/sipo/prompt.php';
 require_once __DIR__ . '/sipo/tools.php';
 require_once __DIR__ . '/sipo/engine.php';
+require_once __DIR__ . '/sipo/nudges.php';
 
 /**
  * Legacy entry points — SIPO logic now lives in lib/sipo/ (PR 1).

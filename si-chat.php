@@ -5,6 +5,13 @@ require_once __DIR__ . '/lib/layout.php';
 
 // One chat per pet — the heart of SIPAW. ?new=1 opens a new-pet onboarding chat.
 $owner = rrp_require_owner();
+if (!empty($_GET['pet'])) {
+    // Push notification links open the pet they are about.
+    $linked = rrp_pet_by_id((int) $_GET['pet'], (int) $owner['id']);
+    if ($linked && (int) ($linked['is_active'] ?? 1) === 1) {
+        rrp_sipo_set_current_pet((int) $owner['id'], (int) $linked['id']);
+    }
+}
 $vm = rrp_vm_chat($owner, !empty($_GET['new']));
 $nav = rrp_owner_nav_context((int) $owner['id']);
 $csrf = rrp_csrf_token();
