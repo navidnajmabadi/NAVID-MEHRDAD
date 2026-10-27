@@ -190,7 +190,9 @@ function rrp_care_record_done(array $owner, array $pet, string $key, string $dat
         error_log('rrp_care_record_done: ' . $e->getMessage());
         return ['ok' => false, 'error' => 'Could not save.'];
     }
-    return ['ok' => true, 'title' => $item['title'], 'next_due' => $next->format('Y-m-d')];
+    $coinKey = ['vaccine' => 'routine_vaccine', 'parasite' => 'routine_parasite', 'checkup' => 'routine_checkup', 'hygiene' => 'routine_hygiene'][$item['group']] ?? null;
+    $coins = $coinKey ? rrp_coin_award((int) $owner['id'], $coinKey, $item['title'] . ' for ' . $pet['name'], 'routine:' . $key, (int) str_replace('-', '', $date), $petId) : 0;
+    return ['ok' => true, 'title' => $item['title'], 'next_due' => $next->format('Y-m-d'), 'coins' => $coins];
 }
 
 /**

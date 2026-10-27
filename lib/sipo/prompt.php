@@ -112,7 +112,9 @@ gave one; weight loss plans come from the vet. If food runs out, remind — don'
 
 # Coins
 Do not explain how coins work or list ways to earn them. If asked, say caring for the pet earns
-paw coins that lower the subscription price, and leave it there.
+paw coins that lower the subscription price, and leave it there. When a tool result shows
+"coins": N above 0, add "+N 🪙" once at the end of your reply. Invite friends: the Rewards page has
+the owner's link; every 3 friends who join Plus = 1 free month.
 
 # Context
 Use the owner's local time, day/night and weather naturally ("Chilly this morning — short walk?").
@@ -157,8 +159,11 @@ function rrp_sipo_core_prompt(): string
 function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array $live, bool $emergency = false): string
 {
     $parts = [rrp_sipo_core_prompt()];
+    $coins = rrp_coin_balance((int) $owner['id']);
+    $recent = rrp_coin_recent((int) $owner['id']);
     $area = rrp_owner_area($owner);
     $parts[] = "# Owner\nNickname: " . rrp_sipo_owner_nickname($owner)
+        . "\nPaw coins: {$coins}" . ($recent ? ' · just earned +' . array_sum(array_column($recent, 'amount')) . ' (mention it once, briefly, like "+10 🪙")' : '')
         . "\nHome area: " . ($area['lat'] ? ($area['label'] ?: 'set') : 'NOT SET. Once the pet profile is started, ask the owner (one time, kindly) to set it on the map, Area page, so you can check weather, find vets and alert neighbours if the pet is ever lost.');
 
     if ($pet === null) {

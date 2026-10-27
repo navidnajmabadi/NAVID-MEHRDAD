@@ -159,3 +159,13 @@
 .lost-spots{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px;font-size:14px}
 .lost-trigger .btn{margin:0}
 .lost-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;padding:10px 16px;background:var(--red);color:var(--on-red);font-size:14px;font-weight:600;text-decoration:none}
+
+/* —— Rewards (PR 6) —— */
+.rw-hero{align-items:center}
+.rw-hero h2{font-size:34px;margin:0}
+.rw-dots{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rw-dots span{width:34px;height:34px;display:grid;place-items:center;border:1px dashed var(--line);filter:grayscale(1);opacity:.5}
+.rw-dots span.is-on{border-style:solid;border-color:var(--blue);filter:none;opacity:1}
+.rw-dots small{color:var(--sub);font-size:12px}
+.plus-price{font-family:var(--f-display);font-size:36px;margin:6px 0 0}
+.plus-price s{font-size:18px;color:var(--meta);margin-right:8px}

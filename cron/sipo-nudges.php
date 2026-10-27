@@ -25,6 +25,8 @@ if ($secret === '' || $secret === 'CHANGE_ME_CRON_SECRET_LONG_RANDOM' || !hash_e
 
 try {
     $stats = rrp_sipo_nudge_tick(40);
+    $stats['rewards'] = rrp_rewards_tick();
+    $stats['renewals'] = rrp_billing_renewal_tick();
     echo json_encode([
         'ok' => true,
         'at' => gmdate('c'),

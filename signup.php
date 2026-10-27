@@ -12,6 +12,10 @@ try {
 }
 
 $error = null;
+if (!empty($_GET['ref']) && preg_match('/^[A-Za-z0-9]{6}$/', (string) $_GET['ref'])) {
+    setcookie('sipaw_ref', strtoupper((string) $_GET['ref']), ['expires' => time() + 30 * 86400, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax', 'secure' => rrp_request_is_https()]);
+    $_COOKIE['sipaw_ref'] = strtoupper((string) $_GET['ref']);
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (!rrp_verify_csrf($_POST['csrf'] ?? null)) {
@@ -19,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $result = rrp_register_owner($_POST);
             if (!empty($result['ok'])) {
+                rrp_referral_attach((int) $result['owner_id'], $_COOKIE['sipaw_ref'] ?? null);
                 rrp_redirect('si-chat.php?new=1');
             }
             $error = $result['error'] ?? 'Could not create account.';

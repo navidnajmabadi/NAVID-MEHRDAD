@@ -89,6 +89,23 @@ return [
         'leaderboard' => false,
     ],
 
+    // Square payments (lib/payments/billing.php). Leave empty → Plus page shows "Payments open soon".
+    // Square Developer Dashboard → your app → Credentials (access token, location) and Webhooks
+    // (subscribe to payment.created + payment.updated, URL below, copy the signature key).
+    'square' => [
+        'environment' => 'sandbox',           // 'production' when live
+        'access_token' => '',
+        'location_id' => '',
+        'webhook_signature_key' => '',
+        'webhook_url' => 'https://sipaw.nakilab.com/api/square/webhook.php',
+    ],
+    'billing' => [
+        'monthly_cents' => 1999,              // USD 19.99 (v1 decision); change any time
+        'yearly_cents' => null,               // set to show a yearly option
+        'currency' => 'USD',
+    ],
+    // Coin amounts can be tuned without code: 'coins' => ['rules' => ['routine_vaccine' => 10, …]],
+
     // SIPO limits (lib/sipo/limits.php). free_daily_msgs 0 = unlimited (test mode).
     'sipo' => [
         'cooldown_tokens' => 100000,
