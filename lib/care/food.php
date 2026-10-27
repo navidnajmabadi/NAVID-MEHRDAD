@@ -193,7 +193,9 @@ function rrp_food_save(array $owner, array $pet, array $d): array
     if ($grams !== null && $kind !== 'treat') {
         rrp_db()->prepare('UPDATE pet_foods SET daily_grams = COALESCE(daily_grams, ?) WHERE id = ?')->execute([$grams, $id]);
     }
-    return ['ok' => true, 'id' => $id, 'warnings' => $warnings, 'grams_per_day' => $grams];
+    $coins = !empty($d['kcal_per_kg']) || !empty($d['kcal_per_cup'])
+        ? rrp_coin_award((int) $owner['id'], 'food_label', 'Food details for ' . $pet['name'], 'pet_food', $id, (int) $pet['id']) : 0;
+    return ['ok' => true, 'id' => $id, 'warnings' => $warnings, 'grams_per_day' => $grams, 'coins' => $coins];
 }
 
 function rrp_food_get(int $petId, int $id): ?array
@@ -247,7 +249,8 @@ function rrp_food_log_meal(array $owner, array $pet, array $d): array
         'INSERT INTO feeding_logs (pet_id, food_id, fed_on, grams, kcal, liked, note, logged_at) VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())'
     )->execute([(int) $pet['id'], $food['id'] ?? null, $now->format('Y-m-d'), $grams, $kcal, $liked,
         isset($d['note']) ? mb_substr((string) $d['note'], 0, 255) : (empty($food) && !empty($d['food_name']) ? mb_substr((string) $d['food_name'], 0, 255) : null)]);
-    return ['ok' => true, 'kcal' => $kcal, 'today' => rrp_food_today($owner, $pet)];
+    $coins = rrp_coin_award((int) $owner['id'], 'meal_log', 'Meal logged for ' . $pet['name'], null, null, (int) $pet['id']);
+    return ['ok' => true, 'kcal' => $kcal, 'today' => rrp_food_today($owner, $pet), 'coins' => $coins];
 }
 
 /** @return array{eaten_kcal:float, target_kcal:?int, meals:int, unknown_meals:int, percent:?int} */

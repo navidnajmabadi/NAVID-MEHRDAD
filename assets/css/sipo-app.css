@@ -146,3 +146,12 @@
 @media (prefers-reduced-motion:reduce){.sipo-progress span{transition:none}}
 .lost-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--red);color:var(--on-red);font-size:14px;font-weight:600;text-decoration:none;flex:none}
 .sipo-notif .btn{width:auto;margin-top:8px;min-height:40px;padding:0 14px;font-size:11px}
+
+/* —— Paw coin badge (PR 6) —— */
+.coin-badge{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 10px;border:1px solid var(--line);color:var(--text);text-decoration:none;font-size:13px;flex:none}
+.coin-badge .paw-coin{display:block}
+.coin-badge.is-bump{animation:coin-bump .9s ease}
+@keyframes coin-bump{0%,100%{transform:none}30%{transform:scale(1.15)}}
+.sipo-top-right{display:flex;align-items:center;gap:8px;min-width:0}
+@media (max-width:380px){.sipo-top-right .petswitch-name{max-width:70px}}
+@media (prefers-reduced-motion:reduce){.coin-badge.is-bump{animation:none}}

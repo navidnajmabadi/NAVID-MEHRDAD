@@ -163,6 +163,11 @@
       }
     }
     if (j.progress) showProgress(j.progress);
+    if (typeof j.coins === "number") {
+      document.querySelectorAll("[data-coin-balance]").forEach(function (el) {
+        if (Number(el.textContent) !== j.coins) { el.textContent = j.coins; el.parentNode.classList.add("is-bump"); setTimeout(function () { el.parentNode.classList.remove("is-bump"); }, 900); }
+      });
+    }
     if (j.reminders && j.reminders.length) j.reminders.forEach(armReminder);
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.

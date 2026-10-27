@@ -129,7 +129,8 @@ function rrp_treatment_log(array $owner, array $pet, int $treatmentId, string $t
          ON DUPLICATE KEY UPDATE trend = VALUES(trend), med_given = COALESCE(VALUES(med_given), med_given),
                                  note = COALESCE(VALUES(note), note)'
     )->execute([$treatmentId, $day, $trend, $medGiven === null ? null : ($medGiven ? 1 : 0), $note ? mb_substr($note, 0, 500) : null]);
-    return ['ok' => true, 'worse_streak' => rrp_treatment_worse_streak($treatmentId)];
+    $coins = rrp_coin_award((int) $owner['id'], 'treatment_log', 'Treatment check-in for ' . $pet['name'], 'treatment', $treatmentId, (int) $pet['id']);
+    return ['ok' => true, 'worse_streak' => rrp_treatment_worse_streak($treatmentId), 'coins' => $coins];
 }
 
 /** Consecutive "worse" days ending today — SIPO suggests calling the vet at 2+. */

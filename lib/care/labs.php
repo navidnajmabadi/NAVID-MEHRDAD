@@ -121,7 +121,13 @@ function rrp_labs_save(array $owner, array $pet, array $lab, string $source = 'u
         error_log('rrp_labs_save: ' . $e->getMessage());
         return ['ok' => false, 'error' => 'Could not save the results.'];
     }
-    return ['ok' => true, 'exam_id' => $examId, 'date' => $date, 'counts' => $counts, 'abnormal' => $abnormal];
+    // Same report sent twice (same date + same values) earns once.
+    $fp = $date;
+    foreach ($results as $r) {
+        $fp .= '|' . rrp_lab_key((string) ($r['key'] ?? $r['label'] ?? '')) . '=' . ($r['value'] ?? '');
+    }
+    $coins = rrp_coin_award((int) $owner['id'], 'lab_report', 'Lab report for ' . $pet['name'], 'lab:' . (int) $pet['id'], (int) sprintf('%u', crc32($fp)) % 4000000000, (int) $pet['id']);
+    return ['ok' => true, 'exam_id' => $examId, 'date' => $date, 'counts' => $counts, 'abnormal' => $abnormal, 'coins' => $coins];
 }
 
 /**

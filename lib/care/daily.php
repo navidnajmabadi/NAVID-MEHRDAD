@@ -40,7 +40,8 @@ function rrp_bath_log(array $owner, array $pet, string $kind, ?string $stool = n
         in_array($source, ['chat', 'button', 'manual'], true) ? $source : 'chat',
         $at->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s'), $at->format('Y-m-d'),
     ]);
-    return ['ok' => true, 'summary' => rrp_bath_summary($owner, $pet, false)];
+    $coins = rrp_coin_award((int) $owner['id'], 'bathroom_log', 'Bathroom log for ' . $pet['name'], null, null, (int) $pet['id']);
+    return ['ok' => true, 'summary' => rrp_bath_summary($owner, $pet, false), 'coins' => $coins];
 }
 
 function rrp_median(array $xs): float
@@ -179,7 +180,8 @@ function rrp_walk_log(array $owner, array $pet, int $minutes, ?int $distanceM = 
         $w['text'] ?? null, $note ? mb_substr($note, 0, 255) : null,
     ]);
     $id = (int) rrp_db()->lastInsertId();
-    return ['ok' => true, 'id' => $id, 'summary' => rrp_walk_summary($owner, $pet)];
+    $coins = $minutes >= 10 ? rrp_coin_award((int) $owner['id'], 'walk', 'Walk with ' . $pet['name'], 'walk', $id, (int) $pet['id']) : 0;
+    return ['ok' => true, 'id' => $id, 'summary' => rrp_walk_summary($owner, $pet), 'coins' => $coins];
 }
 
 /** Keep valid points, cap count by uniform sampling (always keeps start/end). */

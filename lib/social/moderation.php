@@ -105,6 +105,7 @@ function rrp_mod_remove(string $type, int $id, int $authorId, string $reason, st
     rrp_db()->prepare("UPDATE {$table} SET moderation_status = 'removed', ai_flagged = ?, removed_reason = ?, removed_at = UTC_TIMESTAMP() WHERE id = ?")
         ->execute([$source === 'ai' ? 1 : 0, mb_substr($reason, 0, 160), $id]);
     rrp_mod_log($authorId, $type, $id, 'removed', $source, $reason, $cats, $excerpt, $adminId);
+    rrp_coin_revoke($authorId, $type === 'comment' ? 'comment' : 'post', $type === 'comment' ? 'forum_comment' : 'forum_post', $id, 'Removed ' . $type);
     $n = rrp_mod_removal_count($authorId);
     rrp_notify_owner_inbox($authorId, 'moderation', 'Your ' . $type . ' was removed',
         $reason . "\n\nSIPAW boards are for friendly pet talk. Removals so far: {$n} of " . RRP_MOD_SUSPEND_AFTER . ' allowed.');

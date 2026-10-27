@@ -41,7 +41,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
           </div>
         </div>
       </div>
-      <?php rrp_pet_switcher($vm['switcher'], $vm['thread']['pet']); ?>
+      <div class="sipo-top-right"><?php rrp_coin_badge($owner); ?><?php rrp_pet_switcher($vm['switcher'], $vm['thread']['pet']); ?></div>
     </header>
 
     <?php

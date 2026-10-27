@@ -46,6 +46,10 @@ function rrp_owner_plan(array $owner): string
         return 'plus';
     }
     $plan = strtolower((string) ($owner['plan'] ?? 'free'));
+    // Paid months run out; NULL expiry = manual/tester Plus that never ends.
+    if ($plan === 'plus' && !empty($owner['plan_expires_at']) && strtotime((string) $owner['plan_expires_at'] . ' UTC') < time()) {
+        return 'free';
+    }
     return $plan === 'plus' ? 'plus' : 'free';
 }
 

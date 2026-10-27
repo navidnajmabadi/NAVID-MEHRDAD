@@ -111,7 +111,8 @@ function rrp_forum_create_post(int $ownerId, int $petId, string $body, ?array $p
         return ['ok' => false, 'removed' => true, 'post_id' => $id, 'reason' => $check['reason'], 'suspended' => $m['suspended'],
             'error' => rrp_mod_owner_message((string) $check['reason'], $m)];
     }
-    return ['ok' => true, 'post_id' => $id];
+    $coins = rrp_coin_award($ownerId, 'post', 'Post on the boards', 'forum_post', $id, $petId);
+    return ['ok' => true, 'post_id' => $id, 'coins' => $coins];
 }
 
 /** value: 1 like, -1 dislike, 0 clear. Same value twice clears it (toggle). */
@@ -210,7 +211,8 @@ function rrp_forum_add_comment(int $ownerId, int $petId, int $postId, string $bo
     if ((int) $post['owner_id'] !== $ownerId) {
         rrp_notify_owner_inbox((int) $post['owner_id'], 'forum_comment', $pet['name'] . ' commented on ' . $post['pet_name'] . "'s post", mb_substr($body, 0, 140));
     }
-    return ['ok' => true, 'comment_id' => $id];
+    $coins = rrp_coin_award($ownerId, 'comment', 'Comment on the boards', 'forum_comment', $id, $petId);
+    return ['ok' => true, 'comment_id' => $id, 'coins' => $coins];
 }
 
 /** Author deletes their own post. */

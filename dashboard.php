@@ -83,6 +83,7 @@ rrp_app_start(['nav' => 'home']);
 <div class="homehead">
   <a href="dashboard.php" aria-label="SIPAW home"><?php rrp_logo_endorsed(); ?></a>
   <div class="row" style="gap:10px">
+    <?php rrp_coin_badge($owner); ?>
     <a class="iconbtn" href="alerts.php" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg></a>
     <a class="avatar" href="account.php" aria-label="Account"><?= rrp_h($initial) ?></a>
   </div>
