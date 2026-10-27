@@ -16,6 +16,9 @@ const RRP_CARE_SOURCES = [
     'capc' => ['Companion Animal Parasite Council recommendations', 'https://capcvet.org/articles/capc-recommendations/'],
     'esccap' => ['ESCCAP Guideline 01: Worm control in dogs and cats', 'https://www.esccap.org/guidelines/gl1/'],
     'nutrition' => ['WSAVA Global Nutrition Guidelines', 'https://wsava.org/global-guidelines/global-nutrition-guidelines/'],
+    'avma_dental' => ['AVMA: pet dental care', 'https://www.avma.org/resources-tools/pet-owners/petcare/pet-dental-care'],
+    'aspca_groom' => ['ASPCA: dog grooming tips', 'https://www.aspca.org/pet-care/dog-care/dog-grooming-tips'],
+    'aspca_cat_groom' => ['ASPCA: cat grooming tips', 'https://www.aspca.org/pet-care/cat-care/cat-grooming-tips'],
     'merck_nutrition' => ['Merck Veterinary Manual: nutritional requirements of small animals', 'https://www.merckvetmanual.com/management-and-nutrition/nutrition-small-animals/nutritional-requirements-of-small-animals'],
 ];
 
@@ -133,6 +136,48 @@ function rrp_care_catalog(string $species, string $region, ?string $lifestyle = 
             'sources' => $region === 'na' ? ['capc'] : ['esccap'],
             'ask' => 'When did she last get flea protection?',
         ];
+    }
+
+    // Grooming, teeth, baths (brief §C3). Owner can change any interval with SIPO.
+    if ($isDog || $isCat) {
+        $him = $isDog ? 'his' : 'her';
+        $rows[] = [
+            'key' => $species . '_teeth', 'group' => 'hygiene', 'title' => 'Tooth brushing',
+            'interval_days' => 1, 'when' => 'Daily is best; a few times a week still helps',
+            'note' => 'Use pet toothpaste — human toothpaste is not safe for pets.',
+            'sources' => ['avma_dental'],
+            'ask' => "Do you brush {$him} teeth? How often would be realistic for you?",
+        ];
+        $rows[] = [
+            'key' => $species . '_nails', 'group' => 'hygiene', 'title' => 'Nail trim',
+            'interval_days' => $isDog ? 28 : 14, 'when' => $isDog ? 'Every 3–4 weeks, or when nails click on the floor' : 'Every 10–14 days',
+            'note' => 'Avoid the pink quick; ask the vet or a groomer to show you once.',
+            'sources' => [$isDog ? 'aspca_groom' : 'aspca_cat_groom'],
+            'ask' => 'When were the nails last trimmed?',
+        ];
+        $rows[] = [
+            'key' => $species . '_coat', 'group' => 'hygiene', 'title' => 'Coat brushing',
+            'interval_days' => 7, 'when' => 'Weekly for short coats; long coats several times a week',
+            'note' => 'Brushing is also a good moment to check the skin, lumps and ticks.',
+            'sources' => [$isDog ? 'aspca_groom' : 'aspca_cat_groom'],
+            'ask' => 'How often does the coat get brushed?',
+        ];
+        if ($isDog) {
+            $rows[] = [
+                'key' => 'dog_bath', 'group' => 'hygiene', 'title' => 'Bath',
+                'interval_days' => 90, 'when' => 'About every 3 months; more if he gets dirty or has a skin condition',
+                'note' => 'Bathing too often can irritate the skin. Use a dog shampoo.',
+                'sources' => ['aspca_groom'],
+                'ask' => 'When did he last have a bath?',
+            ];
+            $rows[] = [
+                'key' => 'dog_ears', 'group' => 'hygiene', 'title' => 'Ear check',
+                'interval_days' => 7, 'when' => 'Weekly look and sniff; clean only if your vet advises',
+                'note' => 'Redness, smell or head shaking → vet.',
+                'sources' => ['aspca_groom'],
+                'ask' => 'Do you check his ears regularly?',
+            ];
+        }
     }
 
     // Every species

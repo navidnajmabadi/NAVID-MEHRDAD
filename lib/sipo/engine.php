@@ -389,6 +389,8 @@ function rrp_sipo_proactive_instruction(string $kind, bool $hasPet): string
             . '(meal, walk, mood, bathroom) or follow up on something unresolved from the summary.',
         'profile_gap' => 'Kindly ask for ONE missing profile item that would improve care, and say why in a few words.',
         'reminder' => 'Follow up on an overdue or due-today reminder: ask if it happened, offer to find a vet.',
+        'walk' => 'No walk logged yet today. Suggest a good time from the walk window and weather in Daily life, '
+            . 'warmly, and mention the walk tracker on the Daily page.',
         default => 'Say hello and ask how the pet is.',
     };
 }

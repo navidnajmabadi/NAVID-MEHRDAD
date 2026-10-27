@@ -120,6 +120,22 @@ function rrp_sipo_care_tool_defs(callable $fn): array
             'food_id' => ['type' => 'integer'], 'remaining_grams' => ['type' => 'number'],
             'new_package' => ['type' => 'boolean'], 'daily_grams' => ['type' => 'number'],
         ], ['food_id']),
+        $fn('log_bathroom', 'Log a pee, poop, accident or vomit the owner reports (one call per event).', [
+            'kind' => ['type' => 'string', 'enum' => ['pee', 'poop', 'accident', 'vomit']],
+            'stool' => ['type' => 'string', 'enum' => ['normal', 'soft', 'diarrhea', 'hard', 'blood', 'mucus']],
+            'at' => ['type' => 'string', 'description' => 'Local HH:MM if not just now'],
+            'note' => ['type' => 'string'],
+        ], ['kind']),
+        $fn('log_walk', 'Log a walk: minutes, and km if known.', [
+            'minutes' => ['type' => 'integer'], 'km' => ['type' => 'number'], 'note' => ['type' => 'string'],
+        ], ['minutes']),
+        $fn('set_walk_goal', 'Daily walk goal in minutes (from the owner or their vet).', [
+            'minutes_per_day' => ['type' => 'integer'],
+        ], ['minutes_per_day']),
+        $fn('routine_plan', 'Start a routine at the owner\'s chosen rhythm (e.g. teeth every day, bath every 60 days).', [
+            'routine_key' => ['type' => 'string'], 'interval_days' => ['type' => 'integer'],
+            'start' => ['type' => 'string', 'description' => 'YYYY-MM-DD[ HH:MM] local; default today'],
+        ], ['routine_key', 'interval_days']),
         $fn('set_meal_times', 'Save the meal routine; SIPO checks in after each meal.', [
             'times' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => 'Local HH:MM'],
             'portion_note' => ['type' => 'string'],
@@ -218,6 +234,10 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
         case 'food_log_meal':
         case 'food_supply':
         case 'set_meal_times':
+        case 'log_bathroom':
+        case 'log_walk':
+        case 'set_walk_goal':
+        case 'routine_plan':
             if ($pet === null) {
                 return ['ok' => false, 'error' => 'No pet yet.'];
             }
@@ -284,6 +304,11 @@ function rrp_sipo_run_care_tool(string $name, array $a, array $owner, array $pet
                 isset($a['remaining_grams']) ? (float) $a['remaining_grams'] : null, !empty($a['new_package']),
                 isset($a['daily_grams']) ? (float) $a['daily_grams'] : null),
             'set_meal_times' => rrp_food_set_meal_times($pet, (array) ($a['times'] ?? []), $str('portion_note')),
+            'log_bathroom' => rrp_bath_log($owner, $pet, (string) ($a['kind'] ?? ''), $str('stool'), $str('note'), 'chat', $str('at')),
+            'log_walk' => rrp_walk_log($owner, $pet, (int) ($a['minutes'] ?? 0),
+                isset($a['km']) && is_numeric($a['km']) ? (int) round((float) $a['km'] * 1000) : null, null, 'chat', null, $str('note')),
+            'set_walk_goal' => rrp_walk_set_goal($pet, (int) ($a['minutes_per_day'] ?? 0)),
+            'routine_plan' => rrp_care_plan($owner, $pet, (string) ($a['routine_key'] ?? ''), (int) ($a['interval_days'] ?? 0), $str('start')),
             default => ['ok' => false, 'error' => 'Unknown tool'],
         };
     } catch (Throwable $e) {

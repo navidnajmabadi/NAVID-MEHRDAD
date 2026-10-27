@@ -149,7 +149,14 @@ function rrp_care_record_done(array $owner, array $pet, string $key, string $dat
     if ($date > $today) {
         return ['ok' => false, 'error' => 'That date is in the future — use set_reminder for upcoming visits.'];
     }
-    $interval = $intervalDays !== null && $intervalDays >= 7 && $intervalDays <= 1200 ? $intervalDays : $item['interval_days'];
+    if ($intervalDays === null) {
+        foreach (rrp_sipo_facts((int) $pet['id']) as $f) {
+            if ($f['fact_key'] === 'interval_' . $key && ctype_digit($f['fact_value'])) {
+                $intervalDays = (int) $f['fact_value'];
+            }
+        }
+    }
+    $interval = $intervalDays !== null && $intervalDays >= 1 && $intervalDays <= 1200 ? $intervalDays : $item['interval_days'];
     $next = (new DateTimeImmutable($date))->modify('+' . $interval . ' days');
     $nextUtc = rrp_sipo_local_to_utc($next->format('Y-m-d'), $owner) ?? $next->format('Y-m-d 09:00:00');
     $petId = (int) $pet['id'];
@@ -184,6 +191,42 @@ function rrp_care_record_done(array $owner, array $pet, string $key, string $dat
         return ['ok' => false, 'error' => 'Could not save.'];
     }
     return ['ok' => true, 'title' => $item['title'], 'next_due' => $next->format('Y-m-d')];
+}
+
+/**
+ * Start a routine from a date (no "last done" needed), e.g. "brush teeth every 2 days from today".
+ * @return array{ok:bool, error?:string, next_due?:string}
+ */
+function rrp_care_plan(array $owner, array $pet, string $key, int $intervalDays, ?string $startLocal = null): array
+{
+    $item = null;
+    foreach (rrp_care_catalog(rrp_care_species($pet), rrp_care_region($owner, $pet), $pet['lifestyle'] ?? null) as $c) {
+        if ($c['key'] === $key) {
+            $item = $c;
+        }
+    }
+    if (!$item) {
+        return ['ok' => false, 'error' => 'Unknown routine ' . $key . '.'];
+    }
+    if ($intervalDays < 1 || $intervalDays > 1200) {
+        return ['ok' => false, 'error' => 'Interval must be 1–1200 days.'];
+    }
+    $start = $startLocal && preg_match('/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2})?$/', $startLocal) ? $startLocal : rrp_sipo_local_now($owner)->format('Y-m-d');
+    $due = rrp_sipo_local_to_utc($start, $owner);
+    if ($due === null) {
+        return ['ok' => false, 'error' => 'Bad start date.'];
+    }
+    rrp_db()->prepare(
+        "UPDATE care_reminders SET status = 'dismissed', outcome = 'rescheduled'
+         WHERE pet_id = ? AND kind = 'routine' AND routine_key = ? AND status IN ('scheduled','sent','snoozed','pending_approval')"
+    )->execute([(int) $pet['id'], $key]);
+    rrp_db()->prepare(
+        "INSERT INTO care_reminders (pet_id, kind, routine_key, title, due_at, status, merge_group, approved_at, outcome_note)
+         VALUES (?, 'routine', ?, ?, ?, 'scheduled', ?, UTC_TIMESTAMP(), ?)"
+    )->execute([(int) $pet['id'], $key, $item['title'], $due, $item['group'], 'every ' . $intervalDays . ' days']);
+    // Remember the owner's rhythm so "done" books the next one at the same interval.
+    rrp_sipo_save_fact((int) $owner['id'], (int) $pet['id'], 'interval_' . $key, (string) $intervalDays, 'routine');
+    return ['ok' => true, 'next_due' => substr($start, 0, 10)];
 }
 
 /**
@@ -253,6 +296,16 @@ function rrp_care_followup_due(array $r, array $owner, array $pet, int $now): ?a
     $localDue = (new DateTimeImmutable('@' . $due))->setTimezone(rrp_sipo_owner_tz($owner));
     $when = $localDue->format('G') !== '9' || $localDue->format('i') !== '00' ? ' at ' . $localDue->format('H:i') : '';
 
+    // Grooming / teeth / baths: one gentle nudge on the day, one check the next day, then stop.
+    if (($r['merge_group'] ?? '') === 'hygiene') {
+        if ($stage < 2 && $due - $now <= 3 * 3600 && $now - $due < 18 * 3600) {
+            return ['stage' => 2, 'text' => "Little care moment: {$title} for {$name} today?"];
+        }
+        if ($stage < 5 && $now - $due >= 20 * 3600) {
+            return ['stage' => 5, 'text' => "Did {$name}'s {$title} happen? Just say \"done\" — or tell me a better rhythm and I'll adjust."];
+        }
+        return null;
+    }
     if ($stage === 0 && $due - $now <= 30 * 3600 && $due - $now > 6 * 3600) {
         return ['stage' => 1, 'text' => "Heads up: {$name}'s {$title} is tomorrow{$when}. Is it booked? I can find a vet nearby if you need one."];
     }
