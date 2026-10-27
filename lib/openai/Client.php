@@ -273,14 +273,42 @@ final class RrpOpenAiClient
      * JSON-mode call (vision/files allowed in $messages content parts).
      * @return array{ok:bool, data?:array, error?:string, usage?:array, gate?:string}
      */
+    /**
+     * Models that ignore JSON mode often wrap the object in ```json fences or a sentence.
+     * Take the first {...} block that decodes.
+     */
+    public static function parseJson(string $text): ?array
+    {
+        $t = trim($text);
+        $d = json_decode($t, true);
+        if (is_array($d)) {
+            return $d;
+        }
+        $t = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', $t) ?? $t;
+        $d = json_decode(trim($t), true);
+        if (is_array($d)) {
+            return $d;
+        }
+        $start = strpos($t, '{');
+        $end = strrpos($t, '}');
+        if ($start !== false && $end !== false && $end > $start) {
+            $d = json_decode(substr($t, $start, $end - $start + 1), true);
+            if (is_array($d)) {
+                return $d;
+            }
+        }
+        return null;
+    }
+
     public function json(array $messages, ?string $model = null): array
     {
         $res = $this->complete($messages, [], $model, 0.1, ['response_format' => ['type' => 'json_object']]);
         if (empty($res['ok'])) {
             return $res;
         }
-        $data = json_decode((string) $res['content'], true);
+        $data = self::parseJson((string) $res['content']);
         if (!is_array($data)) {
+            error_log('OpenAI json(): unparseable reply from ' . ($res['model'] ?? '?') . ': ' . mb_substr((string) $res['content'], 0, 200));
             return ['ok' => false, 'error' => 'Model did not return JSON.'];
         }
         return ['ok' => true, 'data' => $data, 'usage' => $res['usage'] ?? [], 'model' => $res['model'] ?? null];

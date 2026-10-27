@@ -207,7 +207,7 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
 
         case 'set_reminder':
             if ($pet === null) {
-                return ['ok' => false, 'error' => 'No pet yet.'];
+                return ['ok' => false, 'error' => 'The pet profile is not created yet: get the name and kind first, then set the reminder.'];
             }
             $due = rrp_sipo_local_to_utc((string) ($args['due'] ?? ''), $owner);
             if ($due === null) {
@@ -220,8 +220,12 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
             ]);
             if (!empty($res['ok'])) {
                 $ctx['events'][] = 'reminder_set';
+                // The open chat can fire short reminders exactly on time (cron runs every 10–15 min).
+                $ctx['reminders'][] = ['id' => (int) $res['reminder_id'], 'title' => (string) ($args['title'] ?? ''), 'due_utc' => $due];
             }
-            return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null];
+            $localDue = (new DateTimeImmutable($due, new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($owner));
+            return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null,
+                'will_notify_at_local' => $localDue->format('Y-m-d H:i'), 'channel' => 'phone notification + this chat'];
 
         case 'care_record_done':
         case 'reminder_outcome':

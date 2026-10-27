@@ -145,3 +145,4 @@
 .sipo-progress small{position:relative;display:block;padding-left:6px;font-family:var(--f-data);font-size:9.5px;line-height:12px;color:var(--text);letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){.sipo-progress span{transition:none}}
 .lost-banner{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--red);color:var(--on-red);font-size:14px;font-weight:600;text-decoration:none;flex:none}
+.sipo-notif .btn{width:auto;margin-top:8px;min-height:40px;padding:0 14px;font-size:11px}

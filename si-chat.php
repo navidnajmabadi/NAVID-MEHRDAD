@@ -112,6 +112,7 @@ window.SIPO_API = {
   greet: <?= json_encode(rrp_asset('api/si/greet.php')) ?>,
   messages: <?= json_encode(rrp_asset('api/si/messages.php')) ?>,
   upload: <?= json_encode(rrp_asset('api/si/upload.php')) ?>,
+  reminderFired: <?= json_encode(rrp_asset('api/si/reminder-fired.php')) ?>,
   switchPet: <?= json_encode(rrp_asset('api/pets/switch.php')) ?>
 };
 window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;

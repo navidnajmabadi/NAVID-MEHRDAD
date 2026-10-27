@@ -296,6 +296,16 @@ function rrp_care_followup_due(array $r, array $owner, array $pet, int $now): ?a
     $localDue = (new DateTimeImmutable('@' . $due))->setTimezone(rrp_sipo_owner_tz($owner));
     $when = $localDue->format('G') !== '9' || $localDue->format('i') !== '00' ? ' at ' . $localDue->format('H:i') : '';
 
+    // Owner's own reminders ("remind me in 10 min to walk Violet"): one ping at the time, then done.
+    if (($r['kind'] ?? '') === 'custom' && ($r['merge_group'] ?? '') === '') {
+        if ($stage < 2 && $now >= $due - 90 && $now - $due < 6 * 3600) {
+            return ['stage' => 5, 'text' => "⏰ Reminder: {$title}"];
+        }
+        if ($stage < 2 && $now - $due >= 6 * 3600) {
+            return ['stage' => 5, 'text' => "⏰ Earlier reminder I couldn't deliver on time: {$title}"];
+        }
+        return null;
+    }
     // Grooming / teeth / baths: one gentle nudge on the day, one check the next day, then stop.
     if (($r['merge_group'] ?? '') === 'hygiene') {
         if ($stage < 2 && $due - $now <= 3 * 3600 && $now - $due < 18 * 3600) {

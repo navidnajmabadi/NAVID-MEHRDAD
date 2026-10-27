@@ -234,6 +234,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'pet' => $ctx['pet'] ? rrp_sipo_pet_brief($ctx['pet']) : null,
         'progress' => $ctx['pet'] ? rrp_sipo_profile_progress(rrp_pet_by_id((int) $ctx['pet']['id'], $ownerId) ?: $ctx['pet']) : null,
         'events' => $ctx['events'],
+        'reminders' => $ctx['reminders'] ?? [],
         'warning' => $reply['warning'] ?? null,
     ];
 }
