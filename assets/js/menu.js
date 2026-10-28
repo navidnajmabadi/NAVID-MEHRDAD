@@ -17,6 +17,8 @@
     el.addEventListener("click", function () {
       set(true);
       var pets = document.getElementById("sidePets");
+      var drop = pets && pets.querySelector(".side-pet-drop");
+      if (drop) drop.open = true;
       if (pets) {
         pets.scrollIntoView({ block: "start" });
         var cur = pets.querySelector("[aria-current]") || pets.querySelector("button,a");

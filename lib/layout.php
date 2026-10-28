@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 const RRP_UI_SKINS = ['studio' => 'Studio', 'friendly' => 'Friendly', 'clean' => 'Clean'];
 
-/** Appearance chosen in Settings (per device, cookie). studio = the original dark look. */
+/** Appearance chosen in Settings (per device, cookie). Default clean; studio = the original dark look. */
 function rrp_ui_skin(): string
 {
-    $s = (string) ($_COOKIE['sipaw_skin'] ?? 'studio');
-    return isset(RRP_UI_SKINS[$s]) ? $s : 'studio';
+    $s = (string) ($_COOKIE['sipaw_skin'] ?? 'clean'); // Clean is the default (Navid, 2026-10-28)
+    return isset(RRP_UI_SKINS[$s]) ? $s : 'clean';
 }
 
 function rrp_ui_set_skin(string $skin): void
@@ -201,19 +201,36 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
   </ul>
   <?php if ($owner): $sw = rrp_vm_pet_switcher($owner); ?>
     <div class="side-pets" id="sidePets">
-      <p class="label">My pets · tap to switch</p>
+      <p class="label">My pet</p>
       <?php $curId = (int) ($sw['current']['id'] ?? 0);
-      usort($sw['pets'], static fn($a, $b) => ((int) $b['id'] === $curId) <=> ((int) $a['id'] === $curId)); // showing now on top
-      foreach ($sw['pets'] as $p): $isCur = $curId === (int) $p['id']; ?>
-        <button type="button" class="side-pet" data-menu-pet="<?= (int) $p['id'] ?>"<?= $isCur ? ' aria-current="true"' : '' ?>>
-          <?php rrp_pet_avatar($p); ?><span><b><?= rrp_h($p['name']) ?></b><small><?= $isCur ? 'Showing now' : rrp_h($p['kind']) ?></small></span>
-          <?php if ($isCur): ?><svg class="side-pet-check" aria-hidden="true"><use href="#i-check"/></svg><?php endif; ?>
-        </button>
-      <?php endforeach; ?>
-      <?php if ($sw['can_add']): ?>
-        <a class="side-pet is-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add a pet</b><small>SIPO sets it up with you</small></span></a>
-      <?php elseif (!$sw['pets']): ?>
-        <a class="side-pet is-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add your pet</b></span></a>
+      $curPet = null;
+      $others = [];
+      foreach ($sw['pets'] as $p) {
+          if ((int) $p['id'] === $curId) {
+              $curPet = $p;
+          } else {
+              $others[] = $p;
+          }
+      } ?>
+      <?php if ($curPet): ?>
+        <details class="side-pet-drop">
+          <summary class="side-pet" aria-current="true">
+            <?php rrp_pet_avatar($curPet); ?><span><b><?= rrp_h($curPet['name']) ?></b><small>Showing now · tap to change</small></span>
+            <svg class="side-pet-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </summary>
+          <div class="side-pet-list">
+            <?php foreach ($others as $p): ?>
+              <button type="button" class="side-pet" data-menu-pet="<?= (int) $p['id'] ?>">
+                <?php rrp_pet_avatar($p); ?><span><b><?= rrp_h($p['name']) ?></b><small><?= rrp_h($p['kind']) ?></small></span>
+              </button>
+            <?php endforeach; ?>
+            <?php if ($sw['can_add']): ?>
+              <a class="side-pet is-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add a pet</b><small>SIPO sets it up with you</small></span></a>
+            <?php endif; ?>
+          </div>
+        </details>
+      <?php else: ?>
+        <a class="side-pet is-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add your pet</b><small>SIPO sets it up with you</small></span></a>
       <?php endif; ?>
     </div>
   <?php endif; ?>
