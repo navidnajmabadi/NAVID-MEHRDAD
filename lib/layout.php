@@ -1,21 +1,41 @@
 <?php
 declare(strict_types=1);
 
+const RRP_UI_SKINS = ['studio' => 'Studio', 'friendly' => 'Friendly', 'clean' => 'Clean'];
+
+/** Appearance chosen in Settings (per device, cookie). studio = the original dark look. */
+function rrp_ui_skin(): string
+{
+    $s = (string) ($_COOKIE['sipaw_skin'] ?? 'studio');
+    return isset(RRP_UI_SKINS[$s]) ? $s : 'studio';
+}
+
+function rrp_ui_set_skin(string $skin): void
+{
+    if (!isset(RRP_UI_SKINS[$skin])) {
+        return;
+    }
+    setcookie('sipaw_skin', $skin, ['expires' => time() + 365 * 86400, 'path' => '/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => false, 'samesite' => 'Lax']);
+    $_COOKIE['sipaw_skin'] = $skin;
+}
+
 function rrp_layout_head(string $title, array $opts = []): void
 {
     $desc = $opts['description'] ?? 'siPaw by NAKILAB — AI pet care companion and community for pet owners.';
     $extra = $opts['extra_head'] ?? '';
     $canonical = $opts['canonical'] ?? (rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/');
     $bodyClass = trim((string) ($opts['body_class'] ?? ''));
-    $theme = $opts['theme'] ?? 'dark';
+    $skin = rrp_ui_skin();
+    $theme = $opts['theme'] ?? ($skin === 'studio' ? 'dark' : 'light');
+    $skinFonts = ['friendly' => 'Nunito:wght@400;600;700;800', 'clean' => 'Figtree:wght@400;500;600;700'][$skin] ?? null;
     ?>
 <!doctype html>
-<html lang="en" data-theme="<?= rrp_h((string) $theme) ?>">
+<html lang="en" data-theme="<?= rrp_h((string) $theme) ?>"<?= $skin !== 'studio' ? ' data-skin="' . rrp_h($skin) . '"' : '' ?>>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="description" content="<?= rrp_h($desc) ?>" />
-<meta name="theme-color" content="#000000" />
+<meta name="theme-color" content="<?= ['friendly' => '#FFF8EF', 'clean' => '#F4F6FA'][$skin] ?? '#000000' ?>" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="SIPAW" />
@@ -28,6 +48,8 @@ function rrp_layout_head(string $title, array $opts = []): void
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipaw.css', true)) ?>" />
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipo-app.css', true)) ?>" />
+<?php if ($skinFonts): ?><link href="https://fonts.googleapis.com/css2?family=<?= rrp_h($skinFonts) ?>&display=swap" rel="stylesheet" /><?php endif; ?>
+<link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/skins.css', true)) ?>" />
 <meta name="rrp-sw" content="<?= rrp_h(rrp_asset('sw.js')) ?>" />
 <meta name="rrp-push-vapid" content="<?= rrp_h(rrp_asset('api/push-vapid.php')) ?>" />
 <meta name="rrp-push-subscribe" content="<?= rrp_h(rrp_asset('api/push-subscribe.php')) ?>" />
