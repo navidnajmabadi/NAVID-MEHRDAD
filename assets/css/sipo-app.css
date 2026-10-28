@@ -250,3 +250,24 @@
 .set-delete:hover{background:#e5484d;color:#fff}
 .lost-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.45}
 .side-head img,.side-head svg{height:40px;width:auto;max-width:150px}
+
+/* Quick-answer buttons under SIPO's question */
+.sipo-choices{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 8px;padding-left:4px;animation:choices-in .2s ease-out}
+@keyframes choices-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sipo-choices{animation:none}}
+.sipo-choice{min-height:38px;padding:0 14px;border:1px solid var(--blue);background:none;color:var(--text);font:inherit;font-size:14px;border-radius:19px;cursor:pointer}
+.sipo-choice:hover,.sipo-choice:focus-visible{background:var(--blue);color:#fff}
+.sipo-choice.is-other{border-style:dashed;border-color:var(--sub);color:var(--sub)}
+/* Setup progress: "Setup 2/4 · Routines" on one line */
+.sipo-progress small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+@media (max-width:480px){.sipo-progress{max-width:150px}.sipo-progress small{font-size:10px}}
+.sipo-progress em{font-style:normal}
+/* Chat header with the menu button: everything fits at 360-400px */
+@media (max-width:480px){
+  .app-main.has-tab .sipo-top{padding-left:52px;padding-right:8px;gap:6px}
+  .sipo-who{gap:8px}
+  .sipo-who sipo-mascot{width:48px;height:48px}
+  .sipo-top-right .coin-badge{padding:0 4px;gap:3px}
+  .sipo-top-right .top-actions .iconbtn{width:34px}
+  .sipo-progress{max-width:128px}
+}

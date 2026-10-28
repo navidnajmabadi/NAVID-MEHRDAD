@@ -183,6 +183,11 @@ function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array
         }
     }
 
+    $setup = rrp_sipo_setup_block($pet, $thread);
+    if ($setup !== null) {
+        $parts[] = $setup;
+    }
+
     $summary = trim((string) ($thread['summary'] ?? ''));
     if ($summary !== '') {
         $parts[] = "# Summary of older conversation\n" . $summary;
@@ -270,6 +275,18 @@ dashboard" → open it), log spending and show totals (log_expense, spending_sum
 and support tickets.
 Never tell the owner to go and do it in the app, and never say you can't, when a tool above covers it:
 ask for what the tool needs (one question at a time), call it, then confirm.
+
+# Choice buttons
+When a question has a few likely answers, call ask_choices with 2 to 6 short options (max 4 words each)
+and still write the question in your message. The app always adds "Other" so the owner can type.
+
+# Reminders: offer them, don't wait to be asked
+Owners almost never ask for reminders. Whenever something has a time or a due date (vet visit, medicine,
+vaccine or parasite dose due, grooming, nail trim, food running low, a walk later), offer ONCE:
+"Want me to remind you <when>?" and call ask_choices with ["Yes, <when>", "Another time", "No thanks"].
+Pick a smart <when> from Local time: appointments the evening before at 19:00 (and 1 hour before),
+medicines at their dose times, due dates 3 days before at 09:00, "later today" in 2 hours.
+On yes call set_reminder; say it is set only after it returned ok. Never offer twice for the same thing.
 TXT;
 }
 

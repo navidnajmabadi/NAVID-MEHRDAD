@@ -248,9 +248,10 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'message' => $userMsg,
         'assistant' => $assistant,
         'pet' => $ctx['pet'] ? rrp_sipo_pet_brief($ctx['pet']) : null,
-        'progress' => $ctx['pet'] ? rrp_sipo_profile_progress(rrp_pet_by_id((int) $ctx['pet']['id'], $ownerId) ?: $ctx['pet']) : null,
+        'progress' => rrp_sipo_setup_progress($ctx['pet'] ? (rrp_pet_by_id((int) $ctx['pet']['id'], $ownerId) ?: $ctx['pet']) : null),
         'events' => $ctx['events'],
         'navigate' => $ctx['navigate'] ?? null,
+        'choices' => $reply['choices'] ?? null,
         'reminders' => $ctx['reminders'] ?? [],
         'coins' => rrp_coin_balance($ownerId),
         'warning' => $reply['warning'] ?? null,
@@ -326,6 +327,7 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             return [
                 'text' => $text,
                 'admin_note' => $adminNote,
+                'choices' => $ctx['choices'] ?? null,
                 'tokens' => $tokens,
                 'mascot' => rrp_sipo_pick_mascot($ctx),
                 'tools' => $used,
@@ -513,15 +515,17 @@ function rrp_sipo_proactive(array $owner, array $thread, string $kind): ?array
         'assistant',
         $reply['text'],
         $reply['tokens'],
-        ['mascot' => $reply['mascot'] === 'idle' ? 'happy' : $reply['mascot'], 'proactive' => $kind, 'model' => $reply['model']]
+        ['mascot' => $reply['mascot'] === 'idle' ? 'happy' : $reply['mascot'], 'proactive' => $kind, 'model' => $reply['model'], 'choices' => $reply['choices'] ?? null]
     );
 }
 
 function rrp_sipo_proactive_instruction(string $kind, bool $hasPet): string
 {
     if (!$hasPet) {
-        return 'The owner just opened a new-pet chat. Greet them warmly by nickname, introduce yourself in one line, '
-            . 'and ask the pet\'s name. Do not call tools yet.';
+        return 'The owner just opened a new-pet chat. Greet them warmly by nickname and introduce yourself in one line. '
+            . 'Then in one line: we will set things up in 4 short sections (Pet info, Routines, Health, Money), about 6 minutes, '
+            . 'and they can say skip anytime. Then "Section 1 of 4 · Pet info (about 1 min)" with one short why, and ask only the pet\'s name. '
+            . 'Under 70 words. Do not call tools yet.';
     }
     $base = 'You are starting the conversation (the owner has not written yet). Write ONE short message (max 45 words). '
         . 'Do not call tools. Use local time and weather naturally. ';

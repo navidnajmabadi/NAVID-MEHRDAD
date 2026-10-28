@@ -10,7 +10,7 @@ require_once dirname(__DIR__) . '/finance.php';
  */
 
 const RRP_SIPO_APP_TOOLS = ['add_pet', 'switch_pet', 'list_my_pets', 'start_lost_mode', 'mark_pet_found', 'update_my_profile', 'post_to_social',
-    'open_page', 'log_expense', 'spending_summary'];
+    'open_page', 'log_expense', 'spending_summary', 'ask_choices'];
 
 /** Pages SIPO can open for the owner: key => [file, what it shows]. Missing files are skipped. */
 function rrp_sipo_app_pages(): array
@@ -74,6 +74,9 @@ function rrp_sipo_app_tool_defs(callable $fn): array
             'date' => ['type' => 'string', 'description' => 'YYYY-MM-DD local; omit for today'],
             'note' => ['type' => 'string'],
         ], ['category', 'amount']),
+        $fn('ask_choices', 'Show tap-to-answer buttons under your question (2 to 6 short options). The app adds "Other" automatically. Write the question in your message too.', [
+            'options' => ['type' => 'array', 'items' => ['type' => 'string'], 'description' => '2 to 6 options, max 4 words each'],
+        ], ['options']),
         $fn('spending_summary', 'How much the owner spent on pets: this month, last month, this year, by category.', [
             'all_pets' => ['type' => 'boolean'],
         ]),
@@ -211,6 +214,20 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
                 $ctx['events'][] = 'expense_logged';
             }
             return $res;
+
+        case 'ask_choices':
+            $opts = [];
+            foreach ((array) ($a['options'] ?? []) as $o) {
+                $o = trim(mb_substr((string) $o, 0, 40));
+                if ($o !== '' && !preg_match('/^other\b/i', $o) && !in_array($o, $opts, true)) {
+                    $opts[] = $o;
+                }
+            }
+            if (count($opts) < 2) {
+                return ['ok' => false, 'error' => 'Give 2 to 6 options.'];
+            }
+            $ctx['choices'] = array_slice($opts, 0, 6);
+            return ['ok' => true, 'note' => 'Buttons shown with an Other option. Now write the question (one question) in your reply.'];
 
         case 'spending_summary':
             $sum = rrp_expense_summary($owner, empty($a['all_pets']) ? $pet : null, 12);

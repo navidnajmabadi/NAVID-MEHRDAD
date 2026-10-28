@@ -170,6 +170,7 @@
       }
     }
     if (j.progress) showProgress(j.progress);
+    showChoices(j.choices || (j.assistant && j.assistant.choices));
     if (typeof j.coins === "number") {
       document.querySelectorAll("[data-coin-balance]").forEach(function (el) {
         if (Number(el.textContent) !== j.coins) { el.textContent = j.coins; el.parentNode.classList.add("is-bump"); setTimeout(function () { el.parentNode.classList.remove("is-bump"); }, 900); }
@@ -244,7 +245,42 @@
     progressEl.setAttribute("aria-valuenow", String(p.done));
     progressEl.querySelector("span").style.width = p.percent + "%";
     progressEl.querySelector("b").textContent = p.done + "/" + p.total;
-    if (p.done >= p.total) setStatus("Profile complete 🎉");
+    var sec = progressEl.querySelector("[data-setup-section]");
+    if (sec) sec.textContent = p.section ? "· " + p.section : "";
+    if (p.done >= p.total) setStatus("Setup complete 🎉");
+  }
+
+  // Tap-to-answer buttons under SIPO's question; "Other" lets the owner type anything.
+  var choicesEl = null;
+  function clearChoices() {
+    if (choicesEl) { choicesEl.remove(); choicesEl = null; }
+  }
+  function showChoices(options) {
+    clearChoices();
+    if (!options || !options.length) return;
+    choicesEl = document.createElement("div");
+    choicesEl.className = "sipo-choices";
+    choicesEl.setAttribute("role", "group");
+    choicesEl.setAttribute("aria-label", "Quick answers");
+    options.concat(["Other…"]).forEach(function (label, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "sipo-choice" + (i === options.length ? " is-other" : "");
+      b.textContent = label;
+      b.addEventListener("click", function () {
+        if (busy) return;
+        if (i === options.length) {
+          clearChoices();
+          input.focus();
+          return;
+        }
+        clearChoices();
+        send(label);
+      });
+      choicesEl.appendChild(b);
+    });
+    log.appendChild(choicesEl);
+    scrollDown();
   }
 
   function send(text) {
@@ -252,6 +288,7 @@
     sendBtn.disabled = true;
     setFace("thinking");
     setStatus("Thinking…");
+    clearChoices();
     var mine = bubble({ role: "user", body: text, created_at: new Date().toISOString() });
     showTyping(true);
     var writingTimer = setTimeout(function () { setFace("writing"); setStatus("Writing…"); }, 1400);
@@ -390,6 +427,8 @@
 
   // Initial render
   (vm.messages || []).forEach(bubble);
+  var lastMsg = (vm.messages || [])[(vm.messages || []).length - 1];
+  if (lastMsg && lastMsg.role === "assistant" && lastMsg.choices) showChoices(lastMsg.choices);
   booted = true;
   showGate(vm.gate);
   if (!vm.gate) greet();
