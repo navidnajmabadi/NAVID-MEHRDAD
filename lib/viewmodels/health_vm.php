@@ -173,7 +173,13 @@ function rrp_vm_health_top(array $owner, array $pet, array $vm): array
     $r = $vm['routines'];
     $known = array_filter($r, static fn($x) => $x['state'] !== 'unknown');
     $onTrack = array_filter($known, static fn($x) => $x['state'] === 'ok');
-    $overdue = count(array_filter($r, static fn($x) => $x['state'] === 'overdue'));
+    // QA B09: count overdue the same way the Routines page does (every open reminder, not only catalog routines).
+    $todayLocal = rrp_sipo_local_now($owner)->format('Y-m-d');
+    $overdue = 0;
+    foreach (rrp_care_open_reminders((int) $pet['id'], 50) as $rem) {
+        $d = (new DateTimeImmutable((string) $rem['due_at'], new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($owner))->format('Y-m-d');
+        $overdue += $d < $todayLocal ? 1 : 0;
+    }
     $activeT = array_filter($vm['treatments'], static fn($t) => $t['status'] === 'active');
     $abnLabs = array_filter($vm['labs'], static fn($a) => in_array($a['latest']['flag'], ['low', 'high'], true));
     $w = $vm['weights'];
@@ -208,7 +214,7 @@ function rrp_vm_health_top(array $owner, array $pet, array $vm): array
         $kpis[] = ['label' => 'Walks (7 days)', 'value' => (int) $walk['week_minutes'] . ' min', 'sub' => $walk['streak'] . ' day streak', 'href' => '#sec-activity'];
     }
     if ($spend) {
-        $kpis[] = ['label' => 'Spent this month', 'value' => $money($spend['this_month'], $spend['currency']), 'sub' => 'last month ' . $money($spend['last_month'], $spend['currency']), 'href' => '#sec-spending'];
+        $kpis[] = ['label' => 'Spent on ' . $pet['name'], 'value' => $money($spend['this_month'], $spend['currency']), 'sub' => 'this month · all pets in Finance', 'href' => '#sec-spending'];
     }
     $sections = ['sec-overview' => 'Overview', 'sec-profile' => 'Profile'];
     if ($vm['treatments']) {

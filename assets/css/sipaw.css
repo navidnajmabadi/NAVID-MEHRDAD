@@ -938,3 +938,4 @@ button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .poster .hd{line-height:1.1;padding-bottom:6px;overflow-wrap:anywhere}
 .poster .pic{height:230px}
 .poster .pic img{display:block}
+.poster-phone-toggle{display:flex;gap:8px;align-items:center;font-size:14px;margin:4px 0}.lost-found-btn{font-size:15px}

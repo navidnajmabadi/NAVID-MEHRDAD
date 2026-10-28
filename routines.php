@@ -15,6 +15,18 @@ foreach ($pets as $p) {
 }
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
+// QA B32: add a reminder by hand (not only through SIPO).
+if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null) && ($_POST['act'] ?? '') === 'add') {
+    $title = trim((string) ($_POST['title'] ?? ''));
+    $date = (string) ($_POST['date'] ?? '');
+    $time = (string) ($_POST['time'] ?? '09:00');
+    $due = $title !== '' && mb_strlen($title) <= 120 ? rrp_sipo_local_to_utc($date . ' ' . $time, $owner) : null;
+    $r = $due ? rrp_care_reminder_create($petId, ['title' => $title, 'due_at' => $due, 'status' => 'scheduled'])
+        : ['ok' => false, 'error' => 'Give it a name, a date and a time.'];
+    rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Reminder added ⏰ ' . $title . ', ' . date('j M', strtotime($date)) . ' at ' . $time : ($r['error'] ?? 'Could not add it.'));
+    rrp_redirect('routines.php?pet=' . $petId);
+}
+
 if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
     $id = (int) ($_POST['reminder_id'] ?? 0);
     // Identical open reminders (same title + time, e.g. created twice) are handled together.
@@ -134,8 +146,9 @@ rrp_app_start(['nav' => 'routines']);
     <section class="care-status <?= $groups['overdue'] ? '' : 'is-good' ?>">
       <?php rrp_pet_avatar(rrp_sipo_pet_brief($pet)); ?>
       <div>
-        <h2><?= $groups['overdue'] ? count($groups['overdue']) . ' overdue' : ($groups['today'] ? count($groups['today']) . ' for today' : 'All on track 🎉') ?></h2>
-        <p class="sub"><?= $total ?> scheduled for <?= rrp_h($pet['name']) ?>. Ask SIPO to add or move one.</p>
+        <?php $all = $total + count($daily); // QA B38: the count includes the every-day items listed below ?>
+        <h2><?= $groups['overdue'] ? count($groups['overdue']) . ' overdue' : ($groups['today'] ? count($groups['today']) . ' for today' : ($all ? 'All on track 🎉' : 'Nothing scheduled yet')) ?></h2>
+        <p class="sub"><?= $all ? $all . ' scheduled for ' . rrp_h($pet['name']) . ($daily ? ' (' . count($daily) . ' every day)' : '') . '. Add one below or ask SIPO.' : 'Add a reminder below, or ask SIPO to plan ' . rrp_h($pet['name']) . '’s routines.' ?></p>
       </div>
     </section>
 
@@ -177,6 +190,18 @@ rrp_app_start(['nav' => 'routines']);
         <a class="btn outline" href="si-chat.php" style="margin-top:10px">Tell SIPO when they were last done</a>
       </section>
     <?php endif; ?>
+
+    <details class="care-card rt-add" <?= ($total + count($daily)) ? '' : 'open' ?>>
+      <summary class="label">➕ Add a reminder</summary>
+      <form method="post" class="fin-grid" style="margin-top:10px">
+        <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="add" />
+        <label style="grid-column:1/-1">What<input name="title" maxlength="120" required placeholder="e.g. Nail trim, Flea drops, Vet visit" /></label>
+        <label>Date<input type="date" name="date" required value="<?= rrp_h(rrp_sipo_local_now($owner)->format('Y-m-d')) ?>" min="<?= rrp_h(rrp_sipo_local_now($owner)->format('Y-m-d')) ?>" /></label>
+        <label>Time<input type="time" name="time" required value="<?= rrp_h(rrp_sipo_local_now($owner)->modify('+1 hour')->format('H:00')) ?>" /></label>
+        <button class="btn primary" type="submit" style="grid-column:1/-1">Add reminder</button>
+      </form>
+      <p class="meta">For something every day or week, tell SIPO, e.g. "remind me to brush Rocky's teeth every day at 8 PM".</p>
+    </details>
 
     <a class="link" href="care.php">See the full care plan</a>
   <?php endif; ?>

@@ -24,8 +24,8 @@ rrp_layout_head('Daily — SIPAW', [
 rrp_app_start(['nav' => 'health']);
 ?>
 <div class="topbar care-top">
-  <div class="center" style="text-align:left"><h2>Daily</h2></div>
-  <?php rrp_pet_switcher(rrp_vm_pet_switcher($owner)); ?>
+  <div class="center" style="text-align:left"><h2>Daily · <?= rrp_h($pet['name']) ?></h2></div>
+  <?php rrp_coin_badge($owner); ?>
 </div>
 
 <div class="pad stack care-page">

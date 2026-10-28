@@ -327,3 +327,25 @@ function rrp_admin_recent_actions(int $limit = 50): array
     $stmt->execute();
     return $stmt->fetchAll();
 }
+
+/**
+ * QA B25: Admin shows no human identity. Name → initials + account number, email → n•••@g•••.com,
+ * phone and street address hidden, location → city/country only.
+ */
+function rrp_admin_mask_name(?string $name, int $id): string
+{
+    $parts = preg_split('/\s+/u', trim((string) $name)) ?: [];
+    $ini = implode('', array_map(static fn($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice(array_filter($parts), 0, 2)));
+    return ($ini !== '' ? $ini . ' · ' : '') . 'Owner #' . $id;
+}
+
+function rrp_admin_mask_email(?string $email): string
+{
+    $email = (string) $email;
+    if (!str_contains($email, '@')) {
+        return '—';
+    }
+    [$u, $d] = explode('@', $email, 2);
+    $tld = str_contains($d, '.') ? substr($d, strrpos($d, '.')) : '';
+    return mb_substr($u, 0, 1) . '•••@' . mb_substr($d, 0, 1) . '•••' . $tld;
+}

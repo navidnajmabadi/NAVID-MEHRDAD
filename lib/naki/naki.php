@@ -124,7 +124,8 @@ function rrp_naki_score_recent(int $limit = 20): array
         try {
             rrp_db()->prepare(
                 "INSERT INTO si_brain_scores (run_id, source, message_id, thread_id, prompt_version_id, quality_score, hallucination_flag, plan_bucket, notes, issues_json, signal_thanks, signal_frustration)
-                 VALUES (NULL, 'live', ?, ?, ?, ?, ?, 'unknown', ?, ?, ?, ?)"
+                 VALUES (NULL, 'live', ?, ?, ?, ?, ?, 'unknown', ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE quality_score = VALUES(quality_score), notes = VALUES(notes), issues_json = VALUES(issues_json)"
             )->execute([(int) $r['id'], (int) $r['thread_id'], (int) ($meta['pv'] ?? 0), $score, in_array('false_claim', $issues, true) ? 1 : 0,
                 $note, json_encode($issues), $sig['thanks'] ? 1 : 0, $sig['frustration'] ? 1 : 0]);
         } catch (Throwable $e) {

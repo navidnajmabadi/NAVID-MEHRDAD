@@ -19,6 +19,11 @@ if ($act === 'sample') {
         : 'Could not add sample pets: ' . implode('; ', array_slice($r['steps'], 0, 2)));
     rrp_redirect('care.php');
 }
+if ($act === 'remove_samples') {
+    $n = rrp_dev_remove_samples((int) $owner['id']);
+    rrp_flash_set('ok', $n ? "Removed {$n} sample pet" . ($n === 1 ? '' : 's') . ' and their data 🧽' : 'No sample pets to remove.');
+    rrp_redirect('settings.php');
+}
 if ($act === 'reset') {
     rrp_dev_reset_owner((int) $owner['id']);
     rrp_flash_set('ok', 'Fresh start 🧹 SIPO has forgotten everything. Say hi like a new user.');

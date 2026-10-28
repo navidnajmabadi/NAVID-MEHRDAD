@@ -39,7 +39,7 @@ rrp_admin_shell_start('Tickets', 'tickets');
         <span class="pill"><?= rrp_h($t['status']) ?></span>
       </div>
       <p class="meta" style="margin:6px 0">
-        <?= rrp_h($t['owner_name']) ?> · <?= rrp_h($t['owner_email']) ?> · <?= rrp_h($t['created_at']) ?> UTC
+        <?= rrp_h(rrp_admin_mask_name((string) $t['owner_name'], (int) ($t['owner_id'] ?? 0))) ?> · <?= rrp_h(rrp_admin_mask_email((string) $t['owner_email'])) ?> · <?= rrp_h($t['created_at']) ?> UTC
       </p>
       <p style="white-space:pre-wrap;margin:0 0 12px"><?= rrp_h($t['body']) ?></p>
       <form method="post" class="panel panel-soft" style="margin:0">

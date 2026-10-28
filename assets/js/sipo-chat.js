@@ -34,19 +34,24 @@
     status.textContent = text || idleStatus;
   }
 
+  // Times and days in the owner's SIPAW time zone (QA B37), falling back to the device's.
+  function tzOpts(o) {
+    if (vm.tz) o.timeZone = vm.tz;
+    return o;
+  }
   function fmtTime(iso) {
     try {
-      return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return new Date(iso).toLocaleTimeString([], tzOpts({ hour: "2-digit", minute: "2-digit" }));
     } catch (e) {
-      return "";
+      return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
   }
 
   function dayKey(iso) {
     try {
-      return new Date(iso).toDateString();
+      return new Date(iso).toLocaleDateString("en-CA", tzOpts({}));
     } catch (e) {
-      return "";
+      return new Date(iso).toDateString();
     }
   }
 
@@ -57,8 +62,8 @@
     lastDay = k;
     var d = document.createElement("div");
     d.className = "sipo-day";
-    var today = new Date().toDateString();
-    d.textContent = k === today ? "Today" : new Date(iso).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+    var today = dayKey(new Date().toISOString());
+    d.textContent = k === today ? "Today" : new Date(iso).toLocaleDateString([], tzOpts({ weekday: "short", month: "short", day: "numeric" }));
     log.appendChild(d);
   }
 
@@ -68,6 +73,9 @@
     var last = 0;
     var m;
     while ((m = re.exec(text))) {
+      var digits = m[1].replace(/[^\d]/g, "");
+      // QA B10: dates (2026-10-21, 21.10.2026), times and short numbers are not phone numbers.
+      if (/^\d{4}[-.\/]\d{1,2}[-.\/]\d{1,2}$|^\d{1,2}[-.\/]\d{1,2}[-.\/]\d{2,4}$/.test(m[1].trim()) || digits.length < 8 || digits.length > 15) continue;
       if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
       var a = document.createElement("a");
       a.href = "tel:" + m[1].replace(/[^\d+]/g, "");
@@ -92,6 +100,23 @@
     var p = document.createElement("p");
     renderBody(p, String(msg.body || ""));
     row.appendChild(p);
+    if (msg.links && msg.links.length) {
+      // SIPO never navigates on its own (QA B21/B24): it offers buttons, the owner taps.
+      var links = document.createElement("div");
+      links.className = "sipo-links";
+      msg.links.forEach(function (l) {
+        if (!l || !l.url) return;
+        var external = /^https:\/\/www\.google\.com\/maps\//.test(l.url);
+        if (!external && !/^[a-z0-9-]+\.php(\?[^\s]*)?$/i.test(l.url)) return; // app pages or Google Maps only
+        var a = document.createElement("a");
+        a.className = "sipo-link-btn";
+        a.href = l.url;
+        if (external) { a.target = "_blank"; a.rel = "noopener"; }
+        a.textContent = (l.label || "Open") + " →";
+        links.appendChild(a);
+      });
+      if (links.childNodes.length) row.appendChild(links);
+    }
     if (msg.admin_note) {
       // Only admins get admin_note from the server; never part of SIPO's words.
       var note = document.createElement("small");
@@ -177,10 +202,6 @@
       });
     }
     if (j.reminders && j.reminders.length) j.reminders.forEach(armReminder);
-    if (j.navigate) {
-      // SIPO added/switched a pet or changed Lost mode: open that chat after the reply is read.
-      setTimeout(function () { window.location.href = j.navigate; }, 2600);
-    }
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.
       vm.thread.onboarding = false;
@@ -242,8 +263,39 @@
 
   // Profile progress in the header (owner asked to "show the progress").
   var progressEl = document.getElementById("sipoProgress");
+  // Tap the setup bar: a checklist of the 4 sections (QA B11).
+  var setupList = (vm.thread && vm.thread.progress && vm.thread.progress.list) || null;
+  var checklistEl = null;
+  function toggleChecklist() {
+    if (checklistEl) { checklistEl.remove(); checklistEl = null; return; }
+    if (!setupList || !progressEl) return;
+    checklistEl = document.createElement("div");
+    checklistEl.className = "sipo-checklist";
+    setupList.forEach(function (sec, i) {
+      var row = document.createElement("div");
+      row.className = "sipo-check-row" + (sec.done ? " is-done" : "");
+      var b = document.createElement("b");
+      b.textContent = (sec.done ? "✓ " : (i + 1) + ". ") + sec.label;
+      row.appendChild(b);
+      if (!sec.done && sec.missing && sec.missing.length) {
+        var sm = document.createElement("small");
+        sm.textContent = "Still needed: " + sec.missing.join(", ");
+        row.appendChild(sm);
+      }
+      checklistEl.appendChild(row);
+    });
+    progressEl.parentNode.appendChild(checklistEl);
+  }
+  if (progressEl) {
+    progressEl.style.cursor = "pointer";
+    progressEl.addEventListener("click", toggleChecklist);
+    progressEl.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleChecklist(); } });
+  }
+
   function showProgress(p) {
     if (!progressEl || !p) return;
+    if (p.list) setupList = p.list;
+    if (checklistEl) { checklistEl.remove(); checklistEl = null; }
     progressEl.hidden = p.done >= p.total;
     progressEl.setAttribute("aria-valuenow", String(p.done));
     progressEl.querySelector("span").style.width = p.percent + "%";
@@ -383,8 +435,12 @@
       var f = fileInput.files && fileInput.files[0];
       fileInput.value = "";
       if (!f || busy) return;
+      if (!/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.type)) {
+        bubble({ role: "assistant", body: "I can read photos (JPG, PNG, WebP) and PDFs only.", created_at: new Date().toISOString() });
+        return;
+      }
       if (f.size > 10 * 1024 * 1024) {
-        bubble({ role: "assistant", body: "That file is over 10 MB — try a smaller photo or the PDF.", created_at: new Date().toISOString() });
+        bubble({ role: "assistant", body: "That file is over 10 MB, so try a smaller photo or the PDF.", created_at: new Date().toISOString() });
         return;
       }
       busy = true;
@@ -399,7 +455,16 @@
       fd.append("thread_id", String(threadId));
       fd.append("file", f);
       fetch(api.upload, { method: "POST", credentials: "same-origin", body: fd })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          // QA B16: say why it failed instead of blaming the connection.
+          return r.json().catch(function () {
+            var why = r.status === 413 ? "That file is too big. The limit is 10 MB."
+              : r.status === 403 ? "That file name was blocked. Rename it (letters and numbers only) and try again."
+              : r.status === 415 || r.status === 400 ? "I can read photos (JPG, PNG, WebP) and PDFs only."
+              : "I couldn't read that file (error " + r.status + "). Try another photo or PDF.";
+            return { ok: false, error: why };
+          });
+        })
         .then(function (j) {
           showTyping(false);
           if (!j.ok) {

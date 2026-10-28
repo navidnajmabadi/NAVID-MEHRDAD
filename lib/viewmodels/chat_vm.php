@@ -57,6 +57,7 @@ function rrp_vm_chat(array $owner, bool $newPet = false): array
         'day_part' => $live['day_part'],
         'panel' => $pet ? rrp_vm_pet_panel($pet) : null,
         'poll_ms' => 8000, // near real time while the chat is open (paused when hidden)
+        'tz' => rrp_sipo_owner_tz($owner)->getName(), // QA B37: show chat times in the owner's SIPAW time zone
     ];
 }
 

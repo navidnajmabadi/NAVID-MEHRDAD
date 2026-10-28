@@ -37,7 +37,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
             <?= $petName ? 'Looking after ' . rrp_h($petName) : 'Let’s meet your pet' ?>
           </p>
           <?php $pg = $vm['thread']['progress']; ?>
-          <div class="sipo-progress" id="sipoProgress" <?= $pg && $pg['done'] < $pg['total'] ? '' : 'hidden' ?>
+          <div class="sipo-progress" id="sipoProgress" tabindex="0" title="See what's left" <?= $pg && $pg['done'] < $pg['total'] ? '' : 'hidden' ?>
             role="progressbar" aria-valuemin="0" aria-valuemax="<?= (int) ($pg['total'] ?? 7) ?>" aria-valuenow="<?= (int) ($pg['done'] ?? 0) ?>" aria-label="Profile progress">
             <span style="width:<?= (int) ($pg['percent'] ?? 0) ?>%"></span>
             <small>Setup <b><?= (int) ($pg['done'] ?? 0) ?>/<?= (int) ($pg['total'] ?? 4) ?></b> <em data-setup-section><?= !empty($pg['section']) ? '· ' . rrp_h($pg['section']) : '' ?></em></small>

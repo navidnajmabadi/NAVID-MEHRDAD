@@ -58,8 +58,9 @@ function rrp_mod_check(string $text, ?string $imageJpeg = null): array
             ['role' => 'user', 'content' => mb_substr($text, 0, 600)],
         ]);
         $x = $res['data'] ?? [];
-        if (!empty($res['ok']) && (!empty($x['fraud']) || !empty($x['spam']) || !empty($x['off_topic_junk']))) {
-            $kind = !empty($x['fraud']) ? 'fraud' : (!empty($x['spam']) ? 'spam' : 'junk');
+        // QA B04: "off-topic junk" removed harmless posts (and cost strikes); only fraud and spam remove now.
+        if (!empty($res['ok']) && (!empty($x['fraud']) || !empty($x['spam']))) {
+            $kind = !empty($x['fraud']) ? 'fraud' : 'spam';
             return ['allow' => false, 'reason' => 'Removed as ' . $kind . (!empty($x['reason']) ? ': ' . mb_substr((string) $x['reason'], 0, 80) : ''), 'source' => 'ai', 'categories' => [$kind => true]];
         }
     }
@@ -82,6 +83,9 @@ function rrp_mod_log(int $ownerId, string $type, int $id, string $action, string
 /** Removals that still stand (removed minus later restored). */
 function rrp_mod_removal_count(int $ownerId): int
 {
+    if (rrp_mod_owner_is_super($ownerId)) {
+        return 0; // super owners (Navid, Mehrdad) are never on the way to suspension
+    }
     try {
         $st = rrp_db()->prepare(
             "SELECT COUNT(*) FROM moderation_log l WHERE l.owner_id = ? AND l.action = 'removed'
@@ -108,7 +112,8 @@ function rrp_mod_remove(string $type, int $id, int $authorId, string $reason, st
     rrp_coin_revoke($authorId, $type === 'comment' ? 'comment' : 'post', $type === 'comment' ? 'forum_comment' : 'forum_post', $id, 'Removed ' . $type);
     $n = rrp_mod_removal_count($authorId);
     rrp_notify_owner_inbox($authorId, 'moderation', 'Your ' . $type . ' was removed',
-        $reason . "\n\nSIPAW boards are for friendly pet talk. Removals so far: {$n} of " . RRP_MOD_SUSPEND_AFTER . ' allowed.');
+        $reason . "\n\nSIPAW boards are for friendly pet talk."
+        . (rrp_mod_owner_is_super($authorId) ? '' : " Removals so far: {$n} of " . RRP_MOD_SUSPEND_AFTER . ' allowed.'));
     $suspended = false;
     if ($n > RRP_MOD_SUSPEND_AFTER) {
         $suspended = rrp_mod_suspend($authorId, "More than " . RRP_MOD_SUSPEND_AFTER . " removed posts/comments");
@@ -128,8 +133,23 @@ function rrp_mod_owner_message(string $reason, array $m): string
 }
 
 /** Suspend + open a Support ticket so a human reviews it (Navid: contact Support to check manually). */
+function rrp_mod_owner_is_super(int $ownerId): bool
+{
+    try {
+        $st = rrp_db()->prepare('SELECT * FROM owners WHERE id = ? LIMIT 1');
+        $st->execute([$ownerId]);
+        $o = $st->fetch();
+        return $o ? rrp_is_super_owner($o) : false;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
 function rrp_mod_suspend(int $ownerId, string $reason): bool
 {
+    if (rrp_mod_owner_is_super($ownerId)) {
+        return false;
+    }
     $st = rrp_db()->prepare("UPDATE owners SET status = 'suspended', suspended_reason = ?, suspended_at = UTC_TIMESTAMP() WHERE id = ? AND status = 'active'");
     $st->execute([mb_substr($reason, 0, 160), $ownerId]);
     if ($st->rowCount() === 0) {

@@ -26,7 +26,11 @@ function rrp_layout_head(string $title, array $opts = []): void
     $canonical = $opts['canonical'] ?? (rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/');
     $bodyClass = trim((string) ($opts['body_class'] ?? ''));
     if (!headers_sent()) {
-        header('X-SIPAW-Page: ' . basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''))); // lets menu.js verify clean URLs
+        header_remove('X-Powered-By');
+        // Only the app's own clean-URL check asks for this (QA B17: don't leak file names to everyone).
+        if (($_SERVER['HTTP_X_SIPAW_CHECK'] ?? '') === '1') {
+            header('X-SIPAW-Page: ' . basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')));
+        }
     }
     $skin = rrp_ui_skin();
     $theme = $opts['theme'] ?? ($skin === 'studio' ? 'dark' : 'light');
@@ -241,6 +245,9 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
       <form method="post" action="dev-tools.php" data-confirm="Add sample pets, routines, labs, walks, spending and posts to YOUR account?">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="sample" />
         <button type="submit">🧪 Fill sample data</button></form>
+      <form method="post" action="dev-tools.php" data-confirm="Remove all sample pets (Rocky, Mochi) and their data? Your real pets stay.">
+        <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="remove_samples" />
+        <button type="submit">🧽 Remove sample pets</button></form>
       <form method="post" action="dev-tools.php" data-confirm="Clear SIPO memory and start as a new user? Your pets, chats and data on this account are removed.">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="reset" />
         <button type="submit">🧹 Clear SIPO memory (start as new user)</button></form>

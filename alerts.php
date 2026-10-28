@@ -116,11 +116,6 @@ rrp_app_start(['nav' => 'alerts']);
     <div class="box"><p class="sub" style="margin:0">No alerts yet. Reminders, SIPO check-ins and lost pets nearby show here.</p></div>
   <?php endif; ?>
 
-  <div class="box blue" style="margin-top:8px">
-    <p style="margin:0 0 8px;font-weight:500">Phone notifications</p>
-    <p class="sub" style="margin:0 0 12px;font-size:13px" id="pushBanner" data-push-hint>Enable push so reminders reach you even when the app is closed.</p>
-    <button type="button" class="btn outline" id="pushEnableBtn" data-push-enable>Enable notifications</button>
-  </div>
   <div class="gap"></div>
 </div>
 <?php if (!empty($nearbyLost) && in_array($filter, ['all', 'lost'], true)): ?>

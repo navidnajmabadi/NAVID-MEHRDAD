@@ -134,3 +134,29 @@ function rrp_dev_reset_owner(int $ownerId): array
     error_log('Dev reset to new user: owner=' . $ownerId . ' ' . json_encode($done));
     return $done;
 }
+
+/** Delete every sample pet (Rocky the Golden Retriever, Mochi the Scottish Fold) and its data. QA B03. */
+function rrp_dev_remove_samples(int $ownerId): int
+{
+    $st = rrp_db()->prepare("SELECT id FROM pets WHERE owner_id = ? AND ((name = 'Rocky' AND breed = 'Golden Retriever') OR (name = 'Mochi' AND breed = 'Scottish Fold'))");
+    $st->execute([$ownerId]);
+    $n = 0;
+    foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $id) {
+        foreach (['DELETE FROM pet_expenses WHERE pet_id = ?', 'DELETE FROM forum_posts WHERE pet_id = ?'] as $sql) {
+            try {
+                rrp_db()->prepare($sql)->execute([(int) $id]);
+            } catch (Throwable $e) {
+            }
+        }
+        if (!empty(rrp_delete_pet($ownerId, (int) $id)['ok'])) {
+            $n++;
+        }
+    }
+    $cur = rrp_db()->prepare('SELECT current_pet_id FROM owners WHERE id = ?');
+    $cur->execute([$ownerId]);
+    $curId = (int) $cur->fetchColumn();
+    if ($curId && !rrp_pet_by_id($curId, $ownerId)) {
+        rrp_db()->prepare('UPDATE owners SET current_pet_id = NULL WHERE id = ?')->execute([$ownerId]);
+    }
+    return $n;
+}

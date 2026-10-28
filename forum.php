@@ -22,7 +22,7 @@ rrp_app_start(['nav' => 'social']);
 <div class="topbar">
   <a class="iconbtn" href="<?= $profile ? 'forum.php' : 'dashboard.php' ?>" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
   <div class="center"><h2><?= $profile ? rrp_h($profile['name']) : 'Pack' ?></h2></div>
-  <a class="iconbtn" href="si-chat.php" aria-label="SIPO">SI</a>
+  <?php rrp_coin_badge($owner); ?>
 </div>
 
 <div class="pad stack boards">

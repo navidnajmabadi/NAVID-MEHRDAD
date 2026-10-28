@@ -183,6 +183,11 @@ function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array
         }
     }
 
+    $others = rrp_sipo_other_pets_block($owner, $pet);
+    if ($others !== null) {
+        $parts[] = $others;
+    }
+
     $setup = rrp_sipo_setup_block($pet, $thread);
     if ($setup !== null) {
         $parts[] = $setup;
@@ -262,16 +267,48 @@ function rrp_sipo_care_blocks(array $owner, array $pet): array
  * Fixed layer after core (NAKI cannot rewrite it): SIPO runs the whole app from chat.
  * Live bug 2026-10-28: "add a pet" → "I can't, use Add Pet in the app".
  */
+/** QA B30: what SIPO knows about the owner's other pets, so memory carries across chats. */
+function rrp_sipo_other_pets_block(array $owner, ?array $pet): ?string
+{
+    $lines = [];
+    foreach (rrp_pets_by_owner((int) $owner['id']) as $p) {
+        if ($pet && (int) $p['id'] === (int) $pet['id']) {
+            continue;
+        }
+        $bits = [rrp_pet_type_label($p)];
+        foreach ([$p['breed'] ?? null, rrp_vm_age_label($p), !empty($p['weight_kg']) ? $p['weight_kg'] . ' kg' : null] as $b) {
+            if ($b) {
+                $bits[] = $b;
+            }
+        }
+        $facts = array_slice(rrp_sipo_facts((int) $p['id']), -4);
+        $notes = $facts ? ' · notes: ' . implode('; ', array_map(static fn($f) => $f['fact_key'] . ' ' . $f['fact_value'], $facts)) : '';
+        $spend = '';
+        try {
+            $sum = rrp_expense_summary($owner, $p, 1);
+            if ($sum['this_month'] > 0) {
+                $spend = ' · spent this month ' . $sum['this_month'] . ' ' . $sum['currency'];
+            }
+        } catch (Throwable $e) {
+        }
+        $lines[] = '- ' . $p['name'] . ': ' . implode(', ', $bits) . $notes . $spend;
+        if (count($lines) >= 5) {
+            break;
+        }
+    }
+    return $lines ? "# Owner's other pets (answer about them here; use pet_name for actions)\n" . implode("\n", $lines) : null;
+}
+
 function rrp_sipo_capabilities_block(): string
 {
     return <<<TXT
 # You run the whole app
 You can do from this chat everything the owner can do in SIPAW: add another pet (add_pet), switch to
-another pet's chat (switch_pet), list pets, turn Lost mode on (start_lost_mode) or off (mark_pet_found),
+another pet's chat (switch_pet, only when asked), list pets, turn Lost mode on (start_lost_mode) or off (mark_pet_found),
 edit the pet's profile, save the owner's name, phone and address (update_my_profile), set, move or close
 reminders, routines, medicines, meals, walks, food, post on Social (post_to_social, after the owner
-approves the text; write the draft yourself when asked), open any page of the app (open_page: "show my
-dashboard" → open it), log spending and show totals (log_expense, spending_summary), weather, nearby vets
+approves the text; write the draft yourself when asked), offer a page of the app (open_page, only when the owner asks to
+open it), log spending and show totals (log_expense, spending_summary), weather, nearby vets
 and support tickets.
 Never tell the owner to go and do it in the app, and never say you can't, when a tool above covers it:
 ask for what the tool needs (one question at a time), call it, then confirm.
@@ -287,6 +324,30 @@ vaccine or parasite dose due, grooming, nail trim, food running low, a walk late
 Pick a smart <when> from Local time: appointments the evening before at 19:00 (and 1 hour before),
 medicines at their dose times, due dates 3 days before at 09:00, "later today" in 2 hours.
 On yes call set_reminder; say it is set only after it returned ok. Never offer twice for the same thing.
+
+# Stay in this chat (QA B06/B21/B24/B27)
+Never move the owner. If they mention another pet, answer here and, for an action, pass pet_name to the
+tool (e.g. log_expense with pet_name "Rocky"). switch_pet and open_page only when they explicitly ask to
+go somewhere; both just show a button, so never say "I opened it" or "I switched".
+
+# Saved values: confirm before changing (QA B01/B29)
+Before changing a value already saved (weight, birthday, sex, breed, name), repeat old → new and ask
+"Shall I update it?"; call the tool only after yes. If a new value looks odd (weight jump over 20%,
+a name or breed with digits or random letters like "asdfghjkl123"), ask kindly if that is right first.
+A new pet name goes in name, never in breed.
+
+# Numbers you give without being asked (QA B31/B33/B34)
+- When weight is known, give a daily calorie estimate (kcal) yourself; ask about the food only to turn it
+  into grams or cups.
+- "Peed 3 times" means 3 events: pass count to log_bathroom.
+- After food_supply, say the estimated run-out date and offer a reminder 3 days before.
+
+# Language and safety (QA B14/B15)
+You speak English only for now. If the owner writes another language, answer in simple English and add
+one short line: "I speak English for now 🐾".
+Xylitol, grapes/raisins, chocolate, onion/garlic, lilies (cats) and ibuprofen are toxic: say so plainly and
+treat as an emergency, never "not sure". Emergency mode is about the current problem only: once it is
+handled, return to normal tone and don't keep repeating it.
 TXT;
 }
 
