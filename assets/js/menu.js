@@ -58,20 +58,20 @@
   });
 })();
 
-// Clean address bar: /dashboard instead of /dashboard.php (no reload). Only after the server
-// has proved once that the clean URL works, so a refresh can never hit a 404.
+// Clean address bar: /dashboard instead of /dashboard.php (no reload). Only after the server has
+// proved once that /<page> really serves <page>.php (X-SIPAW-Page header), so a refresh never breaks.
 (function () {
   var m = location.pathname.match(/^\/([a-z0-9-]+)\.php$/);
   if (!m || m[1] === "index" || !window.history || !history.replaceState) return;
   var clean = "/" + m[1] + location.search + location.hash;
   var ok = null;
-  try { ok = localStorage.getItem("sipaw_clean_urls"); } catch (e) {}
+  try { ok = localStorage.getItem("sipaw_clean_urls_v2"); } catch (e) {}
   if (ok === "1") { history.replaceState(history.state, "", clean); return; }
   if (ok === "0") return;
-  fetch("/" + m[1] + location.search, { method: "HEAD", credentials: "same-origin", redirect: "manual" })
+  fetch("/" + m[1] + location.search, { method: "HEAD", credentials: "same-origin" })
     .then(function (r) {
-      var works = r.type === "opaqueredirect" || (r.status > 0 && r.status < 400);
-      try { localStorage.setItem("sipaw_clean_urls", works ? "1" : "0"); } catch (e) {}
+      var works = r.ok && r.headers.get("X-SIPAW-Page") === m[1] + ".php";
+      try { localStorage.setItem("sipaw_clean_urls_v2", works ? "1" : "0"); } catch (e) {}
       if (works) history.replaceState(history.state, "", clean);
     })
     .catch(function () {});

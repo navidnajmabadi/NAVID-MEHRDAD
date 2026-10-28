@@ -25,6 +25,9 @@ function rrp_layout_head(string $title, array $opts = []): void
     $extra = $opts['extra_head'] ?? '';
     $canonical = $opts['canonical'] ?? (rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/');
     $bodyClass = trim((string) ($opts['body_class'] ?? ''));
+    if (!headers_sent()) {
+        header('X-SIPAW-Page: ' . basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''))); // lets menu.js verify clean URLs
+    }
     $skin = rrp_ui_skin();
     $theme = $opts['theme'] ?? ($skin === 'studio' ? 'dark' : 'light');
     $skinFonts = ['friendly' => 'Nunito:wght@400;600;700;800', 'clean' => 'Figtree:wght@400;500;600;700'][$skin] ?? null;
