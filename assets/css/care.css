@@ -197,3 +197,12 @@
 .fin-grid input,.fin-grid select{min-height:42px;background:var(--bg);color:var(--text);border:1px solid var(--line);padding:0 10px;font:inherit}
 .fin-del{width:32px;height:32px;border:0;background:none;color:var(--sub);font-size:18px;cursor:pointer}
 .hd-tabs a[aria-current="page"]{color:var(--text);border-color:var(--blue);background:var(--panel)}
+
+/* Action row: the upload button is a <label>, so cancel the form-label spacing; one height and one line for all */
+.care-actions{align-items:stretch}
+.care-actions > .btn,.care-actions > label.btn.care-upload{margin:0;height:48px;min-height:48px;box-sizing:border-box;line-height:1}
+@media (min-width:768px){
+  .care-actions{display:flex;flex-wrap:wrap;align-items:center}
+  .care-actions > .btn{flex:0 0 auto;padding:0 20px}
+  .care-actions > .care-upload{flex:1 1 260px;max-width:340px}
+}
