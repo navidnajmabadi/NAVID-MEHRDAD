@@ -175,7 +175,8 @@
 @media (prefers-reduced-motion:reduce){.tabbar-v2 .tab-sipo-face img{content:url("../mascot/public/sipo-idle.svg")}}
 
 /* Top bar: notification bell beside the paw coin */
-.top-actions{display:inline-flex;align-items:center;gap:6px}
+.top-actions{display:inline-flex;align-items:center;gap:2px}
+.top-actions .coin-badge,.top-actions .iconbtn{border:0;background:none}
 .top-bell{position:relative}
 .top-bell-dot{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-size:9px;display:grid;place-items:center}
 /* Settings + Routines */

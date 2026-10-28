@@ -172,8 +172,8 @@ function rrp_coin_badge(array $owner): void
     } catch (Throwable $e) {
     }
     // Notification centre sits beside the coin on every top bar.
-    echo '<span class="top-actions"><a class="iconbtn top-bell" href="alerts.php" aria-label="Notifications' . ($unread ? ', ' . $unread . ' unread' : '') . '">'
-        . '<svg aria-hidden="true"><use href="#i-bell"/></svg>' . ($unread ? '<span class="top-bell-dot data">' . min($unread, 99) . '</span>' : '') . '</a>'
-        . '<a class="coin-badge" href="rewards.php" aria-label="' . $n . ' paw coins, rewards">' . rrp_coin_svg(18)
-        . '<span class="data" data-coin-balance>' . $n . '</span></a></span>';
+    echo '<span class="top-actions"><a class="coin-badge" href="rewards.php" aria-label="' . $n . ' paw coins, rewards">' . rrp_coin_svg(18)
+        . '<span class="data" data-coin-balance>' . $n . '</span></a>'
+        . '<a class="iconbtn top-bell" href="alerts.php" aria-label="Notifications' . ($unread ? ', ' . $unread . ' unread' : '') . '">'
+        . '<svg aria-hidden="true"><use href="#i-bell"/></svg>' . ($unread ? '<span class="top-bell-dot data">' . min($unread, 99) . '</span>' : '') . '</a></span>';
 }
