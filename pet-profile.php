@@ -23,7 +23,7 @@ foreach ($myLost as $la) {
 $scanUrl = rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id']));
 
 rrp_layout_head($pet['name'] . ' — SIPAW');
-rrp_app_start(['nav' => 'home']);
+rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="profile-hero">
   <a class="iconbtn back" href="dashboard.php?pet=<?= (int) $pet['id'] ?>" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
@@ -102,4 +102,4 @@ rrp_app_start(['nav' => 'home']);
 .actions3 a svg{width:22px;height:22px}
 </style>
 <?php
-rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
+rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

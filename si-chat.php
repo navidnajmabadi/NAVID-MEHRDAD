@@ -27,7 +27,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
   <section class="sipo-chat" aria-label="Chat with SIPO">
     <header class="sipo-top">
       <div class="sipo-who">
-        <sipo-mascot id="sipoFace" state="idle" theme="ice-blue" size="44" animated="true" label="SIPO"></sipo-mascot>
+        <sipo-mascot id="sipoFace" state="idle" theme="ice-blue" size="64" animated="true" label="SIPO" class="sipo-face-lg"></sipo-mascot>
         <div>
           <h1 class="sipo-title">SIPO</h1>
           <p class="sipo-status" id="sipoStatus" aria-live="polite">

@@ -108,23 +108,41 @@ function rrp_install_sheet(): void
 <?php
 }
 
+/**
+ * Tab bar (Navid 2026-10-28): Settings · Health · SIPO (mascot, centre) · Social · Routines.
+ * Old nav keys still map: home/lost/alerts → Settings, chat → SIPO.
+ */
 function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): void
 {
+    $map = ['home' => 'settings', 'lost' => 'settings', 'alerts' => 'settings', 'account' => 'settings'];
+    $active = $map[$active] ?? $active;
     $tabs = [
-        'home' => ['href' => 'dashboard.php', 'label' => 'Home', 'icon' => 'i-home'],
+        'settings' => ['href' => 'settings.php', 'label' => $lostActive ? 'Lost' : 'Settings', 'icon' => $lostActive ? 'i-lost' : 'i-gear'],
         'health' => ['href' => 'care.php', 'label' => 'Health', 'icon' => 'i-heart'],
-        'lost' => ['href' => 'lost.php', 'label' => 'Lost', 'icon' => 'i-lost'],
-        'alerts' => ['href' => 'alerts.php', 'label' => 'Alerts', 'icon' => 'i-bell'],
-        'chat' => ['href' => 'si-chat.php', 'label' => 'SIPO', 'icon' => 'i-chat'],
+        'chat' => ['href' => 'si-chat.php', 'label' => 'SIPO', 'icon' => null],
+        'social' => ['href' => 'forum.php', 'label' => 'Social', 'icon' => 'i-social'],
+        'routines' => ['href' => 'routines.php', 'label' => 'Routines', 'icon' => 'i-routine'],
     ];
-    echo '<nav class="tabbar" id="tabbar" aria-label="Main">' . "\n";
+    $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
+    echo '<nav class="tabbar tabbar-v2" id="tabbar" aria-label="Main">' . "\n";
     foreach ($tabs as $key => $tab) {
         $current = $active === $key ? ' aria-current="page"' : '';
-        $lostClass = ($key === 'lost' && $lostActive) ? ' class="is-lost"' : '';
-        echo '<a href="' . rrp_h($tab['href']) . '"' . $current . $lostClass . '>';
-        echo '<svg aria-hidden="true"><use href="#' . rrp_h($tab['icon']) . '"/></svg>';
-        echo rrp_h($tab['label']);
-        if ($key === 'alerts' && $unread > 0) {
+        $cls = [];
+        if ($key === 'chat') {
+            $cls[] = 'tab-sipo';
+        }
+        if ($key === 'settings' && $lostActive) {
+            $cls[] = 'is-lost';
+        }
+        $href = ($key === 'settings' && $lostActive) ? 'lost.php' : $tab['href'];
+        echo '<a href="' . rrp_h($href) . '"' . $current . ($cls ? ' class="' . implode(' ', $cls) . '"' : '') . '>';
+        if ($key === 'chat') {
+            echo '<span class="tab-sipo-face"><img src="' . rrp_h($mascot) . '" alt="" width="44" height="44" /></span>';
+        } else {
+            echo '<svg aria-hidden="true"><use href="#' . rrp_h((string) $tab['icon']) . '"/></svg>';
+        }
+        echo '<span class="tab-label">' . rrp_h($tab['label']) . '</span>';
+        if ($key === 'settings' && $unread > 0) {
             echo '<span class="badge">' . rrp_h((string) min(99, $unread)) . '</span>';
         }
         echo '</a>' . "\n";

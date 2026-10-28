@@ -78,13 +78,12 @@ foreach ($scans as $s) {
 $initial = strtoupper(substr((string) ($owner['name'] ?? 'U'), 0, 1));
 $extra = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />';
 rrp_layout_head('Home — SIPAW', ['extra_head' => $extra]);
-rrp_app_start(['nav' => 'home']);
+rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="homehead">
   <a href="dashboard.php" aria-label="SIPAW home"><?php rrp_logo_endorsed(); ?></a>
   <div class="row" style="gap:10px">
     <?php rrp_coin_badge($owner); ?>
-    <a class="iconbtn" href="alerts.php" aria-label="Notifications"><svg aria-hidden="true"><use href="#i-bell"/></svg></a>
     <a class="avatar" href="account.php" aria-label="Account"><?= rrp_h($initial) ?></a>
   </div>
 </div>
@@ -283,4 +282,4 @@ rrp_app_start(['nav' => 'home']);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin="anonymous"></script>
 <script src="assets/js/dashboard.js" defer></script>
 <?php
-rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
+rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

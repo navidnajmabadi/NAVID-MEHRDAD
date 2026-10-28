@@ -44,7 +44,7 @@ foreach ($templates as $t) {
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
 rrp_layout_head('Reminders — SIPAW');
-rrp_app_start(['nav' => 'health']);
+rrp_app_start(['nav' => 'routines']);
 ?>
 <div class="topbar">
   <a class="iconbtn" href="health-care.php<?= $petId ? '?pet=' . $petId : '' ?>" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
@@ -110,4 +110,4 @@ rrp_app_start(['nav' => 'health']);
   <?php endif; ?>
   <div class="gap"></div>
 </div>
-<?php rrp_app_end(['nav' => 'health', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]); ?>
+<?php rrp_app_end(['nav' => 'routines', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]); ?>

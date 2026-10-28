@@ -23,7 +23,7 @@ $tickets = rrp_tickets_for_owner((int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
 rrp_layout_head('Support — SIPAW');
-rrp_app_start(['nav' => 'home']);
+rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="topbar">
   <a class="iconbtn" href="dashboard.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
@@ -64,4 +64,4 @@ rrp_app_start(['nav' => 'home']);
   <div class="gap"></div>
 </div>
 <?php
-rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
+rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

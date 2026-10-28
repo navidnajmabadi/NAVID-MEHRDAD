@@ -46,7 +46,7 @@
 .sipo-top{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:max(10px,env(safe-area-inset-top,0px)) 16px 10px;border-bottom:1px solid var(--line)}
 .sipo-who{display:flex;align-items:center;gap:10px;min-width:0}
-.sipo-who sipo-mascot{display:block;width:44px;height:44px;flex:none}
+.sipo-who sipo-mascot{display:block;width:64px;height:64px;flex:none}
 .sipo-title{margin:0;font-family:var(--f-display);font-weight:600;font-size:17px;letter-spacing:.12em}
 .sipo-status{margin:2px 0 0;font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sipo-note,.sipo-gate{flex:none;margin:10px 16px 0;padding:10px 12px;border:1px solid var(--blue);font-size:13px;color:var(--text);background:var(--panel)}
@@ -155,3 +155,56 @@
 .sipo-top-right{display:flex;align-items:center;gap:8px;min-width:0}
 @media (max-width:380px){.sipo-top-right .petswitch-name{max-width:70px}}
 @media (prefers-reduced-motion:reduce){.coin-badge.is-bump{animation:none}}
+
+/* —— Tab bar v2: Settings · Health · SIPO (centre) · Social · Routines —— */
+.tabbar-v2 a{position:relative}
+.tabbar-v2 .tab-label{display:block}
+.tabbar-v2 .tab-sipo{overflow:visible}
+.tabbar-v2 .tab-sipo-face{width:58px;height:58px;margin-top:-26px;border-radius:50%;background:var(--bg);border:2px solid var(--blue);display:grid;place-items:center;box-shadow:0 0 0 4px var(--bg)}
+.tabbar-v2 .tab-sipo-face img{width:46px;height:46px;display:block}
+.tabbar-v2 .tab-sipo[aria-current="page"]::before{display:none}
+.tabbar-v2 .tab-sipo[aria-current="page"] .tab-sipo-face{background:var(--blue)}
+.tabbar-v2 .tab-sipo .tab-label{color:var(--text)}
+.tabbar-v2 a .badge{top:4px;right:calc(50% - 22px)}
+@media (min-width:768px){
+  .tabbar-v2 .tab-sipo-face{margin-top:0;width:52px;height:52px}
+  .tabbar-v2 .tab-sipo-face img{width:40px;height:40px}
+  /* Rail keeps the same order top → bottom, SIPO in the middle */
+  .tabbar-v2{justify-content:center}
+}
+@media (prefers-reduced-motion:reduce){.tabbar-v2 .tab-sipo-face img{content:url("../mascot/public/sipo-idle.svg")}}
+
+/* Top bar: notification bell beside the paw coin */
+.top-actions{display:inline-flex;align-items:center;gap:6px}
+.top-bell{position:relative}
+.top-bell-dot{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-size:9px;display:grid;place-items:center}
+/* Settings + Routines */
+.set-me{text-decoration:none;color:inherit}
+.set-me .avatar{flex:none}
+.set-lost{background:#e5484d;color:#fff;border-color:#e5484d;font-weight:600}
+.set-list{list-style:none;margin:6px 0 0;padding:0}
+.set-list li a{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none;min-height:44px}
+.set-list li:last-child a{border-bottom:0}
+.set-list li a>span:nth-child(2){flex:1;display:flex;flex-direction:column;min-width:0}
+.set-list .pet-avatar{width:36px;height:36px}
+.set-list i{font-style:normal;color:var(--muted,#8a8f98);font-size:20px}
+.rt-list{list-style:none;margin:6px 0 0;padding:0}
+.rt-list li{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rt-list li:last-child{border-bottom:0}
+.rt-when{min-width:64px;font-size:12px;color:var(--blue)}
+.rt-title{flex:1;min-width:0}
+.rt-acts{display:flex;gap:8px;width:100%;padding-left:76px}
+.rt-acts .btn{width:auto;min-height:36px;padding:0 14px}
+.rt-overdue{border-color:#e5484d}
+.rt-overdue .rt-when{color:#e5484d}
+/* Chat header on phones: bigger SIPO + bell + coin + pet must fit 360px */
+@media (max-width:480px){
+  .sipo-top{padding-left:12px;padding-right:12px;gap:8px}
+  .sipo-top-right{gap:6px}
+  .sipo-top-right .petswitch-name,.sipo-top-right .petswitch-chev{display:none}
+  .sipo-top-right .petswitch{padding:2px}
+  .sipo-top-right .top-actions .iconbtn{width:40px;height:40px}
+  .sipo-who{min-width:0}
+  .sipo-who sipo-mascot{width:56px;height:56px}
+  .sipo-progress{max-width:120px}
+}

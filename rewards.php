@@ -17,7 +17,7 @@ rrp_layout_head('Rewards — SIPAW', [
     'extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" />',
     'body_class' => 'page-care page-rewards',
 ]);
-rrp_app_start(['nav' => 'home']);
+rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="topbar">
   <a class="iconbtn" href="dashboard.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
@@ -77,4 +77,4 @@ rrp_app_start(['nav' => 'home']);
 })();
 </script>
 <?php
-rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
+rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
