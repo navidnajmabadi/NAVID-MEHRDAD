@@ -158,6 +158,9 @@ function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): 
 function rrp_pet_switcher(array $switcher, ?array $showing = null): void
 {
     $cur = $showing ?? $switcher['current'];
+    if (!$cur) {
+        return; // no pet yet: adding one lives in Settings, not the top bar
+    }
     ?>
 <button type="button" class="petswitch" data-petswitch data-csrf="<?= rrp_h(rrp_csrf_token()) ?>" aria-haspopup="dialog" aria-controls="petsheet">
   <?php rrp_pet_avatar($cur); ?>
@@ -175,11 +178,7 @@ function rrp_pet_switcher(array $switcher, ?array $showing = null): void
       </button></li>
     <?php endforeach; ?>
   </ul>
-  <?php if ($switcher['can_add']): ?>
-    <a class="petsheet-row petsheet-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add a pet</b><small>SIPO will set it up with you</small></span></a>
-  <?php else: ?>
-    <p class="sub petsheet-note">Free includes 1 pet for now.</p>
-  <?php endif; ?>
+  <p class="sub petsheet-note">Add a new pet in <a class="link" href="settings.php">Settings</a>.</p>
 </dialog>
 <?php
 }
