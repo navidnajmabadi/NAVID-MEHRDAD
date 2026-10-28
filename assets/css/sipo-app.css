@@ -350,3 +350,10 @@
 .nav-progress.is-on{opacity:1;animation:nav-progress 2.4s cubic-bezier(.1,.7,.2,1) forwards}
 @keyframes nav-progress{from{width:0}to{width:85%}}
 @media (prefers-reduced-motion:reduce){.nav-progress.is-on{animation:none;width:60%}}
+/* My pet dropdown in the side menu */
+.side-pet-drop summary{list-style:none;cursor:pointer}
+.side-pet-drop summary::-webkit-details-marker{display:none}
+.side-pet-chev{width:14px;height:14px;flex:none;color:var(--sub);transition:transform .15s ease}
+.side-pet-drop[open] .side-pet-chev{transform:rotate(180deg)}
+.side-pet-list{display:flex;flex-direction:column;gap:2px;margin-top:4px;padding-left:12px;border-left:2px solid var(--line);margin-left:22px}
+@media (prefers-reduced-motion:reduce){.side-pet-chev{transition:none}}

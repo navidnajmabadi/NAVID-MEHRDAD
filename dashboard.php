@@ -57,7 +57,7 @@ usort($pets, static fn($a, $b) => ((int) $b['id'] === $activeId) <=> ((int) $a['
 
 $hour = (int) rrp_sipo_local_now($owner)->format('G');
 $greet = $hour < 5 ? 'Good night' : ($hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening'));
-$name = rrp_sipo_owner_nickname($owner);
+$name = strtok(trim(rrp_sipo_owner_nickname($owner)), ' ') ?: 'there'; // first name only
 
 $status = null;
 $due = [];
@@ -72,8 +72,9 @@ if ($active) {
     $now = rrp_sipo_local_now($owner)->format('Y-m-d');
     foreach (rrp_care_open_reminders($activeId, 20) as $r) {
         $local = (new DateTimeImmutable((string) $r['due_at'], new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($owner));
-        if ($local->format('Y-m-d') <= $now) {
-            $due[] = ['title' => $r['title'], 'when' => $local->format('Y-m-d') < $now ? 'Overdue' : $local->format('H:i'), 'late' => $local->format('Y-m-d') < $now];
+        $dupKey = mb_strtolower(trim((string) $r['title'])) . '|' . $local->format('Y-m-d H:i');
+        if ($local->format('Y-m-d') <= $now && !isset($due[$dupKey])) { // same title + time once
+            $due[$dupKey] = ['title' => $r['title'], 'when' => $local->format('Y-m-d') < $now ? 'Overdue' : $local->format('H:i'), 'late' => $local->format('Y-m-d') < $now];
         }
     }
     try {
@@ -85,7 +86,10 @@ if ($active) {
 }
 $age = $active ? rrp_vm_age_label($active) : null;
 
-rrp_layout_head('Home — SIPAW');
+rrp_layout_head('Home — SIPAW', [
+    'extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" />',
+    'body_class' => 'page-care page-home',
+]);
 rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="topbar home2-top">
@@ -140,7 +144,7 @@ rrp_app_start(['nav' => 'settings']);
     <section class="care-card">
       <h3 class="label">Today</h3>
       <ul class="rt-list">
-        <?php foreach (array_slice($due, 0, 4) as $d): ?>
+        <?php foreach (array_slice(array_values($due), 0, 4) as $d): ?>
           <li><span class="rt-when data<?= $d['late'] ? ' is-late' : '' ?>"><?= rrp_h($d['when']) ?></span><b class="rt-title"><?= rrp_h((string) $d['title']) ?></b></li>
         <?php endforeach; ?>
         <?php if (!$due): ?><li><span class="rt-when data">✓</span><b class="rt-title">Nothing due today</b><a class="link" href="routines.php">See all</a></li><?php endif; ?>

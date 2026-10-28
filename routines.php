@@ -17,6 +17,10 @@ $nav = rrp_owner_nav_context((int) $owner['id']);
 
 if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
     $id = (int) ($_POST['reminder_id'] ?? 0);
+    // Identical open reminders (same title + time, e.g. created twice) are handled together.
+    $twin = rrp_db()->prepare('SELECT title, due_at FROM care_reminders WHERE id = ? AND pet_id = ?');
+    $twin->execute([$id, $petId]);
+    $twinRow = $twin->fetch() ?: null;
     try {
         if (($_POST['act'] ?? '') === 'done') {
             $r = rrp_care_reminder_outcome($owner, $pet, $id, 'done');
@@ -32,6 +36,22 @@ if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csr
         $r = ['ok' => false, 'error' => 'Could not update this one. Please try again.'
             . (rrp_is_super_owner($owner) ? ' [Admin] ' . mb_substr($e->getMessage(), 0, 200) . ' @ ' . basename($e->getFile()) . ':' . $e->getLine() : '')];
     }
+    if (!empty($r['ok']) && $twinRow) {
+        $dups = rrp_db()->prepare(
+            "SELECT id FROM care_reminders WHERE pet_id = ? AND id <> ? AND title = ? AND due_at = ?
+             AND status IN ('scheduled','sent','snoozed','pending_approval')"
+        );
+        $dups->execute([$petId, $id, $twinRow['title'], $twinRow['due_at']]);
+        foreach ($dups->fetchAll(PDO::FETCH_COLUMN) as $dupId) {
+            try {
+                ($_POST['act'] ?? '') === 'done'
+                    ? rrp_care_reminder_outcome($owner, $pet, (int) $dupId, 'done')
+                    : rrp_care_reminder_outcome($owner, $pet, (int) $dupId, 'rescheduled', $tomorrow ?? null);
+            } catch (Throwable $e) {
+                error_log('routines twin update failed: ' . $e->getMessage());
+            }
+        }
+    }
     rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? $msg : ($r['error'] ?? 'Could not update.'));
     rrp_redirect('routines.php?pet=' . $petId);
 }
@@ -46,11 +66,17 @@ if ($pet) {
     $now = rrp_sipo_local_now($owner);
     $today = $now->format('Y-m-d');
     $weekEnd = $now->modify('+7 days')->format('Y-m-d');
+    $seenTwins = [];
     foreach (rrp_care_open_reminders($petId, 50) as $r) {
         $local = (new DateTimeImmutable((string) $r['due_at'], new DateTimeZone('UTC')))->setTimezone($tz);
         $day = $local->format('Y-m-d');
         $r['when'] = $day === $today ? $local->format('H:i') : $local->format('D j M');
         $key = $day < $today ? 'overdue' : ($day === $today ? 'today' : ($day <= $weekEnd ? 'week' : 'later'));
+        $dupKey = mb_strtolower(trim((string) $r['title'])) . '|' . $r['due_at'];
+        if (isset($seenTwins[$dupKey])) {
+            continue; // same title + time shown once
+        }
+        $seenTwins[$dupKey] = true;
         $groups[$key][] = $r;
     }
     foreach (rrp_care_status($owner, $pet) as $s) {

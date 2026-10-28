@@ -934,3 +934,7 @@ button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .poster .poster-find div{display:flex;flex-direction:column;gap:3px}
 .poster .poster-find b{font-size:14px}
 .poster .poster-find a{color:#2E6AFF;font-weight:600;text-decoration:underline}
+/* Poster: the name never touches the photo (html2canvas renders tight line-heights lower) */
+.poster .hd{line-height:1.1;padding-bottom:6px;overflow-wrap:anywhere}
+.poster .pic{height:230px}
+.poster .pic img{display:block}

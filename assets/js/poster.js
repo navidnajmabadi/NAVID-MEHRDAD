@@ -15,6 +15,26 @@
       scale: 2,
       useCORS: true,
       logging: false,
+      // html2canvas ignores object-fit and stretches the photo: swap it for a pre-cropped canvas.
+      onclone: function (doc) {
+        var src = root.querySelector(".pic img");
+        var img = doc.querySelector("#lostPoster .pic img");
+        if (!src || !img || !src.naturalWidth) return;
+        var box = src.parentNode.getBoundingClientRect();
+        var k = 2;
+        var c = doc.createElement("canvas");
+        c.width = Math.round(box.width * k);
+        c.height = Math.round(box.height * k);
+        c.style.width = box.width + "px";
+        c.style.height = box.height + "px";
+        c.style.display = "block";
+        var nw = src.naturalWidth, nh = src.naturalHeight;
+        var scale = Math.max(c.width / nw, c.height / nh); // cover
+        var sw = c.width / scale, sh = c.height / scale;
+        var sx = (nw - sw) / 2, sy = (nh - sh) / 2;
+        c.getContext("2d").drawImage(src, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        img.parentNode.replaceChild(c, img);
+      },
     });
   }
 

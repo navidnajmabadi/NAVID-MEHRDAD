@@ -260,9 +260,11 @@ function rrp_care_reminder_outcome(array $owner, array $pet, int $reminderId, st
         return ['ok' => true, 'next_due' => substr($due, 0, 10)];
     }
     $status = $outcome === 'done' ? 'completed' : 'dismissed';
+    // Decide in PHP, not with IF(? = 'completed'): live MySQL mixes general_ci/unicode_ci and refuses that compare.
+    $doneAt = $status === 'completed' ? 'UTC_TIMESTAMP()' : 'completed_at';
     rrp_db()->prepare(
-        'UPDATE care_reminders SET status = ?, completed_at = IF(? = \'completed\', UTC_TIMESTAMP(), completed_at), outcome = ?, outcome_note = ? WHERE id = ?'
-    )->execute([$status, $status, in_array($outcome, ['done', 'skipped'], true) ? $outcome : 'skipped', $note, $reminderId]);
+        "UPDATE care_reminders SET status = ?, completed_at = {$doneAt}, outcome = ?, outcome_note = ? WHERE id = ?"
+    )->execute([$status, in_array($outcome, ['done', 'skipped'], true) ? $outcome : 'skipped', $note, $reminderId]);
     return ['ok' => true];
 }
 
