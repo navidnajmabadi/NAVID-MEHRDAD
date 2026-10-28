@@ -220,7 +220,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'assistant',
         $reply['text'],
         $reply['tokens'],
-        ['mascot' => $reply['mascot'], 'tools' => $reply['tools'], 'model' => $reply['model']]
+        ['mascot' => $reply['mascot'], 'tools' => $reply['tools'], 'model' => $reply['model'], 'pv' => rrp_naki_core_version_id()]
     );
     if (!empty($assistant['id'])) {
         rrp_si_maybe_encrypt_message((int) $assistant['id'], $reply['text']);

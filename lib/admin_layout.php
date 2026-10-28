@@ -9,7 +9,9 @@ function rrp_admin_nav(string $active = 'home'): void
         'geo' => ['geo.php', 'Map / cities'],
         'tickets' => ['tickets.php', 'Tickets'],
         'coupons' => ['coupons.php', 'Coupons'],
-        'brain' => ['brain.php', 'SI Brain'],
+        'insights' => ['insights.php', 'Insights'],
+        'brain' => ['naki.php', 'NAKI brain'],
+        'site' => ['site.php', 'Site health'],
         'sipo' => ['sipo-check.php', 'SIPO check'],
         'moderation' => ['moderation.php', 'Moderation'],
         'logs' => ['logs.php', 'Logs'],
@@ -27,9 +29,10 @@ function rrp_admin_shell_start(string $title, string $active = 'home'): void
 {
     rrp_layout_head($title . ' — Admin', [
         'body_class' => 'admin-body',
-        'extra_head' => $active === 'geo'
-            ? '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />'
-            : '',
+        'extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" />'
+            . '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/admin-dash.css', true)) . '" />'
+            . (in_array($active, ['geo', 'insights'], true)
+                ? '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />' : ''),
     ]);
     ?>
 <div class="shell shell-wide">

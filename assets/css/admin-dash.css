@@ -1,0 +1,23 @@
+/* Admin dashboards (PR 7) */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0 18px}
+.kpi{border:1px solid var(--line);padding:12px;background:var(--panel)}
+.kpi b{display:block;font-family:var(--f-data);font-size:24px}
+.kpi span{font-size:12px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
+.kpi.is-bad b{color:var(--red)}
+.dash-grid{display:grid;gap:14px}
+@media (min-width:900px){.dash-grid{grid-template-columns:1fr 1fr}}
+.dash-card{border:1px solid var(--line);padding:14px}
+.dash-card h2{margin:0 0 10px;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--sub)}
+.dash-table{width:100%;border-collapse:collapse;font-size:13px}
+.dash-table th,.dash-table td{text-align:left;padding:6px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.dash-table th{color:var(--sub);font-weight:500}
+.dbars{display:grid;gap:6px}
+.dbar{display:grid;grid-template-columns:minmax(90px,160px) 1fr 48px;gap:8px;align-items:center;font-size:13px;text-align:left}
+.dbar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dbar i{display:block;height:10px;background:var(--blue);min-width:2px}
+.dbar b{text-align:right}
+.admin-body .shell.shell-wide{max-width:1200px;width:min(100%,1200px)}
+.admin-body .admin-main{max-width:none}
+.dash-map{height:320px;border:1px solid var(--line)}
+.pill-ok{color:var(--blue)} .pill-bad{color:var(--red)}
+.mono{font-family:var(--f-data);font-size:12px;white-space:pre-wrap;word-break:break-word}

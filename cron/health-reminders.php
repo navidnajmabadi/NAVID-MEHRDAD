@@ -29,6 +29,7 @@ try {
     $stats['followups'] = rrp_care_followup_tick(60);
     $stats['meals'] = rrp_food_meal_tick();
     $stats['supply'] = rrp_food_supply_tick();
+    rrp_ops_heartbeat('cron_health');
     echo json_encode([
         'ok' => true,
         'at' => gmdate('c'),

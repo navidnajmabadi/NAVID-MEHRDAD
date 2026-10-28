@@ -36,6 +36,8 @@ return [
         // If the main model is unknown to your key (404 / "model does not exist"), SIPO retries with this.
         // Use any chat model your OpenAI project can access. Admin → SIPO check shows the exact error.
         'fallback_model' => '',
+        // Admin → Insights AI cost estimate (USD per 1M tokens, blended input/output). Set your real price.
+        'usd_per_1m_tokens' => 2.0,
         'models' => [
             'si_chat' => 'gpt-6-luna',
             'food_vision' => 'gpt-6-luna',
@@ -104,6 +106,8 @@ return [
         'yearly_cents' => null,               // set to show a yearly option
         'currency' => 'USD',
     ],
+    // Insights: groups smaller than this show as "<N" in dashboards and CSV reports.
+    'insights' => ['min_group' => 5],
     // Coin amounts can be tuned without code: 'coins' => ['rules' => ['routine_vaccine' => 10, …]],
 
     // SIPO limits (lib/sipo/limits.php). free_daily_msgs 0 = unlimited (test mode).
