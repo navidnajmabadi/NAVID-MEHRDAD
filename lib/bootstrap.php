@@ -330,3 +330,4 @@ require_once __DIR__ . '/viewmodels/health_vm.php';
 require_once __DIR__ . '/viewmodels/daily_vm.php';
 require_once __DIR__ . '/finance.php';
 require_once __DIR__ . '/account.php';
+require_once __DIR__ . '/google_sso.php';

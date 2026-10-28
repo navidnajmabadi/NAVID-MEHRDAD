@@ -939,3 +939,11 @@ button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .poster .pic{height:230px}
 .poster .pic img{display:block}
 .poster-phone-toggle{display:flex;gap:8px;align-items:center;font-size:14px;margin:4px 0}.lost-found-btn{font-size:15px}
+/* Continue with Google (Google sign-in button style: white, G logo, dark text) */
+.auth-form.sso{gap:0;margin-bottom:0}
+.google-btn{display:flex;align-items:center;justify-content:center;gap:12px;min-height:50px;width:100%;padding:0 16px;background:#fff;color:#1f1f1f;border:1px solid #747775;border-radius:var(--r-pill,4px);font-family:"Roboto",var(--f-body);font-weight:500;font-size:15px;text-decoration:none;letter-spacing:.01em;text-transform:none}
+.google-btn:hover{background:#f8f9fa;box-shadow:0 1px 3px rgba(60,64,67,.3)}
+.google-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.or-line{display:flex;align-items:center;gap:12px;margin:18px 0 6px;color:var(--sub);font-size:12px;text-transform:uppercase;letter-spacing:.12em}
+.or-line::before,.or-line::after{content:"";flex:1;height:1px;background:var(--line)}
+.sso-terms{margin:8px 0 0;text-align:center;font-size:12px}

@@ -48,6 +48,8 @@ rrp_app_start(['nav' => false]);
 
 <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
 
+<div class="auth-form sso"><?php rrp_google_button('', 'Sign up with Google', true); ?></div>
+
 <form method="post" class="auth-form" novalidate>
   <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
   <input type="hidden" name="timezone" id="tz" value="" />

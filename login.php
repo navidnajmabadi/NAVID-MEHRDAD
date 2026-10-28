@@ -46,6 +46,8 @@ rrp_app_start(['nav' => false]);
 <?php rrp_render_flash(); ?>
 <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
 
+<div class="auth-form sso"><?php rrp_google_button(!empty($_GET['next']) ? $next : ''); ?></div>
+
 <form method="post" class="auth-form" id="login-form" novalidate>
   <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
   <div class="field">
