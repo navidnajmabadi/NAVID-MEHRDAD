@@ -31,7 +31,7 @@ rrp_layout_head('Reset password — SIPAW', [
     'description' => 'Choose a new SIPAW password.',
     'body_class' => 'page-auth',
 ]);
-rrp_app_start(['nav' => false]);
+rrp_app_start(['nav' => false, 'auth' => true]);
 ?>
 <div class="auth-hero">
   <?php rrp_logo_endorsed(); ?>

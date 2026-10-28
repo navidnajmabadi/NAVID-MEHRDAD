@@ -81,7 +81,11 @@ function rrp_account_delete_request(array $owner): array
         . "To continue, open this link within 30 minutes and type DELETE to confirm:\n{$url}\n\n"
         . "If this was not you, ignore this email and change your password. Nothing is deleted without the confirmation.\n\nSIPAW";
     $r = rrp_send_mail_result($email, 'Confirm deleting your SIPAW account', $body);
-    return !empty($r['ok']) ? ['ok' => true] : ['ok' => false, 'error' => 'Could not send the email: ' . ($r['error'] ?? 'mail failed')];
+    if (empty($r['ok'])) {
+        error_log('account delete email: ' . ($r['error'] ?? 'mail failed'));
+        return ['ok' => false, 'error' => 'We couldn’t send the confirmation email right now. Please try again later or contact support.'];
+    }
+    return ['ok' => true];
 }
 
 /** Remove the owner and everything that belongs to them (all FKs cascade). */
