@@ -92,7 +92,29 @@ rrp_app_start(['nav' => 'health']);
   </div>
   <p class="meta" id="careUploadNote" aria-live="polite">Photo or PDF, up to 10 MB. SIPO saves the numbers and deletes the file.</p>
 
+  <?php $top = rrp_vm_health_top($owner, $pet, $vm); rrp_view_health_top($top); ?>
   <?php rrp_view_health_dashboard($vm, false); ?>
+
+  <section class="care-card" id="sec-activity">
+    <h3 class="label">Activity · last 7 days</h3>
+    <?php if ($top['walk'] && $top['walk']['week_minutes'] > 0): ?>
+      <?php rrp_view_bar_chart(array_map(static fn($d) => ['label' => substr($d['dow'], 0, 2), 'value' => $d['minutes']], $top['walk']['week']), 'min', $top['walk']['goal'] ? (float) $top['walk']['goal'] : null); ?>
+      <p class="meta"><?= (int) $top['walk']['week_minutes'] ?> min · <?= rrp_h((string) $top['walk']['week_km']) ?> km this week<?= $top['walk']['goal'] ? ' · goal ' . (int) $top['walk']['goal'] . ' min a day' : '' ?></p>
+    <?php else: ?>
+      <p class="sub">No walks logged this week. <a class="link" href="walk.php">Start a walk</a> or tell SIPO.</p>
+    <?php endif; ?>
+  </section>
+
+  <section class="care-card" id="sec-spending">
+    <h3 class="label">Spending · last 6 months</h3>
+    <?php $sp = $top['spend']; if ($sp && array_sum(array_column($sp['months'], 'total')) > 0): ?>
+      <?php rrp_view_bar_chart(array_map(static fn($m) => ['label' => $m['label'], 'value' => round($m['total'])], $sp['months']), $sp['currency']); ?>
+      <p class="meta">This year <?= rrp_h(($top['money'])($sp['year'], $sp['currency'])) ?><?php foreach ($sp['by_category'] as $c => $v): ?> · <?= rrp_h(RRP_EXPENSE_CATEGORIES[$c] ?? $c) ?> <?= rrp_h(($top['money'])($v, $sp['currency'])) ?><?php endforeach; ?></p>
+      <a class="link" href="finance.php">Open Finance</a>
+    <?php else: ?>
+      <p class="sub">No spending yet. Tell SIPO "I spent 30 on food" or add it in <a class="link" href="finance.php">Finance</a>.</p>
+    <?php endif; ?>
+  </section>
 
   <section class="care-card">
     <h3 class="label">Share with your vet</h3>

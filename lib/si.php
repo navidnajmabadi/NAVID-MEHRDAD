@@ -59,6 +59,7 @@ require_once __DIR__ . '/sipo/memory.php';
 require_once __DIR__ . '/sipo/prompt.php';
 require_once __DIR__ . '/sipo/tools.php';
 require_once __DIR__ . '/sipo/app_tools.php';
+require_once __DIR__ . '/sipo/setup.php';
 require_once __DIR__ . '/sipo/engine.php';
 require_once __DIR__ . '/sipo/nudges.php';
 require_once __DIR__ . '/care/catalog.php';

@@ -63,7 +63,11 @@ function rrp_sipo_recent_for_model(array $thread, int $limit = RRP_SIPO_RECENT_T
          WHERE thread_id = ? AND id > ? ORDER BY id DESC LIMIT {$limit}"
     );
     $stmt->execute([(int) $thread['id'], (int) ($thread['summary_upto_id'] ?? 0)]);
-    return array_reverse($stmt->fetchAll());
+    $rows = array_reverse($stmt->fetchAll());
+    foreach ($rows as &$r) {
+        $r['body'] = rrp_sipo_strip_admin((string) $r['body']); // never feed admin notes back to the model
+    }
+    return $rows;
 }
 
 /**

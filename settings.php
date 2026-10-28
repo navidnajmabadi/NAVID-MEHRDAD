@@ -10,6 +10,25 @@ $nav = rrp_owner_nav_context((int) $owner['id']);
 $plan = rrp_owner_plan($owner);
 $canAdd = rrp_vm_pet_switcher($owner)['can_add'];
 $initial = strtoupper(substr((string) ($owner['name'] ?? 'U'), 0, 1));
+$pwError = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
+    $act = (string) ($_POST['act'] ?? '');
+    if ($act === 'password') {
+        $r = rrp_owner_change_password((int) $owner['id'], (string) ($_POST['current'] ?? ''), (string) ($_POST['new'] ?? ''), (string) ($_POST['new2'] ?? ''));
+        if (!empty($r['ok'])) {
+            rrp_flash_set('ok', 'Password changed 🔒 Other devices were logged out.');
+            rrp_redirect('settings.php');
+        }
+        $pwError = $r['error'] ?? 'Could not change it.';
+    } elseif ($act === 'delete_request') {
+        $r = rrp_account_delete_request($owner);
+        rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok'])
+            ? 'Check your email: we sent a link to confirm deleting the account. It works for 30 minutes.'
+            : ($r['error'] ?? 'Could not send the email.'));
+        rrp_redirect('settings.php#danger');
+    }
+}
+$csrf = rrp_csrf_token();
 
 rrp_layout_head('Settings — SIPAW', [
     'extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" />',
@@ -67,7 +86,30 @@ rrp_app_start(['nav' => 'settings']);
     </ul>
   </section>
 
+  <details class="care-card set-sec" <?= $pwError ? 'open' : '' ?>>
+    <summary class="label">🔒 Change password</summary>
+    <?php if ($pwError): ?><div class="flash flash-error" role="alert"><?= rrp_h($pwError) ?></div><?php endif; ?>
+    <form method="post" class="fin-grid set-pw">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="password" />
+      <label>Current password<input type="password" name="current" required autocomplete="current-password" /></label>
+      <label>New password<input type="password" name="new" required minlength="8" autocomplete="new-password" /></label>
+      <label>Repeat new password<input type="password" name="new2" required minlength="8" autocomplete="new-password" /></label>
+      <button class="btn primary" type="submit">Save password</button>
+    </form>
+    <p class="meta">Forgot it? <a class="link" href="forgot-password.php">Get a reset link by email</a></p>
+  </details>
+
   <a class="btn outline" href="logout.php">Log out</a>
+
+  <section class="care-card set-danger" id="danger">
+    <h3 class="label">Danger zone</h3>
+    <p class="sub"><b>Delete my account.</b> This removes your profile, every pet, chats with SIPO, health records, routines, posts and paw coins for good. It cannot be undone.</p>
+    <ol class="meta set-steps"><li>Tap the button. We email <?= rrp_h((string) ($owner['email'] ?? 'you')) ?> a link.</li><li>Open the link within 30 minutes.</li><li>Type DELETE to confirm.</li></ol>
+    <form method="post" data-confirm-delete>
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="delete_request" />
+      <button class="btn set-delete" type="submit">Delete my account…</button>
+    </form>
+  </section>
   <p class="meta" style="text-align:center"><a class="link" href="legal.php">Terms and privacy</a></p>
 </div>
 <?php
