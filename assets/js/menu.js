@@ -38,7 +38,10 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ csrf: csrf, pet_id: Number(b.getAttribute("data-menu-pet")) })
       })
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          // Trust the HTTP status: if the server saved the pet, follow it even if the body is not clean JSON.
+          return r.json().catch(function () { return { ok: r.ok }; });
+        })
         .then(function (j) {
           if (!j.ok) throw new Error(j.error || "switch failed");
           var path = location.pathname.replace(/^.*\//, "") || "si-chat.php";
@@ -53,4 +56,42 @@
   menu.querySelectorAll("form[data-confirm]").forEach(function (f) {
     f.addEventListener("submit", function (e) { if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault(); });
   });
+})();
+
+// Clean address bar: /dashboard instead of /dashboard.php (no reload). Only after the server
+// has proved once that the clean URL works, so a refresh can never hit a 404.
+(function () {
+  var m = location.pathname.match(/^\/([a-z0-9-]+)\.php$/);
+  if (!m || m[1] === "index" || !window.history || !history.replaceState) return;
+  var clean = "/" + m[1] + location.search + location.hash;
+  var ok = null;
+  try { ok = localStorage.getItem("sipaw_clean_urls"); } catch (e) {}
+  if (ok === "1") { history.replaceState(history.state, "", clean); return; }
+  if (ok === "0") return;
+  fetch("/" + m[1] + location.search, { method: "HEAD", credentials: "same-origin", redirect: "manual" })
+    .then(function (r) {
+      var works = r.type === "opaqueredirect" || (r.status > 0 && r.status < 400);
+      try { localStorage.setItem("sipaw_clean_urls", works ? "1" : "0"); } catch (e) {}
+      if (works) history.replaceState(history.state, "", clean);
+    })
+    .catch(function () {});
+})();
+
+// Instant feedback: a thin progress bar the moment an in-app link is tapped.
+(function () {
+  var bar = document.createElement("div");
+  bar.className = "nav-progress";
+  bar.setAttribute("aria-hidden", "true");
+  document.body.appendChild(bar);
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[href]");
+    if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || a.target === "_blank" || a.hasAttribute("download")) return;
+    var url;
+    try { url = new URL(a.href, location.href); } catch (err) { return; }
+    if (url.origin !== location.origin || (url.pathname === location.pathname && url.hash)) return;
+    bar.classList.remove("is-on");
+    void bar.offsetWidth;
+    bar.classList.add("is-on");
+  });
+  window.addEventListener("pageshow", function () { bar.classList.remove("is-on"); });
 })();

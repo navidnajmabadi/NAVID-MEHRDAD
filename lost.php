@@ -216,7 +216,7 @@ rrp_app_start(['nav' => 'lost']);
       <div class="poster" id="lostPoster">
         <div class="top">
           <span class="lab">Lost pet</span>
-          <img src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-wordmark-transparent-black.svg')) ?>" alt="siPaw" width="56" height="33" />
+          <img class="poster-logo" src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-wordmark-transparent-black.svg', true)) ?>" alt="SIPAW" width="40" height="24" />
         </div>
         <div class="hd"><?= rrp_h($pet['name']) ?></div>
         <div class="pic">
@@ -236,14 +236,29 @@ rrp_app_start(['nav' => 'lost']);
         <?php if (!empty($owner['phone'])): ?>
           <p><strong>Call:</strong> <?= rrp_h((string) $owner['phone']) ?></p>
         <?php endif; ?>
-        <div class="bar">
-          <span>Scan the collar tag or call via siPaw · <?= rrp_h(rrp_app_url('pet.php?id=' . rawurlencode((string) $pet['public_id']))) ?></span>
+        <?php $findUrl = rrp_app_url('pet.php?id=' . rawurlencode((string) $pet['public_id'])); ?>
+        <div class="bar poster-find">
+          <div class="poster-qr" id="posterQr" data-url="<?= rrp_h($findUrl) ?>" aria-label="QR code to contact the owner"></div>
+          <div>
+            <b>Seen <?= rrp_h($pet['name']) ?>?</b>
+            <span>Scan the code or open the link to tell the owner where. No app needed.</span>
+            <a href="<?= rrp_h($findUrl) ?>" target="_blank" rel="noopener">Open <?= rrp_h($pet['name']) ?>’s page</a>
+          </div>
         </div>
       </div>
       <button type="button" class="btn primary" id="posterPng">Download PNG</button>
       <button type="button" class="btn outline" id="posterPdf">Download PDF</button>
       <script>
       window.RRP_POSTER = { petName: <?= json_encode($pet['name'], JSON_UNESCAPED_UNICODE) ?> };
+      </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" crossorigin="anonymous"></script>
+      <script>
+      (function () { // QR to the finder page; an <img> so the PNG/PDF download captures it
+        var el = document.getElementById('posterQr');
+        if (!el || typeof qrcode !== 'function') return;
+        var qr = qrcode(0, 'M'); qr.addData(el.getAttribute('data-url')); qr.make();
+        el.innerHTML = qr.createImgTag(4, 0);
+      })();
       </script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>

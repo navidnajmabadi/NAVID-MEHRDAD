@@ -28,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $result = rrp_create_pet((int) $owner['id'], $_POST, $file);
             if ($result['ok']) {
-                rrp_flash_set('ok', 'Pet added — pair the QR tag.');
-                rrp_redirect('tag.php?id=' . (int) $result['pet_id']);
+                rrp_flash_set('ok', 'Pet added 🐾');
+                rrp_redirect('pet-profile.php?id=' . (int) $result['pet_id']);
             }
         }
         $error = $result['error'] ?? 'Could not save pet.';
@@ -84,7 +84,7 @@ rrp_app_start(['nav' => false]);
       <label class="photo-drop" for="image">
         <svg class="ico" style="width:24px;height:24px" aria-hidden="true"><use href="#i-camera"/></svg>
         <b>Add a clear photo of the face</b>
-        Finders see it on the scan page and the lost poster.
+        Finders see it on the Lost mode poster.
         <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" />
         <?php if (!empty($pet['image_path'])): ?>
           <img id="photo-prev" src="<?= rrp_h($pet['image_path']) ?>" alt="" />
@@ -116,7 +116,7 @@ rrp_app_start(['nav' => false]);
       <div class="field">
         <label for="magic_word">Magic word</label>
         <div class="in"><input id="magic_word" name="magic_word" value="<?= rrp_h($values['magic_word'] ?? '') ?>" /></div>
-        <small>The word they always come to. Finders see it on the scan page.</small>
+        <small>The word they always come to. Finders see it on the Lost mode poster.</small>
       </div>
       <div class="field">
         <label for="medical_vaccines">Vaccines</label>
@@ -143,7 +143,7 @@ rrp_app_start(['nav' => false]);
       <a class="link" href="pet-profile.php?id=<?= (int) $petId ?>">Cancel</a>
     <?php else: ?>
       <button class="btn primary" type="button" id="add-next">Continue</button>
-      <button class="btn primary" type="submit" id="add-save" hidden>Save &amp; get QR</button>
+      <button class="btn primary" type="submit" id="add-save" hidden>Save</button>
       <a class="link" href="dashboard.php" id="add-skip">Skip for now</a>
       <p class="data" style="font-size:11px;color:var(--meta)"><?= (int) $petCount ?> of <?= (int) $petLimit ?> used · <?= rrp_h(strtoupper(rrp_owner_plan($owner))) ?></p>
     <?php endif; ?>

@@ -434,7 +434,11 @@
   if (lastMsg && lastMsg.role === "assistant" && lastMsg.choices) showChoices(lastMsg.choices);
   booted = true;
   showGate(vm.gate);
-  if (!vm.gate) greet();
+  if (!vm.gate && vm.auto_ask) {
+    // Came from "Ask SIPO" on another page: ask about that page, once (not again on reload).
+    try { history.replaceState(history.state, "", location.pathname); } catch (e) {}
+    send(vm.auto_ask);
+  } else if (!vm.gate) greet();
   setInterval(poll, vm.poll_ms || 20000);
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) poll();

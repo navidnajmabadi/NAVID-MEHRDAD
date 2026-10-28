@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         rrp_share_revoke($owner, (int) ($_POST['id'] ?? 0));
         rrp_flash_set('ok', 'Link turned off.');
     }
-    rrp_redirect('care.php');
+    rrp_redirect('care.php#share'); // back to the vet link card, not the top of the page
 }
 if (!empty($_SESSION['share_once'])) {
     $newLink = (string) $_SESSION['share_once'];
@@ -87,7 +87,7 @@ rrp_app_start(['nav' => 'health']);
       <input type="file" id="careFile" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
       <svg aria-hidden="true"><use href="#i-doc"/></svg><span>Add lab report or label</span>
     </label>
-    <a class="btn outline" href="si-chat.php">Ask SIPO</a>
+    <a class="btn outline" href="si-chat.php?ask=health">Ask SIPO</a>
     <a class="btn outline" href="health-care.php">Edit records</a>
   </div>
   <p class="meta" id="careUploadNote" aria-live="polite">Photo or PDF, up to 10 MB. SIPO saves the numbers and deletes the file.</p>
@@ -116,7 +116,7 @@ rrp_app_start(['nav' => 'health']);
     <?php endif; ?>
   </section>
 
-  <section class="care-card">
+  <section class="care-card" id="share">
     <h3 class="label">Share with your vet</h3>
     <p class="sub">A private, read-only link to this page. Works for <?= RRP_SHARE_DAYS ?> days; turn it off anytime.</p>
     <?php if ($newLink): ?>

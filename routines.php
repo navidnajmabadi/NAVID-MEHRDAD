@@ -17,13 +17,20 @@ $nav = rrp_owner_nav_context((int) $owner['id']);
 
 if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
     $id = (int) ($_POST['reminder_id'] ?? 0);
-    if (($_POST['act'] ?? '') === 'done') {
-        $r = rrp_care_reminder_outcome($owner, $pet, $id, 'done');
-        $msg = 'Done ✅ Nice work!' . (!empty($r['next_due']) ? ' Next one ' . $r['next_due'] . '.' : '');
-    } else {
-        $tomorrow = rrp_sipo_local_now($owner)->modify('+1 day')->format('Y-m-d') . ' 09:00';
-        $r = rrp_care_reminder_outcome($owner, $pet, $id, 'rescheduled', $tomorrow);
-        $msg = 'Moved to tomorrow 🗓️';
+    try {
+        if (($_POST['act'] ?? '') === 'done') {
+            $r = rrp_care_reminder_outcome($owner, $pet, $id, 'done');
+            $msg = 'Done ✅ Nice work!' . (!empty($r['next_due']) ? ' Next one ' . $r['next_due'] . '.' : '');
+        } else {
+            $tomorrow = rrp_sipo_local_now($owner)->modify('+1 day')->format('Y-m-d') . ' 09:00';
+            $r = rrp_care_reminder_outcome($owner, $pet, $id, 'rescheduled', $tomorrow);
+            $msg = 'Moved to tomorrow 🗓️';
+        }
+    } catch (Throwable $e) {
+        // Never a crash page for a tap: report it, keep the owner on Routines.
+        error_log('routines action failed: reminder=' . $id . ' ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
+        $r = ['ok' => false, 'error' => 'Could not update this one. Please try again.'
+            . (rrp_is_super_owner($owner) ? ' [Admin] ' . mb_substr($e->getMessage(), 0, 200) . ' @ ' . basename($e->getFile()) . ':' . $e->getLine() : '')];
     }
     rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? $msg : ($r['error'] ?? 'Could not update.'));
     rrp_redirect('routines.php?pet=' . $petId);

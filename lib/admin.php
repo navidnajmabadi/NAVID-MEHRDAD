@@ -1,9 +1,46 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * A logged-in super owner (super_owners in config, e.g. navid.najmabadi@gmail.com) is let into the
+ * Admin panel without the separate admin password: we link (or create) the admin_users row with the
+ * same email. A created row gets a random unusable password, so it can't be logged into directly.
+ */
+function rrp_admin_from_super_owner(): void
+{
+    try {
+        $owner = rrp_current_owner();
+        if (!$owner || !rrp_is_super_owner($owner) || trim((string) ($owner['email'] ?? '')) === '') {
+            return;
+        }
+        $email = strtolower(trim((string) $owner['email']));
+        $st = rrp_db()->prepare('SELECT id, status FROM admin_users WHERE LOWER(email) = ? LIMIT 1');
+        $st->execute([$email]);
+        $row = $st->fetch();
+        if ($row && $row['status'] !== 'active') {
+            return; // a disabled admin stays disabled
+        }
+        if (!$row) {
+            rrp_db()->prepare("INSERT INTO admin_users (name, email, password_hash, status) VALUES (?, ?, ?, 'active')")
+                ->execute([(string) ($owner['name'] ?: 'Owner admin'), $email, password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT)]);
+            $id = (int) rrp_db()->lastInsertId();
+        } else {
+            $id = (int) $row['id'];
+        }
+        session_regenerate_id(true);
+        $_SESSION['admin_id'] = $id;
+        error_log('Admin access via super owner session: owner=' . (int) $owner['id'] . ' admin=' . $id);
+    } catch (Throwable $e) {
+        error_log('rrp_admin_from_super_owner: ' . $e->getMessage());
+    }
+}
+
 function rrp_current_admin(): ?array
 {
     rrp_start_session();
+    if (empty($_SESSION['admin_id'])) {
+        rrp_admin_from_super_owner();
+    }
     if (empty($_SESSION['admin_id'])) {
         return null;
     }

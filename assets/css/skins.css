@@ -134,3 +134,4 @@
 [data-skin] :is(a,button,span,small,b,p,label,summary,time,.status,.chip-s,.daily-tabs a,.btn){text-transform:none;letter-spacing:normal}
 [data-skin] .daily-tabs a{font-family:var(--f-body);font-weight:700;font-size:14px}
 [data-skin] .daily-tabs a[aria-current="page"]{border-radius:var(--r-pill)}
+[data-skin] .care-actions .btn,[data-skin] .care-actions label.care-upload{font-size:14px;font-weight:600}

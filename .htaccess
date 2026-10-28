@@ -22,4 +22,14 @@ RedirectMatch 404 /\.git
   # Pretty blog URLs → PHP handlers
   RewriteRule ^blog/?$ blog.php [L,QSA]
   RewriteRule ^blog/([a-z0-9\-]+)/?$ blog-post.php?slug=$1 [L,QSA]
+  # Clean URLs: /dashboard → dashboard.php (top-level pages only; real files and folders win)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}.php -f
+  RewriteRule ^([a-z0-9\-]+)/?$ $1.php [L,QSA]
+</IfModule>
+
+# Speed: compress text responses (pages, CSS, JS, JSON, SVG)
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml
 </IfModule>

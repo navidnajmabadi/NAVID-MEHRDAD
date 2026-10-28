@@ -33,6 +33,7 @@ function rrp_layout_head(string $title, array $opts = []): void
 <html lang="en" data-theme="<?= rrp_h((string) $theme) ?>"<?= $skin !== 'studio' ? ' data-skin="' . rrp_h($skin) . '"' : '' ?>>
 <head>
 <meta charset="utf-8" />
+<style>html{background:<?= ['friendly' => '#FFF8EF', 'clean' => '#F4F6FA'][$skin] ?? '#000000' ?>;color-scheme:<?= $skin === 'studio' ? 'dark' : 'light' ?>}@view-transition{navigation:auto}</style>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="description" content="<?= rrp_h($desc) ?>" />
 <meta name="theme-color" content="<?= ['friendly' => '#FFF8EF', 'clean' => '#F4F6FA'][$skin] ?? '#000000' ?>" />
@@ -45,10 +46,11 @@ function rrp_layout_head(string $title, array $opts = []): void
 <link rel="apple-touch-icon" href="<?= rrp_h(rrp_asset('assets/icons/apple-touch-icon.png')) ?>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<?php if ($skin === 'studio'): ?><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" /><?php endif; ?>
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipaw.css', true)) ?>" />
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipo-app.css', true)) ?>" />
-<?php if ($skinFonts): ?><link href="https://fonts.googleapis.com/css2?family=<?= rrp_h($skinFonts) ?>&display=swap" rel="stylesheet" /><?php endif; ?>
+<?php if ($skinFonts): ?><link href="https://fonts.googleapis.com/css2?family=<?= rrp_h($skinFonts) ?>&display=swap" rel="stylesheet" media="print" onload="this.media='all'" /><?php endif; ?>
+<script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/logout.php*","/dev-tools.php*","/account-delete.php*","/api/*","/cron/*","/admin/*"]}}]},"eagerness":"moderate"}]}</script>
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/skins.css', true)) ?>" />
 <meta name="rrp-sw" content="<?= rrp_h(rrp_asset('sw.js')) ?>" />
 <meta name="rrp-push-vapid" content="<?= rrp_h(rrp_asset('api/push-vapid.php')) ?>" />
@@ -132,13 +134,33 @@ function rrp_install_sheet(): void
 }
 
 /** Floating SIPO button on every app page except the chat itself: one tap to ask SIPO. */
+/** Page → what "Ask SIPO" should explain (si-chat.php?ask=…). */
+const RRP_SIPO_ASK_TOPICS = [
+    'home' => 'Give me a quick summary of today for my pet: anything due, anything to watch.',
+    'health' => 'Explain my pet’s Health page: the status, anything out of range, and what I should do next.',
+    'daily' => 'Explain my pet’s Daily page: bathroom pattern, walks and anything unusual.',
+    'routines' => 'Walk me through my pet’s routines: what is overdue or due soon, and what to do first.',
+    'finance' => 'Explain my pet spending: this month vs usual, the biggest costs, and ways to plan.',
+    'lost' => 'Explain how Lost mode works and what I should do right now.',
+    'social' => 'What can I do on the Pack board, and what would be a nice post for my pet?',
+];
+
+function rrp_sipo_ask_topic_for_page(): ?string
+{
+    $map = ['dashboard.php' => 'home', 'care.php' => 'health', 'daily.php' => 'daily', 'routines.php' => 'routines',
+        'finance.php' => 'finance', 'lost.php' => 'lost', 'forum.php' => 'social'];
+    return $map[basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''))] ?? null;
+}
+
 function rrp_sipo_fab(string $active): void
 {
     if ($active === 'chat') {
         return;
     }
+    $topic = rrp_sipo_ask_topic_for_page();
+    $href = 'si-chat.php' . ($topic ? '?ask=' . $topic : '');
     $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
-    echo '<a class="sipo-fab" href="si-chat.php" aria-label="Ask SIPO"><img src="' . rrp_h($mascot) . '" alt="" width="40" height="40" /><span>Ask SIPO</span></a>' . "\n";
+    echo '<a class="sipo-fab" href="' . rrp_h($href) . '" aria-label="Ask SIPO about this page"><img src="' . rrp_h($mascot) . '" alt="" width="40" height="40" /><span>Ask SIPO</span></a>' . "\n";
 }
 
 /**
@@ -177,7 +199,9 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
   <?php if ($owner): $sw = rrp_vm_pet_switcher($owner); ?>
     <div class="side-pets" id="sidePets">
       <p class="label">My pets · tap to switch</p>
-      <?php foreach ($sw['pets'] as $p): $isCur = $sw['current'] && (int) $sw['current']['id'] === (int) $p['id']; ?>
+      <?php $curId = (int) ($sw['current']['id'] ?? 0);
+      usort($sw['pets'], static fn($a, $b) => ((int) $b['id'] === $curId) <=> ((int) $a['id'] === $curId)); // showing now on top
+      foreach ($sw['pets'] as $p): $isCur = $curId === (int) $p['id']; ?>
         <button type="button" class="side-pet" data-menu-pet="<?= (int) $p['id'] ?>"<?= $isCur ? ' aria-current="true"' : '' ?>>
           <?php rrp_pet_avatar($p); ?><span><b><?= rrp_h($p['name']) ?></b><small><?= $isCur ? 'Showing now' : rrp_h($p['kind']) ?></small></span>
           <?php if ($isCur): ?><svg class="side-pet-check" aria-hidden="true"><use href="#i-check"/></svg><?php endif; ?>
@@ -207,23 +231,11 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
 }
 
 /**
- * Current pet chip in the top bar; tapping it opens the side menu at "My pets",
- * the one place to switch. Switching changes chat, dashboards and forms.
- * @param array{pets:list<array>, current:?array, can_add:bool} $switcher from rrp_vm_pet_switcher()
+ * Pages no longer show a pet picker: the pet is chosen once, in the side menu under
+ * Settings (My pets), and every page follows it. Kept as a no-op so old callers stay valid.
  */
 function rrp_pet_switcher(array $switcher, ?array $showing = null): void
 {
-    $cur = $showing ?? $switcher['current'];
-    if (!$cur) {
-        return; // no pet yet: adding one lives in Settings, not the top bar
-    }
-    ?>
-<button type="button" class="petswitch" data-menu-open="pets" aria-controls="sideMenu" aria-label="Showing <?= rrp_h($cur['name'] ?? '') ?>. Switch pet">
-  <?php rrp_pet_avatar($cur); ?>
-  <span class="petswitch-name"><?= rrp_h($cur['name'] ?? 'New pet') ?></span>
-  <svg class="petswitch-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-</button>
-<?php
 }
 
 function rrp_pet_avatar(?array $pet): void
@@ -239,8 +251,8 @@ function rrp_pet_avatar(?array $pet): void
 function rrp_logo_endorsed(string $class = ''): void
 {
     $cls = trim('logo-endorsed ' . $class);
-    $dark = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-black.svg');
-    $light = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-white.svg');
+    $dark = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-black.svg', true);
+    $light = rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-transparent-black.svg', true);
     echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="SI^PAW by NAKILAB" width="210" height="154" />';
     echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="SI^PAW by NAKILAB" width="210" height="154" />';
 }
@@ -248,8 +260,8 @@ function rrp_logo_endorsed(string $class = ''): void
 function rrp_logo_wordmark(string $class = ''): void
 {
     $cls = trim('logo-word wordmark ' . $class);
-    $dark = rrp_asset('assets/img/logos/sipaw-wordmark-transparent-white.svg');
-    $light = rrp_asset('assets/img/logos/sipaw-wordmark-transparent-black.svg');
+    $dark = rrp_asset('assets/img/logos/sipaw-wordmark-transparent-white.svg', true);
+    $light = rrp_asset('assets/img/logos/sipaw-wordmark-transparent-black.svg', true);
     echo '<img class="' . rrp_h($cls . ' on-dark') . '" src="' . rrp_h($dark) . '" alt="SI^PAW" width="92" height="54" />';
     echo '<img class="' . rrp_h($cls . ' on-light') . '" src="' . rrp_h($light) . '" alt="SI^PAW" width="92" height="54" />';
 }
@@ -257,7 +269,7 @@ function rrp_logo_wordmark(string $class = ''): void
 function rrp_logo_tile(string $class = ''): void
 {
     $cls = trim('logo-tile ' . $class);
-    $src = rrp_asset('assets/img/logos/sipaw-symbol-on-black.svg');
+    $src = rrp_asset('assets/img/logos/sipaw-symbol-on-black.svg', true);
     echo '<img class="' . rrp_h($cls) . '" src="' . rrp_h($src) . '" alt="SI element tile" width="104" height="104" />';
 }
 
