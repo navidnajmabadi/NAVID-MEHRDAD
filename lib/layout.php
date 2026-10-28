@@ -1,21 +1,41 @@
 <?php
 declare(strict_types=1);
 
+const RRP_UI_SKINS = ['studio' => 'Studio', 'friendly' => 'Friendly', 'clean' => 'Clean'];
+
+/** Appearance chosen in Settings (per device, cookie). studio = the original dark look. */
+function rrp_ui_skin(): string
+{
+    $s = (string) ($_COOKIE['sipaw_skin'] ?? 'studio');
+    return isset(RRP_UI_SKINS[$s]) ? $s : 'studio';
+}
+
+function rrp_ui_set_skin(string $skin): void
+{
+    if (!isset(RRP_UI_SKINS[$skin])) {
+        return;
+    }
+    setcookie('sipaw_skin', $skin, ['expires' => time() + 365 * 86400, 'path' => '/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => false, 'samesite' => 'Lax']);
+    $_COOKIE['sipaw_skin'] = $skin;
+}
+
 function rrp_layout_head(string $title, array $opts = []): void
 {
     $desc = $opts['description'] ?? 'siPaw by NAKILAB — AI pet care companion and community for pet owners.';
     $extra = $opts['extra_head'] ?? '';
     $canonical = $opts['canonical'] ?? (rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/');
     $bodyClass = trim((string) ($opts['body_class'] ?? ''));
-    $theme = $opts['theme'] ?? 'dark';
+    $skin = rrp_ui_skin();
+    $theme = $opts['theme'] ?? ($skin === 'studio' ? 'dark' : 'light');
+    $skinFonts = ['friendly' => 'Nunito:wght@400;600;700;800', 'clean' => 'Figtree:wght@400;500;600;700'][$skin] ?? null;
     ?>
 <!doctype html>
-<html lang="en" data-theme="<?= rrp_h((string) $theme) ?>">
+<html lang="en" data-theme="<?= rrp_h((string) $theme) ?>"<?= $skin !== 'studio' ? ' data-skin="' . rrp_h($skin) . '"' : '' ?>>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="description" content="<?= rrp_h($desc) ?>" />
-<meta name="theme-color" content="#000000" />
+<meta name="theme-color" content="<?= ['friendly' => '#FFF8EF', 'clean' => '#F4F6FA'][$skin] ?? '#000000' ?>" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="SIPAW" />
@@ -28,6 +48,8 @@ function rrp_layout_head(string $title, array $opts = []): void
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipaw.css', true)) ?>" />
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipo-app.css', true)) ?>" />
+<?php if ($skinFonts): ?><link href="https://fonts.googleapis.com/css2?family=<?= rrp_h($skinFonts) ?>&display=swap" rel="stylesheet" /><?php endif; ?>
+<link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/skins.css', true)) ?>" />
 <meta name="rrp-sw" content="<?= rrp_h(rrp_asset('sw.js')) ?>" />
 <meta name="rrp-push-vapid" content="<?= rrp_h(rrp_asset('api/push-vapid.php')) ?>" />
 <meta name="rrp-push-subscribe" content="<?= rrp_h(rrp_asset('api/push-subscribe.php')) ?>" />
@@ -83,7 +105,7 @@ function rrp_app_end(array $opts = []): void
     echo "</div>\n"; // .app-main
     $nav = $opts['nav'] ?? false;
     if ($nav) {
-        rrp_tabbar((string) $nav, (int) ($opts['unread'] ?? 0), !empty($opts['lost_active']));
+        rrp_sipo_fab((string) $nav);
         rrp_side_menu((string) $nav, (int) ($opts['unread'] ?? 0), !empty($opts['lost_active']));
         rrp_install_sheet();
     }
@@ -109,46 +131,14 @@ function rrp_install_sheet(): void
 <?php
 }
 
-/**
- * Tab bar (Navid 2026-10-28): Settings · Health · SIPO (mascot, centre) · Social · Routines.
- * Old nav keys still map: home/lost/alerts → Settings, chat → SIPO.
- */
-function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): void
+/** Floating SIPO button on every app page except the chat itself: one tap to ask SIPO. */
+function rrp_sipo_fab(string $active): void
 {
-    $map = ['home' => 'settings', 'lost' => 'settings', 'alerts' => 'settings', 'account' => 'settings'];
-    $active = $map[$active] ?? $active;
-    $tabs = [
-        'settings' => ['href' => 'settings.php', 'label' => $lostActive ? 'Lost' : 'Settings', 'icon' => $lostActive ? 'i-lost' : 'i-gear'],
-        'health' => ['href' => 'care.php', 'label' => 'Health', 'icon' => 'i-heart'],
-        'chat' => ['href' => 'si-chat.php', 'label' => 'SIPO', 'icon' => null],
-        'social' => ['href' => 'forum.php', 'label' => 'Pack', 'icon' => 'i-social'],
-        'routines' => ['href' => 'routines.php', 'label' => 'Routines', 'icon' => 'i-routine'],
-    ];
-    $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
-    echo '<nav class="tabbar tabbar-v2" id="tabbar" aria-label="Main">' . "\n";
-    foreach ($tabs as $key => $tab) {
-        $current = $active === $key ? ' aria-current="page"' : '';
-        $cls = [];
-        if ($key === 'chat') {
-            $cls[] = 'tab-sipo';
-        }
-        if ($key === 'settings' && $lostActive) {
-            $cls[] = 'is-lost';
-        }
-        $href = ($key === 'settings' && $lostActive) ? 'lost.php' : $tab['href'];
-        echo '<a href="' . rrp_h($href) . '"' . $current . ($cls ? ' class="' . implode(' ', $cls) . '"' : '') . '>';
-        if ($key === 'chat') {
-            echo '<span class="tab-sipo-face"><img src="' . rrp_h($mascot) . '" alt="" width="44" height="44" /></span>';
-        } else {
-            echo '<svg aria-hidden="true"><use href="#' . rrp_h((string) $tab['icon']) . '"/></svg>';
-        }
-        echo '<span class="tab-label">' . rrp_h($tab['label']) . '</span>';
-        if ($key === 'settings' && $unread > 0) {
-            echo '<span class="badge">' . rrp_h((string) min(99, $unread)) . '</span>';
-        }
-        echo '</a>' . "\n";
+    if ($active === 'chat') {
+        return;
     }
-    echo "</nav>\n";
+    $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
+    echo '<a class="sipo-fab" href="si-chat.php" aria-label="Ask SIPO"><img src="' . rrp_h($mascot) . '" alt="" width="40" height="40" /><span>Ask SIPO</span></a>' . "\n";
 }
 
 /**
@@ -174,7 +164,7 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
   <span></span><span></span><span></span><?php if ($unread > 0): ?><i class="menu-dot" aria-hidden="true"></i><?php endif; ?>
 </button>
 <div class="side-backdrop" id="sideBackdrop" hidden></div>
-<nav class="side-menu" id="sideMenu" aria-label="Menu" hidden>
+<nav class="side-menu" id="sideMenu" aria-label="Menu" data-csrf="<?= rrp_h(rrp_csrf_token()) ?>" hidden>
   <div class="side-head"><?php rrp_logo_endorsed(); ?><button type="button" class="iconbtn" data-menu-close aria-label="Close menu">×</button></div>
   <ul role="list">
     <?php foreach ($items as [$href, $label, $sub, $icon]): $cur = $page === $href; ?>
@@ -184,6 +174,22 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
       </a></li>
     <?php endforeach; ?>
   </ul>
+  <?php if ($owner): $sw = rrp_vm_pet_switcher($owner); ?>
+    <div class="side-pets" id="sidePets">
+      <p class="label">My pets · tap to switch</p>
+      <?php foreach ($sw['pets'] as $p): $isCur = $sw['current'] && (int) $sw['current']['id'] === (int) $p['id']; ?>
+        <button type="button" class="side-pet" data-menu-pet="<?= (int) $p['id'] ?>"<?= $isCur ? ' aria-current="true"' : '' ?>>
+          <?php rrp_pet_avatar($p); ?><span><b><?= rrp_h($p['name']) ?></b><small><?= $isCur ? 'Showing now' : rrp_h($p['kind']) ?></small></span>
+          <?php if ($isCur): ?><svg class="side-pet-check" aria-hidden="true"><use href="#i-check"/></svg><?php endif; ?>
+        </button>
+      <?php endforeach; ?>
+      <?php if ($sw['can_add']): ?>
+        <a class="side-pet is-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add a pet</b><small>SIPO sets it up with you</small></span></a>
+      <?php elseif (!$sw['pets']): ?>
+        <a class="side-pet is-add" href="si-chat.php?new=1"><span class="pet-avatar is-add" aria-hidden="true">+</span><span><b>Add your pet</b></span></a>
+      <?php endif; ?>
+    </div>
+  <?php endif; ?>
   <?php if ($isSuper): ?>
     <div class="side-admin">
       <p class="label">Admin</p>
@@ -201,8 +207,8 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
 }
 
 /**
- * Instagram-style pet switcher: avatar + name; tap opens a sheet with every pet
- * and "Add a pet". Switching changes chat, dashboards and forms.
+ * Current pet chip in the top bar; tapping it opens the side menu at "My pets",
+ * the one place to switch. Switching changes chat, dashboards and forms.
  * @param array{pets:list<array>, current:?array, can_add:bool} $switcher from rrp_vm_pet_switcher()
  */
 function rrp_pet_switcher(array $switcher, ?array $showing = null): void
@@ -212,24 +218,11 @@ function rrp_pet_switcher(array $switcher, ?array $showing = null): void
         return; // no pet yet: adding one lives in Settings, not the top bar
     }
     ?>
-<button type="button" class="petswitch" data-petswitch data-csrf="<?= rrp_h(rrp_csrf_token()) ?>" aria-haspopup="dialog" aria-controls="petsheet">
+<button type="button" class="petswitch" data-menu-open="pets" aria-controls="sideMenu" aria-label="Showing <?= rrp_h($cur['name'] ?? '') ?>. Switch pet">
   <?php rrp_pet_avatar($cur); ?>
   <span class="petswitch-name"><?= rrp_h($cur['name'] ?? 'New pet') ?></span>
   <svg class="petswitch-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
 </button>
-<dialog class="petsheet" id="petsheet" aria-label="Switch pet">
-  <div class="petsheet-head"><span class="label">Your pets</span><button type="button" class="iconbtn" data-close aria-label="Close">×</button></div>
-  <ul class="petsheet-list" role="list">
-    <?php foreach ($switcher['pets'] as $p): ?>
-      <li><button type="button" class="petsheet-row" data-pet-id="<?= (int) $p['id'] ?>" <?= ($cur && (int) $cur['id'] === (int) $p['id']) ? 'aria-current="true"' : '' ?>>
-        <?php rrp_pet_avatar($p); ?>
-        <span><b><?= rrp_h($p['name']) ?></b><small><?= rrp_h($p['kind']) ?></small></span>
-        <svg class="petsheet-check" aria-hidden="true"><use href="#i-check"/></svg>
-      </button></li>
-    <?php endforeach; ?>
-  </ul>
-  <p class="sub petsheet-note">Add a new pet in <a class="link" href="settings.php">Settings</a>.</p>
-</dialog>
 <?php
 }
 

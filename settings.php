@@ -20,6 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
             rrp_redirect('settings.php');
         }
         $pwError = $r['error'] ?? 'Could not change it.';
+    } elseif ($act === 'skin') {
+        rrp_ui_set_skin((string) ($_POST['skin'] ?? 'studio'));
+        rrp_flash_set('ok', 'Look changed ✨');
+        rrp_redirect('settings.php#appearance');
     } elseif ($act === 'delete_request') {
         $r = rrp_account_delete_request($owner);
         rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok'])
@@ -84,6 +88,19 @@ rrp_app_start(['nav' => 'settings']);
       <li><a href="support.php"><span>💬</span><span><b>Help and support</b><small class="meta">We reply within 7 days</small></span><i aria-hidden="true">›</i></a></li>
       <?php if (rrp_is_super_owner($owner)): ?><li><a href="<?= rrp_h(rrp_asset('admin/')) ?>"><span>🛠️</span><span><b>Admin</b></span><i aria-hidden="true">›</i></a></li><?php endif; ?>
     </ul>
+  </section>
+
+  <section class="care-card" id="appearance">
+    <h3 class="label">Appearance</h3>
+    <form method="post" class="skin-pick">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="skin" />
+      <?php foreach (['studio' => 'Dark and sharp, the original look', 'friendly' => 'Warm, soft curves, made for dog people', 'clean' => 'Light and calm, like top health apps'] as $k => $why): ?>
+        <button type="submit" name="skin" value="<?= rrp_h($k) ?>" class="skin-opt" aria-pressed="<?= rrp_ui_skin() === $k ? 'true' : 'false' ?>">
+          <span class="skin-swatch skin-<?= rrp_h($k) ?>" aria-hidden="true"><i></i><i></i><i></i></span>
+          <b><?= rrp_h(RRP_UI_SKINS[$k]) ?></b><small><?= rrp_h($why) ?></small>
+        </button>
+      <?php endforeach; ?>
+    </form>
   </section>
 
   <details class="care-card set-sec" <?= $pwError ? 'open' : '' ?>>

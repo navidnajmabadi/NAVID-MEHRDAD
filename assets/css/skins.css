@@ -1,0 +1,136 @@
+/*
+ * SIPAW themes (Settings → Appearance). "studio" is the default and needs no rules here.
+ *  friendly — warm, flat, big curves, pill buttons, rounded type (for dog owners)
+ *  clean    — benchmark of top pet / health apps: light grey canvas, white rounded cards, soft shadow
+ * Both keep Si Blue as the brand colour. Applied as <html data-theme="light" data-skin="…">.
+ */
+
+/* ---------- Shared: curved, sentence-case, friendlier type ---------- */
+[data-skin="friendly"],[data-skin="clean"]{--r-sm:12px;--r-md:16px;--r-lg:22px;--r-pill:999px}
+[data-skin] :is(h1,h2,h3){text-transform:none;letter-spacing:-.01em;line-height:1.15}
+[data-skin] .label{text-transform:none;letter-spacing:.01em;font-size:13px;font-weight:600}
+[data-skin] .btn{text-transform:none;letter-spacing:.01em;font-size:15px;border-radius:var(--r-pill)}
+[data-skin] .btn.outline,[data-skin] .btn-ghost{border-width:1.5px}
+[data-skin] .iconbtn{border-radius:var(--r-pill)}
+[data-skin] :is(.box,.care-card,.care-status,.hd-kpi,.flash,.set-sec,.lost-intro){border-radius:var(--r-lg)}
+[data-skin] input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),
+[data-skin] select,[data-skin] textarea{border-radius:var(--r-md)}
+[data-skin] :is(.petswitch,.coin-badge,.hd-tabs a,.daily-tabs a,.chip-s){border-radius:var(--r-pill)}
+[data-skin] .daily-tabs{border-radius:var(--r-pill);overflow:hidden}
+[data-skin] .pet-avatar{border-radius:50%}
+[data-skin] .sipo-msg{border-radius:20px}
+[data-skin] .sipo-msg.from-sipo{border-bottom-left-radius:6px}
+[data-skin] .sipo-msg.from-me{border-bottom-right-radius:6px}
+[data-skin] .sipo-composer{border-radius:26px;overflow:hidden}
+[data-skin] .sipo-send{border-radius:50%;margin:4px}
+[data-skin] .sipo-progress{border-radius:var(--r-pill);overflow:hidden}
+[data-skin] .side-menu{border-radius:0 24px 24px 0}
+[data-skin] .side-menu li a,[data-skin] .side-pet,[data-skin] .side-admin :is(a,button){border-radius:var(--r-md)}
+[data-skin] .side-menu li a[aria-current="page"]{border-left-color:transparent}
+[data-skin] .rt-list li,[data-skin] .set-list li a{border-bottom-color:var(--line)}
+[data-skin] .hd-bar span{border-radius:8px 8px 3px 3px}
+[data-skin] .fin-cat i{border-radius:var(--r-pill)}
+[data-skin] .set-delete{border-radius:var(--r-pill)}
+[data-skin] .menu-btn{border-radius:50%}
+[data-skin] .menu-btn span{border-radius:2px}
+[data-skin] .topbar h2{font-size:20px}
+
+/* ---------- 2. Friendly: warm cream, flat (no shadows), playful ---------- */
+:root[data-skin="friendly"]{
+  --bg:#FFF8EF; --panel:#FFFFFF; --raised:#FFEFD9; --line:#F3DFC6; --edge:#E2C29B;
+  --text:#2B1D12; --sub:#7A5B43; --meta:#8C6F58;
+  --blue:#2E6AFF; --on-blue:#FFFFFF;
+  --warm:#FF8A3D; --warm-soft:#FFE3CC; --good:#1F9D6B; --good-soft:#DDF5EA;
+  --red:#E5484D; --on-red:#FFFFFF;
+  --solid:#2B1D12; --on-solid:#FFF8EF;
+  --stage:#FFF8EF; --pet-bg:#FFEFD9;
+  --f-display:"Nunito","Varela Round",system-ui,sans-serif;
+  --f-body:"Nunito","Varela Round",system-ui,sans-serif;
+  --f-data:"Nunito",system-ui,sans-serif;
+}
+[data-skin="friendly"] body{font-size:16px}
+[data-skin="friendly"] :is(h1,h2,h3){font-weight:800}
+[data-skin="friendly"] .label{color:var(--warm);font-weight:800}
+[data-skin="friendly"] :is(.care-card,.care-status,.box,.hd-kpi){border:0;background:var(--panel)}
+[data-skin="friendly"] .care-status.is-good,[data-skin="friendly"] .hd-kpi.is-ok{background:var(--good-soft)}
+[data-skin="friendly"] .hd-kpi{border-left:0!important;background:var(--panel)}
+[data-skin="friendly"] .hd-kpi.is-warn{background:var(--warm-soft)}
+[data-skin="friendly"] .hd-kpi.is-bad{background:#FFE1E1}
+[data-skin="friendly"] .hd-kpi b{font-family:var(--f-display);font-weight:800}
+[data-skin="friendly"] .btn.outline{border-color:var(--edge);color:var(--text);background:var(--panel)}
+[data-skin="friendly"] .btn.primary:hover{background:#1F57E6}
+[data-skin="friendly"] .hd-tabs{background:var(--bg)}
+[data-skin="friendly"] .hd-tabs a{border:0;background:var(--raised);color:var(--sub);font-family:var(--f-body);font-weight:700;text-transform:none;letter-spacing:0;font-size:13px}
+[data-skin="friendly"] .hd-tabs a:hover,[data-skin="friendly"] .hd-tabs a[aria-current="page"]{background:var(--blue);color:#fff}
+[data-skin="friendly"] .sipo-msg.from-sipo{border:0;background:var(--panel)}
+[data-skin="friendly"] .sipo-composer{border:2px solid var(--line);background:var(--panel)}
+[data-skin="friendly"] .sipo-choice{border-width:2px;font-weight:700}
+[data-skin="friendly"] .sipo-fab{box-shadow:none;border:3px solid var(--bg)}
+[data-skin="friendly"] .side-menu{background:var(--bg);border-right:0}
+[data-skin="friendly"] .side-menu li a.is-sipo{border:0;background:var(--blue);color:#fff}
+[data-skin="friendly"] .side-menu li a.is-sipo small{color:rgba(255,255,255,.85)}
+[data-skin="friendly"] .coin-badge{background:var(--warm-soft)}
+[data-skin="friendly"] .pet-avatar{background:var(--warm-soft);color:var(--warm);border-color:transparent}
+[data-skin="friendly"] .set-danger{background:#FFF1F1}
+
+/* ---------- 3. Clean: benchmark (Apple Health / modern pet apps) ---------- */
+:root[data-skin="clean"]{
+  --bg:#F4F6FA; --panel:#FFFFFF; --raised:#EEF1F6; --line:#E3E8F0; --edge:#C9D2DF;
+  --text:#0F172A; --sub:#5B6576; --meta:#7A8496;
+  --blue:#2E6AFF; --on-blue:#FFFFFF;
+  --good:#12B886; --warn:#F59F00;
+  --red:#E03131; --on-red:#FFFFFF;
+  --solid:#0F172A; --on-solid:#FFFFFF;
+  --stage:#F4F6FA; --pet-bg:#E7ECF5;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);
+  --f-display:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-data:"Figtree",ui-sans-serif,system-ui,sans-serif;
+}
+[data-skin="clean"] :is(h1,h2,h3){font-weight:700}
+[data-skin="clean"] .label{color:var(--meta)}
+[data-skin="clean"] :is(.care-card,.care-status,.box,.hd-kpi){border:0;background:var(--panel);box-shadow:var(--shadow)}
+[data-skin="clean"] :is(.care-card,.care-status,.hd-kpi){border-radius:18px}
+[data-skin="clean"] .hd-kpi{border-left:0!important;position:relative;padding-left:16px}
+[data-skin="clean"] .hd-kpi::before{content:"";position:absolute;left:16px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--edge)}
+[data-skin="clean"] .hd-kpi .label{padding-left:14px}
+[data-skin="clean"] .hd-kpi.is-ok::before{background:var(--good)}
+[data-skin="clean"] .hd-kpi.is-warn::before{background:var(--warn)}
+[data-skin="clean"] .hd-kpi.is-bad::before{background:var(--red)}
+[data-skin="clean"] .hd-kpi b{font-variant-numeric:tabular-nums;font-weight:700}
+[data-skin="clean"] .btn{border-radius:14px;font-weight:600}
+[data-skin="clean"] .btn.outline{border:1px solid var(--line);background:var(--panel);color:var(--text);box-shadow:var(--shadow)}
+[data-skin="clean"] .hd-tabs{background:var(--bg)}
+[data-skin="clean"] .hd-tabs a{border:0;background:var(--panel);box-shadow:var(--shadow);color:var(--sub);font-family:var(--f-body);text-transform:none;letter-spacing:0;font-size:13px;font-weight:600}
+[data-skin="clean"] .hd-tabs a:hover,[data-skin="clean"] .hd-tabs a[aria-current="page"]{color:var(--blue)}
+[data-skin="clean"] .sipo-msg{border:0;box-shadow:var(--shadow)}
+[data-skin="clean"] .sipo-msg.from-sipo{background:var(--panel)}
+[data-skin="clean"] .sipo-composer{border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow)}
+[data-skin="clean"] .sipo-top{background:rgba(244,246,250,.85);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px)}
+[data-skin="clean"] .side-menu{background:var(--panel);border-right:0;box-shadow:0 0 40px rgba(15,23,42,.18)}
+[data-skin="clean"] .side-menu li a.is-sipo{border:0;background:#EEF3FF}
+[data-skin="clean"] .side-menu li a[aria-current="page"]{background:var(--bg)}
+[data-skin="clean"] .coin-badge{background:var(--panel);box-shadow:var(--shadow)}
+[data-skin="clean"] .petswitch{background:var(--panel);border-color:transparent;box-shadow:var(--shadow)}
+[data-skin="clean"] .set-danger{box-shadow:none;border:1px solid #FFD0D0}
+
+/* Settings → Appearance chooser */
+.skin-pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.skin-opt{display:flex;flex-direction:column;gap:8px;padding:8px;border:2px solid var(--line);background:none;color:var(--text);font:inherit;cursor:pointer;text-align:left;border-radius:var(--r-md,0)}
+.skin-opt[aria-pressed="true"]{border-color:var(--blue)}
+.skin-opt b{font-size:13px}
+.skin-opt small{font-size:11px;color:var(--sub);line-height:1.3}
+.skin-swatch{height:64px;display:flex;flex-direction:column;gap:5px;padding:8px}
+.skin-swatch i{display:block;height:12px}
+.skin-swatch i:last-child{width:55%;margin-top:auto;height:14px}
+.skin-studio{background:#000;border:1px solid #3F3F46}
+.skin-studio i{background:#18181B}.skin-studio i:last-child{background:#2E6AFF}
+.skin-friendly{background:#FFF8EF;border-radius:14px}
+.skin-friendly i{background:#fff;border-radius:8px}.skin-friendly i:last-child{background:#2E6AFF;border-radius:999px}
+.skin-clean{background:#F4F6FA;border-radius:12px}
+.skin-clean i{background:#fff;border-radius:6px;box-shadow:0 2px 6px rgba(15,23,42,.1)}.skin-clean i:last-child{background:#2E6AFF;border-radius:6px}
+
+/* Friendly + Clean are sentence case everywhere (UPPERCASE tracking is the Studio identity) */
+[data-skin] :is(a,button,span,small,b,p,label,summary,time,.status,.chip-s,.daily-tabs a,.btn){text-transform:none;letter-spacing:normal}
+[data-skin] .daily-tabs a{font-family:var(--f-body);font-weight:700;font-size:14px}
+[data-skin] .daily-tabs a[aria-current="page"]{border-radius:var(--r-pill)}
