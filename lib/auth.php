@@ -337,7 +337,8 @@ function rrp_safe_next(mixed $next, string $fallback = 'si-chat.php'): string
     if (str_contains($next, '\\') || str_starts_with($next, '//') || preg_match('#^[a-z][a-z0-9+.-]*:#i', $next)) {
         return $fallback;
     }
-    if (!preg_match('#^/?[a-z0-9_\-]+(/[a-z0-9_\-]+)*\.php(\?[^\s]*)?$#i', $next)) {
+    // Accept app pages with or without .php (clean URLs like /dashboard), still same-site paths only.
+    if (!preg_match('#^/?[a-z0-9_\-]+(/[a-z0-9_\-]+)*(\.php)?(\?[^\s]*)?$#i', $next)) {
         return $fallback;
     }
     return $next;
