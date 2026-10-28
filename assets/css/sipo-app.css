@@ -271,3 +271,30 @@
   .sipo-top-right .top-actions .iconbtn{width:34px}
   .sipo-progress{max-width:128px}
 }
+
+/* No bottom tab bar: the ☰ menu has everything; a floating SIPO button on other pages */
+.tabbar{display:none!important}
+.app-main.has-tab{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+.page-sipo .app.chat-active .app-main.has-tab{padding-bottom:0}
+@media (min-width:768px){.app{padding-left:0}.app-main.has-tab{padding-bottom:96px}}
+.sipo-fab{position:fixed;z-index:50;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:8px;
+  height:56px;padding:0 18px 0 8px;border-radius:28px;background:var(--blue);color:#fff;text-decoration:none;font-weight:600;font-size:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 3px var(--bg)}
+.sipo-fab img{width:40px;height:40px;border-radius:50%;background:var(--bg)}
+.sipo-fab:hover{filter:brightness(1.08)}
+.sipo-fab:active{transform:scale(.97)}
+@media (prefers-reduced-motion:reduce){.sipo-fab:active{transform:none}}
+.a2hs{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+/* My pets in the side menu */
+.side-pets{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.side-pets .label{margin:0 4px 6px}
+.side-pet{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 8px;background:none;border:1px solid transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;text-decoration:none}
+.side-pet:hover{background:var(--panel)}
+.side-pet[aria-current="true"]{border-color:var(--blue);background:var(--panel)}
+.side-pet span:not(.pet-avatar){display:flex;flex-direction:column;flex:1;min-width:0}
+.side-pet small{color:var(--sub);font-size:12px}
+.side-pet .pet-avatar{width:36px;height:36px;flex:none}
+.side-pet-check{width:18px;height:18px;color:var(--blue);flex:none}
+.side-pet.is-busy{opacity:.5}
+.side-pet.is-add b{color:var(--blue)}
+.sipo-chat{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
