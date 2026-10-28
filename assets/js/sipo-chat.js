@@ -92,6 +92,13 @@
     var p = document.createElement("p");
     renderBody(p, String(msg.body || ""));
     row.appendChild(p);
+    if (msg.admin_note) {
+      // Only admins get admin_note from the server; never part of SIPO's words.
+      var note = document.createElement("small");
+      note.className = "sipo-admin-note";
+      note.textContent = "Admin: " + msg.admin_note;
+      row.appendChild(note);
+    }
     if (msg.created_at) {
       var t = document.createElement("time");
       t.dateTime = msg.created_at;

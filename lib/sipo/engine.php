@@ -101,8 +101,15 @@ function rrp_sipo_current_pet(array $owner, ?array $pets = null): ?array
  * Owner feedback (2026-10-28): no dashes in SIPO's voice. Number ranges keep a plain hyphen,
  * dash punctuation becomes a comma, "- " bullets become "• ", divider lines are dropped.
  */
+/** Remove admin diagnostics from a message body (old rows stored them inline; models may parrot them). */
+function rrp_sipo_strip_admin(string $text): string
+{
+    return rtrim(preg_replace('/\n*\[Admin\][^\n]*(\n(?!\n)[^\n]*)*/u', '', $text) ?? $text);
+}
+
 function rrp_sipo_clean_text(string $text): string
 {
+    $text = rrp_sipo_strip_admin($text);
     $t = preg_replace('/(\d)\s*[—–]\s*(\d)/u', '$1-$2', $text) ?? $text;
     $t = preg_replace('/^\s*[-—–_*]{3,}\s*$/mu', '', $t) ?? $t;
     $t = preg_replace('/^(\s*)[-–—]\s+/mu', '$1• ', $t) ?? $t;
@@ -145,10 +152,18 @@ function rrp_sipo_present_message(array $row): array
         $role = 'assistant';
         $body = substr($body, 7);
     }
+    $adminNote = $meta['admin_note'] ?? null;
+    if ($role !== 'user' && str_contains($body, '[Admin]')) {
+        $stripped = rrp_sipo_strip_admin($body);
+        $adminNote ??= trim(str_replace('[Admin]', '', mb_substr($body, mb_strlen($stripped))));
+        $body = $stripped;
+    }
     return [
         'id' => (int) $row['id'],
         'role' => $role === 'assistant' ? 'assistant' : 'user',
         'body' => $body,
+        'admin_note' => $adminNote ?: null,
+        'choices' => $meta['choices'] ?? null,
         'mascot' => $meta['mascot'] ?? null,
         'proactive' => !empty($meta['proactive']),
         'created_at' => gmdate(DATE_ATOM, strtotime((string) $row['created_at'] . ' UTC') ?: time()),
@@ -220,7 +235,8 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'assistant',
         $reply['text'],
         $reply['tokens'],
-        ['mascot' => $reply['mascot'], 'tools' => $reply['tools'], 'model' => $reply['model'], 'pv' => rrp_naki_core_version_id()]
+        ['mascot' => $reply['mascot'], 'tools' => $reply['tools'], 'model' => $reply['model'], 'pv' => rrp_naki_core_version_id(),
+            'admin_note' => $reply['admin_note'] ?? null, 'choices' => $reply['choices'] ?? null]
     );
     if (!empty($assistant['id'])) {
         rrp_si_maybe_encrypt_message((int) $assistant['id'], $reply['text']);
@@ -276,14 +292,15 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             error_log('SIPO model error: ' . ($res['error'] ?? '?'));
             rrp_sipo_track_tokens((int) $owner['id'], $tokens);
             $text = 'I could not think that through just now — our side has a problem, not you. The team is being told. Please try again in a few minutes 💙';
-            if (rrp_is_super_owner($owner)) {
-                // Admins see the real cause instead of a silent "snag".
-                $text .= "\n\n[Admin] OpenAI said (HTTP " . (int) ($res['status'] ?? 0) . ', model ' . ($res['model'] ?? $model) . '): '
+            // Admins see the real cause, kept OUT of the message body so SIPO never reads it back as history.
+            $adminNote = rrp_is_super_owner($owner)
+                ? 'OpenAI said (HTTP ' . (int) ($res['status'] ?? 0) . ', model ' . ($res['model'] ?? $model) . '): '
                     . mb_substr((string) ($res['error'] ?? 'unknown error'), 0, 300)
-                    . "\nFix in config/sipaw.php: openai.api_key, openai.models.si_chat, or set openai.fallback_model.";
-            }
+                    . '. Fix in config: openai.api_key, openai.models.si_chat, or openai.fallback_model.'
+                : null;
             return [
                 'text' => $text,
+                'admin_note' => $adminNote,
                 'tokens' => $tokens,
                 'mascot' => 'idle',
                 'tools' => $used,
@@ -297,18 +314,18 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             rrp_sipo_track_tokens((int) $owner['id'], $tokens);
             rrp_si_bump_usage((int) $owner['id'], 0, $tokens);
             $text = trim((string) $res['content']);
+            $adminNote = null;
             if (rrp_is_super_owner($owner)) {
-                // Admins see why an action did not happen, right in the chat.
+                // Admins see why an action did not happen, as a separate note under the bubble.
                 $diag = $ctx['tool_errors'] ?? [];
                 if (!empty($res['tools_dropped'])) {
                     $diag[] = 'model ' . ($res['model'] ?? $model) . ' rejected the tools: ' . mb_substr((string) (RrpOpenAiClient::lastError()['error'] ?? ''), 0, 200);
                 }
-                if ($diag) {
-                    $text .= "\n\n[Admin] " . implode(' | ', $diag);
-                }
+                $adminNote = $diag ? implode(' | ', $diag) : null;
             }
             return [
                 'text' => $text,
+                'admin_note' => $adminNote,
                 'tokens' => $tokens,
                 'mascot' => rrp_sipo_pick_mascot($ctx),
                 'tools' => $used,

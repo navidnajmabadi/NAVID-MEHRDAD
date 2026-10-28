@@ -1,13 +1,40 @@
 <?php
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . '/finance.php';
+
 /**
  * App-wide SIPO tools: everything an owner can do in the app, SIPO can do from chat
  * (add / switch pets, Lost mode, Found, owner profile, Social posts).
  * Owner and pets always come from the server-side thread, never from model ids.
  */
 
-const RRP_SIPO_APP_TOOLS = ['add_pet', 'switch_pet', 'list_my_pets', 'start_lost_mode', 'mark_pet_found', 'update_my_profile', 'post_to_social'];
+const RRP_SIPO_APP_TOOLS = ['add_pet', 'switch_pet', 'list_my_pets', 'start_lost_mode', 'mark_pet_found', 'update_my_profile', 'post_to_social',
+    'open_page', 'log_expense', 'spending_summary'];
+
+/** Pages SIPO can open for the owner: key => [file, what it shows]. Missing files are skipped. */
+function rrp_sipo_app_pages(): array
+{
+    $all = [
+        'home' => ['dashboard.php', 'Home overview of all pets'],
+        'health' => ['care.php', 'Health dashboard: profile, routines, vaccines, treatments, labs, food, charts'],
+        'daily' => ['daily.php', 'Daily life: bathroom, walks, grooming'],
+        'routines' => ['routines.php', 'Everything scheduled: overdue, today, this week'],
+        'social' => ['forum.php', 'Social board: posts from pets'],
+        'lost' => ['lost.php', 'Lost mode page and how it works'],
+        'finance' => ['finance.php', 'Spending on pets: monthly totals and categories'],
+        'settings' => ['settings.php', 'Settings: profile, pets, password, account'],
+        'account' => ['account.php', 'Owner profile: name, phone, address'],
+        'notifications' => ['alerts.php', 'Notification centre'],
+        'rewards' => ['rewards.php', 'Paw coins and invite friends'],
+        'plus' => ['plus.php', 'Plus plan and payment'],
+        'walk' => ['walk.php', 'Start a tracked walk'],
+        'vets' => ['vet.php', 'Vet records'],
+        'area' => ['area.php', 'Home area on the map'],
+        'support' => ['support.php', 'Help and support tickets'],
+    ];
+    return array_filter($all, static fn($p) => is_file(dirname(__DIR__, 2) . '/' . $p[0]));
+}
 
 /** @return list<array<string,mixed>> */
 function rrp_sipo_app_tool_defs(callable $fn): array
@@ -33,9 +60,23 @@ function rrp_sipo_app_tool_defs(callable $fn): array
             'phone' => ['type' => 'string'],
             'address' => ['type' => 'string', 'description' => 'Home address or area, used for nearby Lost mode alerts'],
         ]),
-        $fn('post_to_social', 'Publish a text post on the SIPAW Social board as THIS pet, only after the owner approved the exact text.', [
+        $fn('post_to_social', 'Publish a post on the Social board as THIS pet. If the owner asks you to write one, write it yourself (short, warm, 1 to 3 emojis, in the pet\'s voice if fun), show the draft, and call this only after they say yes.', [
             'text' => ['type' => 'string'],
         ], ['text']),
+        $fn('open_page', 'Open a page of the app for the owner (e.g. "show my dashboard", "open settings"). Pages: '
+            . implode(', ', array_map(static fn($k, $p) => $k . ' (' . $p[1] . ')', array_keys(rrp_sipo_app_pages()), rrp_sipo_app_pages())), [
+            'page' => ['type' => 'string', 'enum' => array_keys(rrp_sipo_app_pages())],
+        ], ['page']),
+        $fn('log_expense', 'Record money the owner spent on THIS pet (food, vet, medicine, grooming, supplies).', [
+            'category' => ['type' => 'string', 'enum' => array_keys(RRP_EXPENSE_CATEGORIES)],
+            'amount' => ['type' => 'number'],
+            'currency' => ['type' => 'string', 'description' => '3-letter code if the owner said one, e.g. USD, EUR, IRR'],
+            'date' => ['type' => 'string', 'description' => 'YYYY-MM-DD local; omit for today'],
+            'note' => ['type' => 'string'],
+        ], ['category', 'amount']),
+        $fn('spending_summary', 'How much the owner spent on pets: this month, last month, this year, by category.', [
+            'all_pets' => ['type' => 'boolean'],
+        ]),
     ];
 }
 
@@ -145,6 +186,36 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
                 $ctx['events'][] = 'social_posted';
             }
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null, 'where' => 'Social tab'];
+
+        case 'open_page':
+            $pages = rrp_sipo_app_pages();
+            $key = (string) ($a['page'] ?? '');
+            if (!isset($pages[$key])) {
+                return ['ok' => false, 'error' => 'Unknown page.', 'pages' => array_keys($pages)];
+            }
+            $url = $pages[$key][0];
+            if ($pet && in_array($key, ['health', 'daily', 'routines'], true)) {
+                $url .= '?pet=' . (int) $pet['id'];
+            }
+            $ctx['navigate'] = $url;
+            $ctx['events'][] = 'page_opened';
+            return ['ok' => true, 'note' => 'The app opens it now; say so in a few words.'];
+
+        case 'log_expense':
+            if ($pet === null) {
+                return ['ok' => false, 'error' => 'No pet in this chat yet.'];
+            }
+            $res = rrp_expense_add($owner, $pet, (string) ($a['category'] ?? 'other'), (float) ($a['amount'] ?? 0),
+                isset($a['currency']) ? (string) $a['currency'] : null, isset($a['date']) ? (string) $a['date'] : null, isset($a['note']) ? (string) $a['note'] : null);
+            if (!empty($res['ok'])) {
+                $ctx['events'][] = 'expense_logged';
+            }
+            return $res;
+
+        case 'spending_summary':
+            $sum = rrp_expense_summary($owner, empty($a['all_pets']) ? $pet : null, 12);
+            unset($sum['recent'], $sum['months']);
+            return ['ok' => true] + $sum;
     }
     return ['ok' => false, 'error' => 'Unknown tool ' . $name];
 }

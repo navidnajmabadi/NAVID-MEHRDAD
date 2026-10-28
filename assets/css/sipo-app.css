@@ -209,3 +209,6 @@
   .sipo-who sipo-mascot{width:56px;height:56px}
   .sipo-progress{max-width:120px}
 }
+
+/* Admin-only diagnostic under a SIPO bubble */
+.sipo-admin-note{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-family:var(--f-data);font-size:10px;line-height:1.4;color:var(--muted,#8a8f98);word-break:break-word}
