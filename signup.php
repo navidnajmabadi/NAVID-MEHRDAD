@@ -38,7 +38,7 @@ rrp_layout_head('Create account — SIPAW', [
     'description' => 'Create your SIPAW account — SI pet care companion by NAKILAB.',
     'body_class' => 'page-auth',
 ]);
-rrp_app_start(['nav' => false]);
+rrp_app_start(['nav' => false, 'auth' => true]);
 ?>
 <div class="auth-hero">
   <?php rrp_logo_endorsed(); ?>

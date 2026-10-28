@@ -3,12 +3,28 @@ declare(strict_types=1);
 
 /**
  * Lightweight ops check: config readable + PDO connect + owners table.
- * No secrets in output. Safe to hit while diagnosing signup 500s.
+ * Public: only ok/not ok. Full details with ?key=CRON_SECRET or an admin session.
  */
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 require_once __DIR__ . '/lib/bootstrap.php';
+
+/** Public callers only get ok/not ok; paths and DB names need the cron key or an admin session. */
+function rrp_health_view(array $out): array
+{
+    $cfg = rrp_config_ready() ? rrp_load_config() : [];
+    $secret = (string) ($cfg['cron_secret'] ?? '');
+    $key = (string) ($_GET['key'] ?? '');
+    $authorised = ($secret !== '' && $key !== '' && hash_equals($secret, $key));
+    if (!$authorised) {
+        try {
+            $authorised = rrp_current_admin() !== null;
+        } catch (Throwable $e) {
+        }
+    }
+    return $authorised ? $out : ['ok' => (bool) $out['ok'], 'app' => 'siPaw'];
+}
 
 $out = [
     'ok' => false,
@@ -37,7 +53,7 @@ try {
     if ($path === null) {
         $out['hint'] = 'Place sipaw.php (or legacy ringringpaw.php) at an absolute Hostinger config path or {app}/config/sipaw.php';
         http_response_code(503);
-        echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        echo json_encode(rrp_health_view($out), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         exit;
     }
 
@@ -55,7 +71,7 @@ try {
         $out['hint'] = 'Connected to DB "' . ($out['checks']['db_name'] ?? '?')
             . '" but owners table is missing. Import sql/001_schema.sql into THIS database (same as config db.name).';
         http_response_code(503);
-        echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        echo json_encode(rrp_health_view($out), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
         exit;
     }
 
@@ -75,10 +91,10 @@ try {
     } else {
         $out['hint'] = 'Config + DB + owners + lost/admin + VAPID OK.';
     }
-    echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    echo json_encode(rrp_health_view($out), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 } catch (Throwable $e) {
     $out['error'] = rrp_safe_db_error($e, 'Health check failed');
     $out['hint'] = 'Fix sipaw.php (or legacy ringringpaw.php) DB credentials and ensure sql/001_schema.sql was imported into the same database name.';
     http_response_code(503);
-    echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    echo json_encode(rrp_health_view($out), JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
 }

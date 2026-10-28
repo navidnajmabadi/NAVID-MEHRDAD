@@ -947,3 +947,34 @@ button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .or-line{display:flex;align-items:center;gap:12px;margin:18px 0 6px;color:var(--sub);font-size:12px;text-transform:uppercase;letter-spacing:.12em}
 .or-line::before,.or-line::after{content:"";flex:1;height:1px;background:var(--line)}
 .sso-terms{margin:8px 0 0;text-align:center;font-size:12px}
+
+/* ===== Sign-in pages (Log in, Create account, Forgot / Reset password) =====
+   Phone: one centred card. Computer: Si Blue brand panel on the left, form card on the right. */
+.page-auth .app{min-height:100dvh;background:var(--bg)}
+.page-auth .app-main{width:100%;max-width:460px;margin:0 auto;padding:24px 16px 32px;box-sizing:border-box}
+.page-auth .auth-hero{padding:8px 4px 4px}
+.page-auth .auth-hero .logo-endorsed{width:120px;height:auto}
+.page-auth .auth-hero .tagline{font-size:30px;margin:18px 0 6px}
+.page-auth .auth-form{padding:8px 4px 0}
+.page-auth .auth-form .btn{border-radius:var(--r-pill,0)}
+.page-auth .flash{margin:12px 4px}
+@media (min-width:900px){
+  .page-auth .app{display:grid;grid-template-columns:minmax(380px,1fr) minmax(480px,1fr);max-width:none;padding-left:0}
+  .page-auth .app-main{align-self:center;max-width:440px;margin:40px auto;padding:36px 36px 28px;
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg,0);box-shadow:0 20px 60px rgba(15,23,42,.08)}
+  .page-auth .auth-hero .logo-endorsed{width:110px}
+}
+/* Brand panel (computer only) */
+.auth-aside{display:none}
+@media (min-width:900px){
+  .auth-aside{display:flex;flex-direction:column;justify-content:space-between;padding:48px 56px 56px;color:#fff;
+    background:radial-gradient(120% 80% at 20% 0%,#5B8CFF 0%,#2E6AFF 45%,#1B47C9 100%);min-height:100dvh;box-sizing:border-box}
+  .auth-aside img.auth-logo{width:120px;height:auto}
+  .auth-aside .auth-mascot{width:min(300px,55%);height:auto;align-self:center;filter:drop-shadow(0 24px 40px rgba(0,0,0,.25))}
+  .auth-aside h2{font-family:var(--f-display);font-weight:700;font-size:42px;line-height:1.08;letter-spacing:-.01em;text-transform:none;margin:0 0 12px;color:#fff}
+  .auth-aside p{margin:0;font-size:16px;line-height:1.5;color:rgba(255,255,255,.88);max-width:420px}
+  .auth-aside ul{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:15px;color:rgba(255,255,255,.92)}
+}
+.page-auth .app-main .auth-form,.page-auth .app-main form.auth-form{padding-left:4px;padding-right:4px}
+.page-auth .app-main .auth-form.sso{padding-bottom:0}
+.page-auth #login-form{padding:8px 4px 0}

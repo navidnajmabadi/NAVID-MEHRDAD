@@ -103,7 +103,26 @@ function rrp_app_start(array $opts = []): void
     $class = trim('app ' . (string) ($opts['class'] ?? ''));
     $mainClass = 'app-main' . ($nav ? ' has-tab' : '');
     echo '<div class="' . rrp_h($class) . '">' . "\n";
+    if (!empty($opts['auth'])) {
+        rrp_auth_aside();
+    }
     echo '<div class="' . rrp_h($mainClass) . '">' . "\n";
+}
+
+/** Brand panel beside the sign-in card on computers (hidden on phones). */
+function rrp_auth_aside(): void
+{
+    ?>
+<aside class="auth-aside" aria-hidden="true">
+  <img class="auth-logo" src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-wordmark-transparent-white.svg', true)) ?>" alt="" width="120" height="71" style="filter:brightness(0) invert(1)" />
+  <img class="auth-mascot" src="<?= rrp_h(rrp_asset('assets/mascot/public/sipo-happy-ice-blue.webp')) ?>" alt="" width="300" height="300" />
+  <div>
+    <h2>Your pet's<br />SI companion.</h2>
+    <p>SIPO remembers the vaccines, meals, walks and vet notes, so you can just enjoy your pet.</p>
+    <ul><li>🩺 Health and routines in one place</li><li>⏰ Reminders before you forget</li><li>🧭 Lost mode that alerts neighbours</li></ul>
+  </div>
+</aside>
+<?php
 }
 
 /**
