@@ -423,6 +423,9 @@ function rrp_auth_sync_timezone(array $owner, mixed $tz): array
     if ($clean === null || $clean === (string) ($owner['timezone'] ?? '')) {
         return $owner;
     }
+    if (array_key_exists('timezone_auto', $owner) && (int) $owner['timezone_auto'] === 0) {
+        return $owner; // owner fixed the zone in Settings: other devices can't move it (QA v3 B37)
+    }
     try {
         rrp_db()->prepare('UPDATE owners SET timezone = ? WHERE id = ?')->execute([$clean, (int) $owner['id']]);
         $owner['timezone'] = $clean;

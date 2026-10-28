@@ -20,6 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
             rrp_redirect('settings.php');
         }
         $pwError = $r['error'] ?? 'Could not change it.';
+    } elseif ($act === 'timezone') {
+        $tz = rrp_auth_clean_timezone((string) ($_POST['tz'] ?? ''));
+        $auto = !empty($_POST['auto']) ? 1 : 0;
+        if ($tz !== null) {
+            rrp_db()->prepare('UPDATE owners SET timezone = ?, timezone_auto = ? WHERE id = ?')->execute([$tz, $auto, (int) $owner['id']]);
+            rrp_flash_set('ok', 'Time zone saved: ' . $tz . ($auto ? ' (follows your phone)' : ' (fixed)'));
+        }
+        rrp_redirect('settings.php#timezone');
     } elseif ($act === 'skin') {
         rrp_ui_set_skin((string) ($_POST['skin'] ?? 'studio'));
         rrp_flash_set('ok', 'Look changed ✨');
@@ -88,6 +96,20 @@ rrp_app_start(['nav' => 'settings']);
       <li><a href="support.php"><span>💬</span><span><b>Help and support</b><small class="meta">Your tickets and replies · we reply within 7 days</small></span><i aria-hidden="true">›</i></a></li>
       <?php if (rrp_is_super_owner($owner)): ?><li><a href="<?= rrp_h(rrp_asset('admin/')) ?>"><span>🛠️</span><span><b>Admin</b></span><i aria-hidden="true">›</i></a></li><?php endif; ?>
     </ul>
+  </section>
+
+  <?php $tzNow = (string) ($owner['timezone'] ?? '') ?: rrp_sipo_owner_tz($owner)->getName(); $tzAuto = (int) ($owner['timezone_auto'] ?? 1) === 1; ?>
+  <section class="care-card" id="timezone">
+    <h3 class="label">Time zone</h3>
+    <p class="sub">Reminders, chat times and "good morning" use <b><?= rrp_h($tzNow) ?></b> · <?= rrp_h(rrp_sipo_local_now($owner)->format('H:i')) ?> now<?= $tzAuto ? ' (follows your phone)' : ' (fixed)' ?>.</p>
+    <form method="post" class="fin-grid" style="margin-top:10px">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="timezone" />
+      <label style="grid-column:1/-1">Zone<select name="tz">
+        <?php foreach (DateTimeZone::listIdentifiers() as $z): ?><option value="<?= rrp_h($z) ?>"<?= $z === $tzNow ? ' selected' : '' ?>><?= rrp_h(str_replace('_', ' ', $z)) ?></option><?php endforeach; ?>
+      </select></label>
+      <label style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="auto" value="1"<?= $tzAuto ? ' checked' : '' ?> style="min-height:0" /> Follow my phone's time zone automatically</label>
+      <button class="btn primary" type="submit" style="grid-column:1/-1">Save time zone</button>
+    </form>
   </section>
 
   <section class="care-card" id="appearance">

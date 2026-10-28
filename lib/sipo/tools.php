@@ -74,8 +74,9 @@ function rrp_sipo_tool_defs(bool $onboarding): array
     }
     unset($d);
     $defs[] = $fn('get_weather', 'Current weather and today\'s forecast at the owner\'s home area.', []);
-    $defs[] = $fn('find_vets', 'Find veterinary clinics near the owner\'s home area, with phone numbers when known.', [
+    $defs[] = $fn('find_vets', 'Find veterinary clinics with phone numbers. If the owner says where they are now (a city, street or area), pass it as near; otherwise the saved home area is used.', [
         'emergency_only' => ['type' => 'boolean'],
+        'near' => ['type' => 'string', 'description' => 'Where the owner is right now if they said it, e.g. "Toronto" or "Queen St W, Toronto"'],
     ]);
     $defs[] = $fn('open_support_ticket', 'Open a support ticket when the app is broken or the owner reports a problem with SIPAW.', [
         'subject' => ['type' => 'string'],
@@ -249,7 +250,7 @@ function rrp_sipo_run_tool_on_pet(string $name, array $args, array &$ctx): array
             if ($pet === null) {
                 return ['ok' => false, 'error' => 'No pet yet.'];
             }
-            $check = rrp_sipo_profile_change_check($pet, $args);
+            $check = rrp_sipo_profile_change_check($pet, $args, $ctx);
             if ($check !== null) {
                 return $check; // QA B01/B29: ask the owner first, nothing saved
             }
@@ -336,6 +337,16 @@ function rrp_sipo_run_tool_on_pet(string $name, array $args, array &$ctx): array
 
         case 'find_vets':
             $c = rrp_sipo_owner_coords($owner);
+            $where = 'home area';
+            $near = trim((string) ($args['near'] ?? ''));
+            if ($near !== '') {
+                // QA v3 B23: the owner said "I'm in Toronto" but we searched near the saved Karaj address.
+                $g = rrp_geocode_address($near);
+                if (!empty($g['ok'])) {
+                    $c = ['lat' => (float) $g['lat'], 'lng' => (float) $g['lng']];
+                    $where = trim(($g['city'] ?? '') . ', ' . ($g['country'] ?? ''), ', ') ?: $near;
+                }
+            }
             if ($c['lat'] === null) {
                 // No home area: the map search still finds vets around the phone's own location.
                 $ctx['links'][] = ['url' => 'https://www.google.com/maps/search/emergency+vet', 'label' => 'Vets near you on the map', 'external' => true];
@@ -344,7 +355,7 @@ function rrp_sipo_run_tool_on_pet(string $name, array $args, array &$ctx): array
             $vets = rrp_sipo_find_vets($c['lat'], $c['lng'], !empty($args['emergency_only']));
             $search = sprintf('https://www.google.com/maps/search/emergency+vet/@%F,%F,13z', $c['lat'], $c['lng']);
             $ctx['links'][] = ['url' => 'https://www.google.com/maps/search/emergency+vet/@' . sprintf('%F,%F', $c['lat'], $c['lng']) . ',13z', 'label' => 'Vets near you on the map', 'external' => true];
-            return ['ok' => true, 'clinics' => $vets, 'map_search' => $search,
+            return ['ok' => true, 'searched_near' => $where, 'clinics' => $vets, 'map_search' => $search,
                 'note' => $vets ? 'Give names, distance and phone numbers. A map button is shown under your reply.'
                     : 'No clinics in the map data near the home area. Do NOT just say none: tell the owner to tap the map button under your reply for vets near them, and to call the nearest one now.'];
 
@@ -415,9 +426,19 @@ function rrp_sipo_run_care_tool(string $name, array $a, array $owner, array $pet
  * QA B01/B29: changing an already-saved value, or saving an odd one, needs the owner's yes.
  * @return array|null error for the model (nothing saved), or null when it may go ahead
  */
-function rrp_sipo_profile_change_check(array $pet, array $args): ?array
+function rrp_sipo_profile_change_check(array $pet, array $args, array $ctx = []): ?array
 {
-    $confirmed = ($args['confirmed'] ?? false) === true;
+    // QA v3 B01: the model set confirmed=true by itself in the same reply. A yes only counts when the
+    // owner wrote a NEW message after we asked (the pending change is remembered per chat).
+    $pendKey = 'confirm:' . (int) ($ctx['thread']['id'] ?? 0) . ':' . (int) $pet['id'];
+    $msgId = (int) ($ctx['user_message_id'] ?? 0);
+    $pending = rrp_sipo_cache_get($pendKey, 3600);
+    // The yes must be for exactly the change we asked about (same fields and values).
+    $sigArgs = array_intersect_key($args, array_flip(['name', 'breed', 'sex', 'birth_date', 'weight_kg']));
+    ksort($sigArgs);
+    $sig = md5(json_encode(array_map(static fn($v) => is_numeric($v) ? round((float) $v, 2) : mb_strtolower(trim((string) $v)), $sigArgs)));
+    $confirmed = ($args['confirmed'] ?? false) === true
+        && is_array($pending) && $msgId > 0 && (int) ($pending['msg'] ?? 0) < $msgId && ($pending['sig'] ?? '') === $sig;
     $odd = static fn(string $v) => (bool) preg_match('/\d/', $v)
         || (mb_strlen($v) >= 6 && !preg_match('/[aeiouy]/i', $v))
         || preg_match('/(asdf|qwer|zxcv|hjkl|jkl;)/i', $v);
@@ -445,8 +466,13 @@ function rrp_sipo_profile_change_check(array $pet, array $args): ?array
         }
     }
     if (($changes || $warn) && !$confirmed) {
+        rrp_sipo_cache_set($pendKey, ['msg' => $msgId, 'sig' => $sig, 'at' => time()]);
         return ['ok' => false, 'needs_confirm' => true, 'changes' => $changes, 'check' => $warn,
-            'error' => 'Not saved yet. Ask the owner to confirm (old → new' . ($warn ? ', and whether the unusual value is right' : '') . '), then call again with confirmed=true.'];
+            'error' => 'Not saved. Ask the owner now (old → new' . ($warn ? ', and whether the unusual value is right' : '')
+                . ') and END your reply with that question. Only after they answer yes in their next message, call again with confirmed=true.'];
+    }
+    if ($confirmed) {
+        @unlink(rrp_sipo_cache_path($pendKey));
     }
     return null;
 }

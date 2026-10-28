@@ -110,6 +110,11 @@ function rrp_sipo_strip_admin(string $text): string
 function rrp_sipo_clean_text(string $text): string
 {
     $text = rrp_sipo_strip_admin($text);
+    // QA v3 B46: internal tool names and flags never reach the owner, even if the model repeats them.
+    $text = preg_replace('/^\s*Admin\s*:.*$/mi', '', $text) ?? $text;
+    $text = preg_replace('/[^.!?\n]*\b(call (it|the tool)? ?again|tool returned|Not saved yet)\b[^.!?\n]*[.!?]?\s*/i', '', $text) ?? $text;
+    $text = preg_replace('/\s*\(?\b(confirmed|pet_name|needs_confirm|tool_call|reminder_id|treatment_id|food_id)\s*[=:]\s*\w+\)?/i', '', $text) ?? $text;
+    $text = preg_replace('/`?\b(update_pet_profile|create_pet_profile|save_pet_fact|set_reminder|care_record_done|reminder_outcome|treatment_[a-z_]+|food_[a-z_]+|set_meal_times|log_bathroom|log_walk|set_walk_goal|routine_plan|get_weather|find_vets|open_support_ticket|flag_emergency|add_pet|switch_pet|list_my_pets|start_lost_mode|mark_pet_found|update_my_profile|post_to_social|open_page|log_expense|spending_summary|ask_choices)\b`?:?\s*/', '', $text) ?? $text;
     $t = preg_replace('/(\d)\s*[—–]\s*(\d)/u', '$1-$2', $text) ?? $text;
     $t = preg_replace('/^\s*[-—–_*]{3,}\s*$/mu', '', $t) ?? $t;
     $t = preg_replace('/^(\s*)[-–—]\s+/mu', '$1• ', $t) ?? $t;
@@ -341,7 +346,8 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             $args = json_decode((string) ($call['function']['arguments'] ?? '{}'), true);
             $result = rrp_sipo_run_tool($name, is_array($args) ? $args : [], $ctx);
             $used[] = $name;
-            if (empty($result['ok'])) {
+            if (empty($result['ok']) && empty($result['needs_confirm'])) {
+                // QA v3 B46: a "please confirm" pause is normal flow, not an error to show anyone.
                 $ctx['tool_errors'][] = $name . ': ' . mb_substr((string) ($result['error'] ?? 'failed'), 0, 160);
             }
             $messages[] = [

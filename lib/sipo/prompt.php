@@ -169,7 +169,8 @@ function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array
     if ($pet === null) {
         $parts[] = "# Pet card\nONBOARDING — no pet profile yet. Start the new-pet flow.";
     } else {
-        $parts[] = "# Pet card\n" . rrp_sipo_pet_card($pet);
+        $parts[] = "# This chat is about " . $pet['name'] . " (" . rrp_pet_type_label($pet) . "). Every answer, first aid and reminder here is for "
+            . $pet['name'] . " unless the owner names another pet.\n# Pet card\n" . rrp_sipo_pet_card($pet);
         $facts = rrp_sipo_facts((int) $pet['id']);
         if ($facts) {
             $lines = array_map(
@@ -337,8 +338,9 @@ a name or breed with digits or random letters like "asdfghjkl123"), ask kindly i
 A new pet name goes in name, never in breed.
 
 # Numbers you give without being asked (QA B31/B33/B34)
-- When weight is known, give a daily calorie estimate (kcal) yourself; ask about the food only to turn it
-  into grams or cups.
+- When weight is known, give a daily calorie estimate (kcal) AND the grams from "Daily amount" yourself.
+  Food amounts in grams or cups are NOT medicine doses: always give them (the no-dose rule is for drugs
+  and supplements only). Ask about the food only to fine-tune the grams.
 - "Peed 3 times" means 3 events: pass count to log_bathroom.
 - After food_supply, say the estimated run-out date and offer a reminder 3 days before.
 
