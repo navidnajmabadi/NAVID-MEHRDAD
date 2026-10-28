@@ -123,9 +123,13 @@ function rrp_save_pet_image(?array $file, ?string $existing = null): ?string
 function rrp_create_pet(int $ownerId, array $data, ?array $file = null): array
 {
     $owner = rrp_current_owner();
-    $limit = $owner && (int) $owner['id'] === $ownerId
-        ? rrp_owner_pet_limit($owner)
-        : RRP_PLAN_FREE_PETS;
+    if (!$owner || (int) $owner['id'] !== $ownerId) {
+        // SIPO, cron or admin context: judge the limit by the pet's real owner, not the session.
+        $st = rrp_db()->prepare('SELECT * FROM owners WHERE id = ? LIMIT 1');
+        $st->execute([$ownerId]);
+        $owner = $st->fetch() ?: null;
+    }
+    $limit = $owner ? rrp_owner_pet_limit($owner) : RRP_PLAN_FREE_PETS;
     if (rrp_pet_count($ownerId, true) >= $limit) {
         $plan = $owner ? rrp_owner_plan($owner) : 'free';
         return [

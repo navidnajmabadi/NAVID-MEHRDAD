@@ -125,6 +125,7 @@ final class RrpOpenAiClient
         $res = ['ok' => false, 'error' => 'OpenAI request not sent.'];
         $retried5xx = false;
         $toolsDropped = false;
+        $toolsError = '';
         for ($attempt = 0; $attempt < 5; $attempt++) {
             $res = $this->send($payload);
             if (!empty($res['ok'])) {
@@ -138,11 +139,12 @@ final class RrpOpenAiClient
                 self::rememberQuirk((string) $payload['model'], 'no_temperature');
                 continue;
             }
-            if (isset($payload['tools']) && (in_array($param, ['tools', 'tool_choice'], true)
+            if (isset($payload['tools']) && (in_array($param, ['tools', 'tool_choice'], true) || str_starts_with($param, 'tools[')
                     || preg_match('/\b(tools?|tool_choice|function calling|functions)\b.*(not supported|unsupported|does not support)/', $err))) {
                 // Drop tools for THIS call only — never permanently, or SIPO could talk but never save.
                 unset($payload['tools'], $payload['tool_choice']);
                 $toolsDropped = true;
+                $toolsError = (string) ($res['error'] ?? '') . ($param !== '' ? ' (param ' . $param . ')' : '');
                 continue;
             }
             if (isset($payload['response_format']) && ($param === 'response_format' || str_contains($err, 'response_format'))) {
@@ -165,7 +167,7 @@ final class RrpOpenAiClient
         if (empty($res['ok'])) {
             self::recordError($res, (string) $payload['model']);
         } elseif ($toolsDropped) {
-            self::recordError(['status' => 400, 'error' => 'Model rejected tools; replied without them (profile saved by server extraction).'], (string) $payload['model']);
+            self::recordError(['status' => 400, 'error' => 'Model rejected tools; replied without them. OpenAI said: ' . $toolsError], (string) $payload['model']);
         }
         return $res + ['model' => $payload['model'], 'tools_dropped' => $toolsDropped];
     }

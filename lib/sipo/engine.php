@@ -234,6 +234,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'pet' => $ctx['pet'] ? rrp_sipo_pet_brief($ctx['pet']) : null,
         'progress' => $ctx['pet'] ? rrp_sipo_profile_progress(rrp_pet_by_id((int) $ctx['pet']['id'], $ownerId) ?: $ctx['pet']) : null,
         'events' => $ctx['events'],
+        'navigate' => $ctx['navigate'] ?? null,
         'reminders' => $ctx['reminders'] ?? [],
         'coins' => rrp_coin_balance($ownerId),
         'warning' => $reply['warning'] ?? null,
@@ -295,8 +296,19 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
         if (!$calls) {
             rrp_sipo_track_tokens((int) $owner['id'], $tokens);
             rrp_si_bump_usage((int) $owner['id'], 0, $tokens);
+            $text = trim((string) $res['content']);
+            if (rrp_is_super_owner($owner)) {
+                // Admins see why an action did not happen, right in the chat.
+                $diag = $ctx['tool_errors'] ?? [];
+                if (!empty($res['tools_dropped'])) {
+                    $diag[] = 'model ' . ($res['model'] ?? $model) . ' rejected the tools: ' . mb_substr((string) (RrpOpenAiClient::lastError()['error'] ?? ''), 0, 200);
+                }
+                if ($diag) {
+                    $text .= "\n\n[Admin] " . implode(' | ', $diag);
+                }
+            }
             return [
-                'text' => trim((string) $res['content']),
+                'text' => $text,
                 'tokens' => $tokens,
                 'mascot' => rrp_sipo_pick_mascot($ctx),
                 'tools' => $used,
@@ -309,6 +321,9 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             $args = json_decode((string) ($call['function']['arguments'] ?? '{}'), true);
             $result = rrp_sipo_run_tool($name, is_array($args) ? $args : [], $ctx);
             $used[] = $name;
+            if (empty($result['ok'])) {
+                $ctx['tool_errors'][] = $name . ': ' . mb_substr((string) ($result['error'] ?? 'failed'), 0, 160);
+            }
             $messages[] = [
                 'role' => 'tool',
                 'tool_call_id' => (string) ($call['id'] ?? ''),

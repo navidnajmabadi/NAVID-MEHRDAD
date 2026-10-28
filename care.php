@@ -7,12 +7,37 @@ require_once __DIR__ . '/lib/views/health_dashboard.php';
 // Health dashboard for the current pet (brief §A + manual dashboards).
 $owner = rrp_require_owner();
 $pets = rrp_pets_by_owner((int) $owner['id']);
-if (!$pets) {
-    rrp_redirect('si-chat.php?new=1');
-}
-$petId = rrp_page_pet_id($owner, $pets);
-$pet = rrp_pet_by_id($petId, (int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
+$petId = $pets ? rrp_page_pet_id($owner, $pets) : 0;
+$pet = $petId ? rrp_pet_by_id($petId, (int) $owner['id']) : null;
+if ($pets && !$pet) {
+    // Current pet was archived or never set: show the first pet instead of a blank page.
+    $pet = $pets[0];
+    rrp_sipo_set_current_pet((int) $owner['id'], (int) $pet['id']);
+}
+if (!$pet) {
+    // No pet yet: a clear empty state instead of bouncing to chat.
+    rrp_layout_head('Health — SIPAW', [
+        'extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" />',
+        'body_class' => 'page-care',
+    ]);
+    rrp_app_start(['nav' => 'health']);
+    ?>
+<div class="topbar care-top"><div class="center" style="text-align:left"><h2>Health</h2></div><?php rrp_coin_badge($owner); ?></div>
+<div class="pad stack care-page">
+  <section class="care-status">
+    <div>
+      <h2>No pet yet 🐾</h2>
+      <p class="sub">Tell SIPO your pet's name and kind. The health dashboard (routines, vaccines, medicines, labs, food) fills in as you chat.</p>
+      <a class="btn primary" href="si-chat.php?new=1" style="margin-top:12px">Add my pet with SIPO</a>
+    </div>
+  </section>
+</div>
+<?php
+    rrp_app_end(['nav' => 'health', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
+    exit;
+}
+$petId = (int) $pet['id'];
 
 $newLink = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
