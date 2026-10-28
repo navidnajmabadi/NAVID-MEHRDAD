@@ -193,7 +193,10 @@
   }
 
   // Short reminders ("in 10 minutes") fire from the open app exactly on time; the cron covers the rest.
+  var armed = {};
   function armReminder(r) {
+    if (armed[r.id]) return; // the same reminder can arrive from several replies
+    armed[r.id] = true;
     var due = Date.parse(String(r.due_utc).replace(" ", "T") + "Z");
     var wait = due - Date.now();
     if (!(wait > -60000 && wait < 3 * 3600000)) return;
@@ -209,7 +212,7 @@
       } catch (e) {}
       setFace("happy");
       post(api.reminderFired, { reminder_id: r.id }).then(function (j) {
-        if (j.assistant) bubble(j.assistant);
+        if (j.assistant) bubble(j.assistant); // "already": another copy of the app posted it
       }).catch(function () {
         bubble({ role: "assistant", body: text, created_at: new Date().toISOString() });
       });
