@@ -124,7 +124,6 @@ rrp_app_start(['nav' => 'lost']);
       <div class="counter">
         <div><b><?= $recipientCount ?></b><span>Owners</span></div>
         <div><b><?= $pingCount ?>/<?= count($pingOffsets) ?></b><span>Pings</span></div>
-        <div><b>25</b><span>Km ring</span></div>
       </div>
 
       <div class="section">
@@ -165,12 +164,17 @@ rrp_app_start(['nav' => 'lost']);
           : 'All 3 alerts sent. SIPO will check in with you daily until ' . rrp_h($pet['name']) . ' is home.' ?></p>
       <?php rrp_view_lost_playbook(rrp_lost_playbook($owner, $pet, $open), false); ?>
     <?php else: ?>
-      <div class="box">
-        <p style="margin:0 0 8px;font-weight:500">If <?= rrp_h($pet['name'] ?? 'your pet') ?> goes missing</p>
-        <p class="sub" style="margin:0;font-size:13px">
-          Alert nearby SIPAW owners with photo, distinctive marks, magic word, and medical that matters.
-        </p>
-      </div>
+      <section class="box lost-intro">
+        <p style="margin:0 0 8px;font-weight:600">If <?= rrp_h($pet['name'] ?? 'your pet') ?> goes missing, stay calm. Here is what Lost mode does 🧭</p>
+        <ol class="lost-steps">
+          <li><b>Alerts nearby SIPAW owners right away</b> with <?= rrp_h($pet['name'] ?? 'your pet') ?>'s photo, marks, magic word and the medical details that matter.</li>
+          <li><b>Reminds them twice more</b>, after 1 hour and after 5 hours, so the search keeps going.</li>
+          <li><b>SIPO guides you step by step</b>: where to look first for a <?= rrp_h($pet ? strtolower(rrp_pet_type_label($pet)) : 'pet') ?>, what to put out, who to call, and a printable poster.</li>
+          <li><b>Neighbours can report sightings</b> on a map, and you get each one as a notification.</li>
+          <li><b>Tap "home" when they're back</b> and everyone is told the good news.</li>
+        </ol>
+        <p class="meta" style="margin:8px 0 0">Your home address is never shown. Tip: you can also just tell SIPO "<?= rrp_h($pet['name'] ?? 'my pet') ?> is lost".</p>
+      </section>
       <form method="post" class="stack lost-trigger" style="gap:10px" id="lostTrigger">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
         <input type="hidden" name="action" value="lost_trigger" />

@@ -84,6 +84,7 @@ function rrp_app_end(array $opts = []): void
     $nav = $opts['nav'] ?? false;
     if ($nav) {
         rrp_tabbar((string) $nav, (int) ($opts['unread'] ?? 0), !empty($opts['lost_active']));
+        rrp_side_menu((string) $nav, (int) ($opts['unread'] ?? 0), !empty($opts['lost_active']));
         rrp_install_sheet();
     }
     echo "</div>\n"; // .app
@@ -120,7 +121,7 @@ function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): 
         'settings' => ['href' => 'settings.php', 'label' => $lostActive ? 'Lost' : 'Settings', 'icon' => $lostActive ? 'i-lost' : 'i-gear'],
         'health' => ['href' => 'care.php', 'label' => 'Health', 'icon' => 'i-heart'],
         'chat' => ['href' => 'si-chat.php', 'label' => 'SIPO', 'icon' => null],
-        'social' => ['href' => 'forum.php', 'label' => 'Social', 'icon' => 'i-social'],
+        'social' => ['href' => 'forum.php', 'label' => 'Pack', 'icon' => 'i-social'],
         'routines' => ['href' => 'routines.php', 'label' => 'Routines', 'icon' => 'i-routine'],
     ];
     $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
@@ -148,6 +149,55 @@ function rrp_tabbar(string $active, int $unread = 0, bool $lostActive = false): 
         echo '</a>' . "\n";
     }
     echo "</nav>\n";
+}
+
+/**
+ * Left hamburger menu: SIPO first, then every area of the app; admin tools for super owners.
+ */
+function rrp_side_menu(string $active, int $unread, bool $lostActive): void
+{
+    $owner = rrp_current_owner();
+    $isSuper = $owner && rrp_is_super_owner($owner);
+    $page = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
+    $items = [
+        ['si-chat.php', 'SIPO', 'Ask or tell SIPO anything', null],
+        ['care.php', 'Health', 'Dashboard, charts, labs, food', 'i-heart'],
+        ['routines.php', 'Routines', 'What is scheduled and due', 'i-routine'],
+        ['forum.php', 'Pack', 'Posts from pets near and far', 'i-social'],
+        ['lost.php', $lostActive ? 'Lost mode is on' : 'Lost pet', $lostActive ? 'Open the search' : 'How it works, one tap to start', 'i-lost'],
+        ['finance.php', 'Finance', 'What you spend on your pets', 'i-doc'],
+        ['settings.php', 'Settings', 'Profile, password, account', 'i-gear'],
+    ];
+    $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
+    ?>
+<button type="button" class="menu-btn" id="menuBtn" aria-label="Menu" aria-controls="sideMenu" aria-expanded="false">
+  <span></span><span></span><span></span><?php if ($unread > 0): ?><i class="menu-dot" aria-hidden="true"></i><?php endif; ?>
+</button>
+<div class="side-backdrop" id="sideBackdrop" hidden></div>
+<nav class="side-menu" id="sideMenu" aria-label="Menu" hidden>
+  <div class="side-head"><?php rrp_logo_endorsed(); ?><button type="button" class="iconbtn" data-menu-close aria-label="Close menu">×</button></div>
+  <ul role="list">
+    <?php foreach ($items as [$href, $label, $sub, $icon]): $cur = $page === $href; ?>
+      <li><a href="<?= rrp_h($href) ?>" class="<?= $href === 'si-chat.php' ? 'is-sipo ' : '' ?><?= $href === 'lost.php' ? 'is-lost ' : '' ?>"<?= $cur ? ' aria-current="page"' : '' ?>>
+        <?php if ($icon === null): ?><img src="<?= rrp_h($mascot) ?>" alt="" width="36" height="36" /><?php else: ?><svg aria-hidden="true"><use href="#<?= rrp_h($icon) ?>"/></svg><?php endif; ?>
+        <span><b><?= rrp_h($label) ?></b><small><?= rrp_h($sub) ?></small></span>
+      </a></li>
+    <?php endforeach; ?>
+  </ul>
+  <?php if ($isSuper): ?>
+    <div class="side-admin">
+      <p class="label">Admin</p>
+      <a href="<?= rrp_h(rrp_asset('admin/')) ?>">Admin panel</a>
+      <form method="post" action="dev-tools.php" data-confirm="Add sample pets, routines, labs, walks, spending and posts to YOUR account?">
+        <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="sample" />
+        <button type="submit">🧪 Fill sample data</button></form>
+      <form method="post" action="dev-tools.php" data-confirm="Clear SIPO memory and start as a new user? Your pets, chats and data on this account are removed.">
+        <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="reset" />
+        <button type="submit">🧹 Clear SIPO memory (start as new user)</button></form>
+    </div>
+  <?php endif; ?>
+</nav>
+<?php
 }
 
 /**
@@ -248,6 +298,7 @@ function rrp_layout_foot(array $opts = []): void
 <script src="<?= rrp_h(rrp_asset('assets/js/app.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/pet-switcher.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/install.js', true)) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/menu.js', true)) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
 <script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>

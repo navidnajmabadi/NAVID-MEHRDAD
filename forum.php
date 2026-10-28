@@ -13,7 +13,7 @@ $posts = rrp_forum_feed(20, null, (int) $owner['id'], $profile ? 'all' : $scope,
 $current = rrp_sipo_current_pet($owner, $pets);
 $csrf = rrp_csrf_token();
 
-rrp_layout_head(($profile ? $profile['name'] . ' — ' : '') . 'Boards — SIPAW', [
+rrp_layout_head(($profile ? $profile['name'] . ' — ' : '') . 'Pack — SIPAW', [
     'extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/boards.css', true)) . '" />',
     'body_class' => 'page-boards',
 ]);
@@ -21,7 +21,7 @@ rrp_app_start(['nav' => 'social']);
 ?>
 <div class="topbar">
   <a class="iconbtn" href="<?= $profile ? 'forum.php' : 'dashboard.php' ?>" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
-  <div class="center"><h2><?= $profile ? rrp_h($profile['name']) : 'Boards' ?></h2></div>
+  <div class="center"><h2><?= $profile ? rrp_h($profile['name']) : 'Pack' ?></h2></div>
   <a class="iconbtn" href="si-chat.php" aria-label="SIPO">SI</a>
 </div>
 

@@ -319,3 +319,5 @@ require_once __DIR__ . '/si_brain.php';
 require_once __DIR__ . '/viewmodels/chat_vm.php';
 require_once __DIR__ . '/viewmodels/health_vm.php';
 require_once __DIR__ . '/viewmodels/daily_vm.php';
+require_once __DIR__ . '/finance.php';
+require_once __DIR__ . '/account.php';

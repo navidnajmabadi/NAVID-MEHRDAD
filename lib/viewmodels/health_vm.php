@@ -162,3 +162,58 @@ function rrp_share_resolve(string $token): ?array
         ->execute([(int) $link['id']]);
     return ['link' => $link, 'pet' => $pet, 'owner' => $owner];
 }
+
+/**
+ * Top of the owner's Health dashboard: KPI tiles, section tabs, activity and spending series.
+ * @return array{kpis:list<array>, sections:array<string,string>, walk:?array, spend:?array}
+ */
+function rrp_vm_health_top(array $owner, array $pet, array $vm): array
+{
+    require_once dirname(__DIR__) . '/finance.php';
+    $r = $vm['routines'];
+    $known = array_filter($r, static fn($x) => $x['state'] !== 'unknown');
+    $onTrack = array_filter($known, static fn($x) => $x['state'] === 'ok');
+    $overdue = count(array_filter($r, static fn($x) => $x['state'] === 'overdue'));
+    $activeT = array_filter($vm['treatments'], static fn($t) => $t['status'] === 'active');
+    $abnLabs = array_filter($vm['labs'], static fn($a) => in_array($a['latest']['flag'], ['low', 'high'], true));
+    $w = $vm['weights'];
+    $wTrend = count($w) >= 2 ? round((float) end($w)['value'] - (float) $w[count($w) - 2]['value'], 1) : null;
+    $kcal = $vm['food']['today'] ?? [];
+    $need = $vm['food']['need']['kcal'] ?? null;
+
+    $walk = null;
+    try {
+        $walk = rrp_walk_summary($owner, $pet);
+    } catch (Throwable $e) {
+    }
+    $spend = null;
+    try {
+        $spend = rrp_expense_summary($owner, $pet, 6);
+    } catch (Throwable $e) {
+    }
+    $money = static fn(float $v, string $c) => ($c === 'USD' ? '$' : ($c === 'EUR' ? '€' : $c . ' ')) . number_format($v, $v >= 100 ? 0 : 2);
+
+    $kpis = [
+        ['label' => 'Status', 'value' => ['good' => 'Good', 'treatment' => 'Vet care', 'attention' => 'Check'][$vm['status']['state']] ?? '–',
+            'sub' => count($vm['status']['alerts']) . ' alerts', 'state' => $vm['status']['state'] === 'good' ? 'ok' : 'warn', 'href' => '#sec-overview'],
+        ['label' => 'Routines', 'value' => $known ? round(100 * count($onTrack) / count($known)) . '%' : '–',
+            'sub' => $overdue ? $overdue . ' overdue' : 'on track', 'state' => $overdue ? 'bad' : 'ok', 'href' => '#sec-routines'],
+        ['label' => 'Weight', 'value' => $vm['pet']['weight_kg'] !== null ? $vm['pet']['weight_kg'] . ' kg' : '–',
+            'sub' => $wTrend === null ? 'no trend yet' : ($wTrend > 0 ? '+' : '') . $wTrend . ' kg', 'href' => '#sec-profile'],
+        ['label' => 'Treatments', 'value' => (string) count($activeT), 'sub' => 'active', 'state' => $activeT ? 'warn' : 'ok', 'href' => '#sec-treatment'],
+        ['label' => 'Labs', 'value' => (string) count($vm['labs']), 'sub' => $abnLabs ? count($abnLabs) . ' out of range' : 'in range', 'state' => $abnLabs ? 'bad' : 'ok', 'href' => '#sec-labs'],
+        ['label' => 'Food today', 'value' => (int) ($kcal['eaten_kcal'] ?? 0) . ' kcal', 'sub' => $need ? (int) ($kcal['percent'] ?? 0) . '% of ' . (int) $need : 'need unknown', 'href' => '#sec-food'],
+    ];
+    if ($walk) {
+        $kpis[] = ['label' => 'Walks (7 days)', 'value' => (int) $walk['week_minutes'] . ' min', 'sub' => $walk['streak'] . ' day streak', 'href' => '#sec-activity'];
+    }
+    if ($spend) {
+        $kpis[] = ['label' => 'Spent this month', 'value' => $money($spend['this_month'], $spend['currency']), 'sub' => 'last month ' . $money($spend['last_month'], $spend['currency']), 'href' => '#sec-spending'];
+    }
+    $sections = ['sec-overview' => 'Overview', 'sec-profile' => 'Profile'];
+    if ($vm['treatments']) {
+        $sections['sec-treatment'] = 'Treatment';
+    }
+    $sections += ['sec-labs' => 'Labs', 'sec-food' => 'Food', 'sec-routines' => 'Routines', 'sec-activity' => 'Activity', 'sec-spending' => 'Spending'];
+    return ['kpis' => $kpis, 'sections' => $sections, 'walk' => $walk, 'spend' => $spend, 'money' => $money];
+}

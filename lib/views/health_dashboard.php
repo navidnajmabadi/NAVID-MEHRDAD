@@ -12,7 +12,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
     $s = $vm['status'];
     $pet = $vm['pet'];
     ?>
-<section class="care-status is-<?= rrp_h($s['state']) ?>" aria-live="polite">
+<section id="sec-overview" class="care-status is-<?= rrp_h($s['state']) ?>" aria-live="polite">
   <?php rrp_pet_avatar($pet); ?>
   <div>
     <h2><?= rrp_h($s['headline']) ?></h2>
@@ -24,7 +24,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
   </div>
 </section>
 
-<section class="care-card">
+<section class="care-card" id="sec-profile">
   <h3 class="label">Profile</h3>
   <dl class="care-kv">
     <?php foreach (['Kind' => $pet['kind'], 'Breed' => $pet['breed'], 'Sex' => $pet['sex'] ? ucfirst($pet['sex']) : null, 'Age' => $pet['age'],
@@ -38,7 +38,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
 </section>
 
 <?php if ($vm['treatments']): ?>
-<section class="care-card">
+<section class="care-card" id="sec-treatment">
   <h3 class="label">Vet treatment</h3>
   <?php foreach ($vm['treatments'] as $t): ?>
     <article class="care-treat is-<?= rrp_h($t['status']) ?>">
@@ -61,7 +61,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
 </section>
 <?php endif; ?>
 
-<section class="care-card">
+<section class="care-card" id="sec-labs">
   <h3 class="label">Lab results</h3>
   <?php if (!$vm['labs']): ?>
     <p class="sub">No lab results yet.<?= $readOnly ? '' : ' Send a blood test photo or PDF to SIPO and the numbers land here.' ?></p>
@@ -83,7 +83,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
   <?php endif; ?>
 </section>
 
-<section class="care-card">
+<section class="care-card" id="sec-food">
   <h3 class="label">Food today</h3>
   <?php $f = $vm['food']; $pct = $f['today']['percent']; ?>
   <?php if ($f['need']['kcal']): ?>
@@ -115,7 +115,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
   <?php endif; ?>
 </section>
 
-<section class="care-card">
+<section class="care-card" id="sec-routines">
   <h3 class="label">Care routines</h3>
   <p class="meta"><?= rrp_h($vm['region_label']) ?> · your vet sets the exact schedule.</p>
   <ul class="care-routines" role="list">
@@ -174,5 +174,42 @@ function rrp_view_line_chart(array $points, ?float $lo, ?float $hi, string $unit
     <circle class="pt<?= $abn ? ' is-abnormal' : '' ?>" cx="<?= round($x($i), 1) ?>" cy="<?= round($y((float) $p['value']), 1) ?>" r="<?= $abn ? 4.5 : 3.5 ?>"><title><?= rrp_h($p['date'] . ': ' . $p['value'] . ' ' . $unit) ?></title></circle>
   <?php endforeach; ?>
 </svg>
+<?php
+}
+
+/**
+ * KPI strip + section tabs for the owner's Health dashboard (not on the vet share view).
+ * @param array{kpis:list<array{label:string,value:string,sub?:string,state?:string,href?:string}>, sections:array<string,string>} $top
+ */
+function rrp_view_health_top(array $top): void
+{
+    ?>
+<nav class="hd-tabs" aria-label="Dashboard sections">
+  <?php foreach ($top['sections'] as $id => $label): ?><a href="#<?= rrp_h($id) ?>"><?= rrp_h($label) ?></a><?php endforeach; ?>
+</nav>
+<div class="hd-kpis">
+  <?php foreach ($top['kpis'] as $k): $tag = !empty($k['href']) ? 'a' : 'div'; ?>
+    <<?= $tag ?> class="hd-kpi is-<?= rrp_h($k['state'] ?? 'neutral') ?>"<?= $tag === 'a' ? ' href="' . rrp_h($k['href']) . '"' : '' ?>>
+      <span class="label"><?= rrp_h($k['label']) ?></span>
+      <b class="data"><?= rrp_h($k['value']) ?></b>
+      <?php if (!empty($k['sub'])): ?><small class="meta"><?= rrp_h($k['sub']) ?></small><?php endif; ?>
+    </<?= $tag ?>>
+  <?php endforeach; ?>
+</div>
+<?php
+}
+
+/** Simple bar chart. $bars: [{label, value}] */
+function rrp_view_bar_chart(array $bars, string $unit, ?float $goal = null): void
+{
+    $max = max(1.0, (float) max(array_merge(array_column($bars, 'value'), [$goal ?? 0])));
+    $label = implode(', ', array_map(static fn($b) => $b['label'] . ': ' . $b['value'] . ' ' . $unit, $bars));
+    ?>
+<div class="hd-bars" role="img" aria-label="<?= rrp_h($label) ?>">
+  <?php if ($goal): ?><i class="hd-goal" style="bottom:<?= round(100 * $goal / $max, 1) ?>%" title="Goal <?= rrp_h((string) $goal) ?> <?= rrp_h($unit) ?>"></i><?php endif; ?>
+  <?php foreach ($bars as $b): ?>
+    <div class="hd-bar"><span style="height:<?= round(100 * (float) $b['value'] / $max, 1) ?>%" title="<?= rrp_h($b['label'] . ': ' . $b['value'] . ' ' . $unit) ?>"></span><small><?= rrp_h($b['label']) ?></small></div>
+  <?php endforeach; ?>
+</div>
 <?php
 }
