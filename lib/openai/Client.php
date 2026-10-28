@@ -119,6 +119,10 @@ final class RrpOpenAiClient
         if ($tools !== []) {
             $payload['tools'] = $tools;
             $payload['tool_choice'] = 'auto';
+            if (self::quirk($model, 'tools_need_no_reasoning')) {
+                // Reasoning models (e.g. gpt-6-luna) only accept function tools on Chat Completions with reasoning off.
+                $payload['reasoning_effort'] = 'none';
+            }
         }
         $payload = array_merge($payload, $extra);
 
@@ -134,9 +138,23 @@ final class RrpOpenAiClient
             $status = (int) ($res['status'] ?? 0);
             $err = strtolower((string) ($res['error'] ?? ''));
             $param = strtolower((string) ($res['param'] ?? ''));
+            if (isset($payload['reasoning_effort']) && ($param === 'reasoning_effort' || str_contains($err, 'reasoning_effort'))
+                    && !str_contains($err, 'function tools')) {
+                // This model does not know reasoning_effort at all: send without it (tools may then be dropped below).
+                unset($payload['reasoning_effort']);
+                continue;
+            }
             if (isset($payload['temperature']) && ($param === 'temperature' || str_contains($err, 'temperature'))) {
                 unset($payload['temperature']);
                 self::rememberQuirk((string) $payload['model'], 'no_temperature');
+                continue;
+            }
+            if (isset($payload['tools']) && !isset($payload['reasoning_effort'])
+                    && (str_contains($err, 'reasoning_effort') || $param === 'reasoning_effort')) {
+                // Live bug 2026-10-28: "Function tools with reasoning_effort are not supported for gpt-6-luna
+                // in /v1/chat/completions ... set reasoning_effort to 'none'". Keep the tools, turn reasoning off.
+                $payload['reasoning_effort'] = 'none';
+                self::rememberQuirk((string) $payload['model'], 'tools_need_no_reasoning');
                 continue;
             }
             if (isset($payload['tools']) && (in_array($param, ['tools', 'tool_choice'], true) || str_starts_with($param, 'tools[')
