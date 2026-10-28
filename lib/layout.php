@@ -57,7 +57,7 @@ function rrp_layout_head(string $title, array $opts = []): void
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipaw.css', true)) ?>" />
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/sipo-app.css', true)) ?>" />
 <?php if ($skinFonts): ?><link href="https://fonts.googleapis.com/css2?family=<?= rrp_h($skinFonts) ?>&display=swap" rel="stylesheet" media="print" onload="this.media='all'" /><?php endif; ?>
-<script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/logout.php*","/dev-tools.php*","/account-delete.php*","/api/*","/cron/*","/admin/*"]}}]},"eagerness":"moderate"}]}</script>
+<script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/logout.php*","/dev-tools.php*","/account-delete.php*","/api/*","/cron/*","/admin/*"]}}]},"eagerness":"conservative"}]}</script>
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/skins.css', true)) ?>" />
 <meta name="rrp-sw" content="<?= rrp_h(rrp_asset('sw.js')) ?>" />
 <meta name="rrp-push-vapid" content="<?= rrp_h(rrp_asset('api/push-vapid.php')) ?>" />

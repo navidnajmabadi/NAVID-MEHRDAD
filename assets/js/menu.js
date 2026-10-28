@@ -97,3 +97,9 @@
   });
   window.addEventListener("pageshow", function () { bar.classList.remove("is-on"); });
 })();
+
+// QA v3 B47: a page restored from the back/forward cache could show old numbers (e.g. Finance after a
+// cost was logged in chat). Reload it so data is always current.
+window.addEventListener("pageshow", function (e) {
+  if (e.persisted) location.reload();
+});

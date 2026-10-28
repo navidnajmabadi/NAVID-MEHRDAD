@@ -110,7 +110,8 @@ final class RrpOpenAiClient
             $model = $this->keyRole === self::KEY_BRAIN ? $this->brainModel() : $this->defaultModel();
         }
         $cfg = rrp_config_ready() ? (rrp_load_config()['openai'] ?? []) : [];
-        $fallback = trim((string) ($cfg['fallback_model'] ?? ''));
+        // QA v3 B48: always have a backup model (config openai.fallback_model overrides this default).
+        $fallback = trim((string) ($cfg['fallback_model'] ?? '')) ?: 'gpt-4o-mini';
 
         $payload = ['model' => $model, 'messages' => $messages];
         if (!self::quirk($model, 'no_temperature')) {
@@ -181,6 +182,24 @@ final class RrpOpenAiClient
                 continue;
             }
             break;
+        }
+        $status = (int) ($res['status'] ?? 0);
+        if (empty($res['ok']) && $payload['model'] !== $fallback && !in_array($status, [401, 403], true)) {
+            // Any other failure (rate limit, 5xx, 400 from a model quirk, timeout): one try on the backup model.
+            $first = $res;
+            $retry = $payload;
+            $retry['model'] = $fallback;
+            unset($retry['reasoning_effort']);
+            $res = $this->send($retry);
+            if (empty($res['ok']) && isset($retry['temperature']) && str_contains(strtolower((string) ($res['error'] ?? '')), 'temperature')) {
+                unset($retry['temperature']);
+                $res = $this->send($retry);
+            }
+            if (!empty($res['ok'])) {
+                self::recordError(['status' => $status, 'error' => 'Primary model failed, answered with backup ' . $fallback . '. First error: ' . mb_substr((string) ($first['error'] ?? ''), 0, 200)], (string) $payload['model']);
+                return $res + ['model' => $fallback, 'tools_dropped' => $toolsDropped, 'fallback_used' => true];
+            }
+            $res = $first;
         }
         if (empty($res['ok'])) {
             self::recordError($res, (string) $payload['model']);

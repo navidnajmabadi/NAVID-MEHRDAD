@@ -313,6 +313,14 @@ function rrp_food_prompt_block(array $owner, array $pet): string
     $need = rrp_food_daily_kcal($pet);
     $today = rrp_food_today($owner, $pet);
     $lines = ['Daily target: ' . ($need['kcal'] ? $need['kcal'] . ' kcal (' . $need['source'] . ')' : 'unknown — ' . $need['note'])];
+    if ($need['kcal']) {
+        // QA v3 B31: hand SIPO the grams so it gives them instead of refusing.
+        $current = rrp_foods_for_pet((int) $pet['id'])[0] ?? null;
+        $g = $current ? rrp_food_grams_per_day($pet, $current) : null;
+        $lines[] = $g
+            ? "Daily amount: about {$g} g/day of {$current['name']} (split over the meals)."
+            : 'Daily amount: about ' . (int) round($need['kcal'] / 3.6) . ' g/day of a typical dry food (≈3,600 kcal/kg); the exact grams depend on the bag\'s kcal/kg, so ask for it to fine-tune.';
+    }
     $lines[] = 'Eaten today: ' . $today['eaten_kcal'] . ' kcal in ' . $today['meals'] . ' logged meals'
         . ($today['unknown_meals'] ? " ({$today['unknown_meals']} without calories)" : '');
     foreach (rrp_foods_for_pet((int) $pet['id']) as $f) {
