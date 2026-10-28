@@ -33,7 +33,9 @@ function rrp_sipo_tool_defs(bool $onboarding): array
             'breed' => ['type' => 'string'],
         ], ['name', 'kind']);
     } else {
-        $defs[] = $fn('update_pet_profile', 'Save core profile fields the owner told you. Send only fields you learned.', [
+        $defs[] = $fn('update_pet_profile', 'Save core profile fields the owner told you. Send only fields you learned. Changing a value that is already saved needs the owner\'s yes first: then send confirmed=true.', [
+            'name' => ['type' => 'string', 'description' => 'New pet name (rename). Never put a name in breed.'],
+            'confirmed' => ['type' => 'boolean', 'description' => 'true only after the owner said yes to changing an already-saved value'],
             'breed' => ['type' => 'string'],
             'sex' => ['type' => 'string', 'enum' => ['male', 'female']],
             'birth_date' => ['type' => 'string', 'description' => 'YYYY-MM-DD (use the 1st if only month/year known)'],
@@ -62,6 +64,15 @@ function rrp_sipo_tool_defs(bool $onboarding): array
             $defs[] = $d;
         }
     }
+    // Every per-pet tool accepts pet_name (another of the owner's pets) so SIPO never has to switch chats.
+    foreach ($defs as &$d) {
+        if (in_array($d['function']['name'], RRP_SIPO_PET_TOOLS, true)) {
+            $d['function']['parameters']['properties'] = (object) ((array) $d['function']['parameters']['properties'] + [
+                'pet_name' => ['type' => 'string', 'description' => 'Only if this is about ANOTHER of the owner\'s pets (not the one in this chat): that pet\'s name'],
+            ]);
+        }
+    }
+    unset($d);
     $defs[] = $fn('get_weather', 'Current weather and today\'s forecast at the owner\'s home area.', []);
     $defs[] = $fn('find_vets', 'Find veterinary clinics near the owner\'s home area, with phone numbers when known.', [
         'emergency_only' => ['type' => 'boolean'],
@@ -125,7 +136,8 @@ function rrp_sipo_care_tool_defs(callable $fn): array
             'food_id' => ['type' => 'integer'], 'remaining_grams' => ['type' => 'number'],
             'new_package' => ['type' => 'boolean'], 'daily_grams' => ['type' => 'number'],
         ], ['food_id']),
-        $fn('log_bathroom', 'Log a pee, poop, accident or vomit the owner reports (one call per event).', [
+        $fn('log_bathroom', 'Log a pee, poop, accident or vomit the owner reports. "Peed 3 times" = count 3.', [
+            'count' => ['type' => 'integer', 'description' => 'How many times (default 1, max 10)'],
             'kind' => ['type' => 'string', 'enum' => ['pee', 'poop', 'accident', 'vomit']],
             'stool' => ['type' => 'string', 'enum' => ['normal', 'soft', 'diarrhea', 'hard', 'blood', 'mucus']],
             'at' => ['type' => 'string', 'description' => 'Local HH:MM if not just now'],
@@ -152,7 +164,52 @@ function rrp_sipo_care_tool_defs(callable $fn): array
  * @param array{owner:array, thread:array, pet:?array, user_message_id:?int} $ctx  (by reference: pet/thread may change)
  * @return array<string,mixed>
  */
+/** QA B08: "Dog", "puppy" or kind=other + "dog" must still save as a dog, not Not specified. */
+function rrp_sipo_norm_kind(string $kind, string $other = ''): string
+{
+    $map = ['dog' => 'dog', 'dogs' => 'dog', 'puppy' => 'dog', 'pup' => 'dog', 'cat' => 'cat', 'cats' => 'cat', 'kitten' => 'cat', 'kitty' => 'cat',
+        'bird' => 'bird', 'parrot' => 'bird', 'budgie' => 'bird', 'rabbit' => 'rabbit', 'bunny' => 'rabbit', 'hamster' => 'hamster'];
+    foreach ([$kind, $other] as $v) {
+        $v = mb_strtolower(trim($v));
+        if (isset($map[$v])) {
+            return $map[$v];
+        }
+    }
+    return mb_strtolower(trim($kind)) === 'other' || trim($kind) !== '' ? 'other' : '';
+}
+
+/** Tools that act on one pet: they accept pet_name so SIPO can act on another pet without switching chats. */
+const RRP_SIPO_PET_TOOLS = ['update_pet_profile', 'save_pet_fact', 'set_reminder', 'care_record_done', 'reminder_outcome',
+    'treatment_start', 'treatment_add_medicine', 'treatment_log', 'treatment_recheck', 'treatment_finish', 'food_save',
+    'food_log_meal', 'food_supply', 'set_meal_times', 'log_bathroom', 'log_walk', 'set_walk_goal', 'routine_plan',
+    'log_expense', 'post_to_social', 'start_lost_mode', 'mark_pet_found'];
+
 function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
+{
+    $want = mb_strtolower(trim((string) ($args['pet_name'] ?? '')));
+    unset($args['pet_name']);
+    if ($want === '' || !in_array($name, RRP_SIPO_PET_TOOLS, true)
+        || ($ctx['pet'] && mb_strtolower((string) $ctx['pet']['name']) === $want)) {
+        return rrp_sipo_run_tool_on_pet($name, $args, $ctx);
+    }
+    // QA B27: act on the named pet for this one call; the chat stays on its own pet.
+    $target = null;
+    foreach (rrp_pets_by_owner((int) $ctx['owner']['id']) as $p) {
+        if (mb_strtolower((string) $p['name']) === $want) {
+            $target = $p;
+        }
+    }
+    if (!$target) {
+        return ['ok' => false, 'error' => 'No pet with that name.', 'pets' => array_column(rrp_pets_by_owner((int) $ctx['owner']['id']), 'name')];
+    }
+    $own = $ctx['pet'];
+    $ctx['pet'] = $target;
+    $res = rrp_sipo_run_tool_on_pet($name, $args, $ctx);
+    $ctx['pet'] = $own;
+    return $res + ['for_pet' => $target['name']];
+}
+
+function rrp_sipo_run_tool_on_pet(string $name, array $args, array &$ctx): array
 {
     $owner = $ctx['owner'];
     $pet = $ctx['pet'];
@@ -166,7 +223,7 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
             if ($pet !== null) {
                 return ['ok' => false, 'error' => 'This chat already has a pet.'];
             }
-            $kind = (string) ($args['kind'] ?? '');
+            $kind = rrp_sipo_norm_kind((string) ($args['kind'] ?? ''), (string) ($args['other_kind'] ?? ''));
             $res = rrp_create_pet($ownerId, [
                 'name' => (string) ($args['name'] ?? ''),
                 'type' => $kind === 'other' ? 'custom' : $kind,
@@ -191,6 +248,15 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
         case 'update_pet_profile':
             if ($pet === null) {
                 return ['ok' => false, 'error' => 'No pet yet.'];
+            }
+            $check = rrp_sipo_profile_change_check($pet, $args);
+            if ($check !== null) {
+                return $check; // QA B01/B29: ask the owner first, nothing saved
+            }
+            if (!empty($args['name'])) {
+                rrp_db()->prepare('UPDATE pets SET name = ? WHERE id = ? AND owner_id = ?')
+                    ->execute([mb_substr(trim((string) $args['name']), 0, 60), (int) $pet['id'], $ownerId]);
+                $ctx['events'][] = 'profile_updated';
             }
             $saved = rrp_sipo_update_pet_fields((int) $pet['id'], $ownerId, $args);
             $ctx['pet'] = rrp_pet_by_id((int) $pet['id'], $ownerId) ?: $pet;
@@ -271,10 +337,16 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
         case 'find_vets':
             $c = rrp_sipo_owner_coords($owner);
             if ($c['lat'] === null) {
-                return ['ok' => false, 'error' => 'Home area not set. Ask the owner which city they are in, or to set the area on the map.'];
+                // No home area: the map search still finds vets around the phone's own location.
+                $ctx['links'][] = ['url' => 'https://www.google.com/maps/search/emergency+vet', 'label' => 'Vets near you on the map', 'external' => true];
+                return ['ok' => false, 'error' => 'Home area not set, so no list. A map button for vets near the owner is shown under your reply: tell them to tap it and call the nearest one. Later, ask them to set the home area.'];
             }
             $vets = rrp_sipo_find_vets($c['lat'], $c['lng'], !empty($args['emergency_only']));
-            return ['ok' => true, 'clinics' => $vets, 'note' => $vets ? null : 'No clinics found in OpenStreetMap nearby.'];
+            $search = sprintf('https://www.google.com/maps/search/emergency+vet/@%F,%F,13z', $c['lat'], $c['lng']);
+            $ctx['links'][] = ['url' => 'https://www.google.com/maps/search/emergency+vet/@' . sprintf('%F,%F', $c['lat'], $c['lng']) . ',13z', 'label' => 'Vets near you on the map', 'external' => true];
+            return ['ok' => true, 'clinics' => $vets, 'map_search' => $search,
+                'note' => $vets ? 'Give names, distance and phone numbers. A map button is shown under your reply.'
+                    : 'No clinics in the map data near the home area. Do NOT just say none: tell the owner to tap the map button under your reply for vets near them, and to call the nearest one now.'];
 
         case 'open_support_ticket':
             $res = rrp_ticket_create(
@@ -316,7 +388,17 @@ function rrp_sipo_run_care_tool(string $name, array $a, array $owner, array $pet
                 isset($a['remaining_grams']) ? (float) $a['remaining_grams'] : null, !empty($a['new_package']),
                 isset($a['daily_grams']) ? (float) $a['daily_grams'] : null),
             'set_meal_times' => rrp_food_set_meal_times($pet, (array) ($a['times'] ?? []), $str('portion_note')),
-            'log_bathroom' => rrp_bath_log($owner, $pet, (string) ($a['kind'] ?? ''), $str('stool'), $str('note'), 'chat', $str('at')),
+            'log_bathroom' => (static function () use ($owner, $pet, $a, $str) { // QA B33: "peed 3 times" = 3 events
+                $n = max(1, min(10, (int) ($a['count'] ?? 1)));
+                $r = ['ok' => false];
+                for ($i = 0; $i < $n; $i++) {
+                    $r = rrp_bath_log($owner, $pet, (string) ($a['kind'] ?? ''), $str('stool'), $str('note'), 'chat', $i === 0 ? $str('at') : null);
+                    if (empty($r['ok'])) {
+                        break;
+                    }
+                }
+                return $r + ['logged' => !empty($r['ok']) ? $n : 0];
+            })(),
             'log_walk' => rrp_walk_log($owner, $pet, (int) ($a['minutes'] ?? 0),
                 isset($a['km']) && is_numeric($a['km']) ? (int) round((float) $a['km'] * 1000) : null, null, 'chat', null, $str('note')),
             'set_walk_goal' => rrp_walk_set_goal($pet, (int) ($a['minutes_per_day'] ?? 0)),
@@ -327,6 +409,46 @@ function rrp_sipo_run_care_tool(string $name, array $a, array $owner, array $pet
         error_log('care tool ' . $name . ': ' . $e->getMessage());
         return ['ok' => false, 'error' => 'Could not save that — try again.'];
     }
+}
+
+/**
+ * QA B01/B29: changing an already-saved value, or saving an odd one, needs the owner's yes.
+ * @return array|null error for the model (nothing saved), or null when it may go ahead
+ */
+function rrp_sipo_profile_change_check(array $pet, array $args): ?array
+{
+    $confirmed = ($args['confirmed'] ?? false) === true;
+    $odd = static fn(string $v) => (bool) preg_match('/\d/', $v)
+        || (mb_strlen($v) >= 6 && !preg_match('/[aeiouy]/i', $v))
+        || preg_match('/(asdf|qwer|zxcv|hjkl|jkl;)/i', $v);
+    $changes = [];
+    $warn = [];
+    $fields = ['name' => 'name', 'breed' => 'breed', 'sex' => 'sex', 'birth_date' => 'birth_date', 'weight_kg' => 'weight_kg'];
+    foreach ($fields as $arg => $col) {
+        if (!isset($args[$arg]) || $args[$arg] === '' || $args[$arg] === null) {
+            continue;
+        }
+        $new = (string) $args[$arg];
+        $old = (string) ($pet[$col] ?? '');
+        if ($col === 'sex' && $old === 'unknown') {
+            $old = '';
+        }
+        if (in_array($arg, ['name', 'breed'], true) && $odd($new)) {
+            $warn[] = "{$arg} \"{$new}\" looks unusual";
+        }
+        if ($arg === 'weight_kg' && (float) $old > 0 && abs((float) $new - (float) $old) / (float) $old > 0.2) {
+            $warn[] = "weight jumps from {$old} kg to {$new} kg";
+        }
+        // A new weigh-in is a measurement, not a correction: only big jumps (above) need a yes.
+        if ($arg !== 'weight_kg' && $old !== '' && mb_strtolower($old) !== mb_strtolower($new)) {
+            $changes[] = "{$arg}: {$old} → {$new}";
+        }
+    }
+    if (($changes || $warn) && !$confirmed) {
+        return ['ok' => false, 'needs_confirm' => true, 'changes' => $changes, 'check' => $warn,
+            'error' => 'Not saved yet. Ask the owner to confirm (old → new' . ($warn ? ', and whether the unusual value is right' : '') . '), then call again with confirmed=true.'];
+    }
+    return null;
 }
 
 function rrp_sipo_update_pet_fields(int $petId, int $ownerId, array $args): array
@@ -414,38 +536,22 @@ function rrp_sipo_local_to_utc(string $local, array $owner): ?string
  */
 function rrp_sipo_find_vets(float $lat, float $lng, bool $emergencyOnly = false): array
 {
-    $key = sprintf('vets:%.2f,%.2f', $lat, $lng);
+    $key = sprintf('vets3:%.2f,%.2f', $lat, $lng);
     $rows = rrp_sipo_cache_get($key, 86400);
-    if (!is_array($rows)) {
-        $q = sprintf(
-            '[out:json][timeout:10];(node["amenity"="veterinary"](around:15000,%1$F,%2$F);way["amenity"="veterinary"](around:15000,%1$F,%2$F););out center tags 40;',
-            $lat,
-            $lng
-        );
-        $data = rrp_sipo_http_json('https://overpass-api.de/api/interpreter', 12, 'data=' . rawurlencode($q));
-        $rows = [];
-        foreach (($data['elements'] ?? []) as $el) {
-            $tags = $el['tags'] ?? [];
-            $elat = (float) ($el['lat'] ?? $el['center']['lat'] ?? 0);
-            $elng = (float) ($el['lon'] ?? $el['center']['lon'] ?? 0);
-            if (empty($tags['name']) || !$elat) {
-                continue;
-            }
-            $addr = trim(implode(' ', array_filter([
-                $tags['addr:housenumber'] ?? null,
-                $tags['addr:street'] ?? null,
-                $tags['addr:city'] ?? null,
-            ])));
-            $rows[] = [
-                'name' => (string) $tags['name'],
-                'phone' => $tags['phone'] ?? $tags['contact:phone'] ?? null,
-                'address' => $addr !== '' ? $addr : null,
-                'distance_km' => round(rrp_haversine_km($lat, $lng, $elat, $elng), 1),
-                'emergency' => (($tags['emergency'] ?? '') === 'yes') || str_contains(strtolower((string) ($tags['opening_hours'] ?? '')), '24/7'),
-            ];
+    if (!is_array($rows) || !$rows) {
+        // QA B23: Overpass timed out (25 s+) so SIPO found no clinics. Nominatim's tag search answers in
+        // ~2 s; Overpass is only a short backup. A failure is never cached.
+        $rows = rrp_sipo_vets_nominatim($lat, $lng, 15) ?? [];
+        if (count($rows) < 3) {
+            $rows = rrp_sipo_vets_nominatim($lat, $lng, 40) ?? $rows;
+        }
+        if (!$rows) {
+            $rows = rrp_sipo_vets_overpass($lat, $lng) ?? [];
         }
         usort($rows, static fn($a, $b) => $a['distance_km'] <=> $b['distance_km']);
-        rrp_sipo_cache_set($key, $rows);
+        if ($rows) {
+            rrp_sipo_cache_set($key, $rows);
+        }
     }
     if ($emergencyOnly) {
         $em = array_values(array_filter($rows, static fn($r) => $r['emergency']));
@@ -453,5 +559,71 @@ function rrp_sipo_find_vets(float $lat, float $lng, bool $emergencyOnly = false)
             $rows = $em;
         }
     }
-    return array_slice($rows, 0, 5);
+    // Clinics with a phone first among the closest: in an emergency the owner needs to call.
+    $near = array_slice($rows, 0, 8);
+    usort($near, static fn($a, $b) => [empty($a['phone']), $a['distance_km']] <=> [empty($b['phone']), $b['distance_km']]);
+    return array_slice($near, 0, 5);
+}
+
+/** @return list<array>|null null when the service failed */
+function rrp_sipo_vets_nominatim(float $lat, float $lng, int $km): ?array
+{
+    $dLat = $km / 111.0;
+    $dLng = $km / (111.0 * max(0.2, cos(deg2rad($lat))));
+    $url = 'https://nominatim.openstreetmap.org/search?' . http_build_query([
+        'q' => '[amenity=veterinary]', 'format' => 'jsonv2', 'limit' => 40, 'extratags' => 1, 'addressdetails' => 1, 'bounded' => 1,
+        'viewbox' => sprintf('%F,%F,%F,%F', $lng - $dLng, $lat + $dLat, $lng + $dLng, $lat - $dLat),
+    ]);
+    $data = rrp_sipo_http_json($url, 8);
+    if (!is_array($data)) {
+        return null;
+    }
+    $rows = [];
+    foreach ($data as $r) {
+        $elat = (float) ($r['lat'] ?? 0);
+        $elng = (float) ($r['lon'] ?? 0);
+        if (!$elat) {
+            continue;
+        }
+        $x = $r['extratags'] ?? [];
+        $ad = $r['address'] ?? [];
+        $rows[] = rrp_sipo_vet_row((string) ($r['name'] ?: 'Veterinary clinic'), $x['phone'] ?? $x['contact:phone'] ?? $x['contact:mobile'] ?? null,
+            trim(implode(' ', array_filter([$ad['house_number'] ?? null, $ad['road'] ?? null, $ad['suburb'] ?? $ad['city'] ?? null]))) ?: null,
+            $lat, $lng, $elat, $elng, (($x['emergency'] ?? '') === 'yes') || str_contains(strtolower((string) ($x['opening_hours'] ?? '')), '24/7'));
+    }
+    return $rows;
+}
+
+/** @return list<array>|null */
+function rrp_sipo_vets_overpass(float $lat, float $lng): ?array
+{
+    $q = sprintf('[out:json][timeout:8];nwr["amenity"="veterinary"](around:20000,%F,%F);out center tags 40;', $lat, $lng);
+    $data = rrp_sipo_http_json('https://overpass-api.de/api/interpreter', 9, 'data=' . rawurlencode($q));
+    if (!is_array($data) || !isset($data['elements'])) {
+        return null;
+    }
+    $rows = [];
+    foreach ($data['elements'] as $el) {
+        $t = $el['tags'] ?? [];
+        $elat = (float) ($el['lat'] ?? $el['center']['lat'] ?? 0);
+        $elng = (float) ($el['lon'] ?? $el['center']['lon'] ?? 0);
+        if ($elat) {
+            $rows[] = rrp_sipo_vet_row((string) ($t['name'] ?? $t['name:en'] ?? 'Veterinary clinic'), $t['phone'] ?? $t['contact:phone'] ?? null,
+                trim(implode(' ', array_filter([$t['addr:housenumber'] ?? null, $t['addr:street'] ?? null, $t['addr:city'] ?? null]))) ?: null,
+                $lat, $lng, $elat, $elng, (($t['emergency'] ?? '') === 'yes') || str_contains(strtolower((string) ($t['opening_hours'] ?? '')), '24/7'));
+        }
+    }
+    return $rows;
+}
+
+function rrp_sipo_vet_row(string $name, ?string $phone, ?string $address, float $lat, float $lng, float $elat, float $elng, bool $emergency): array
+{
+    return [
+        'name' => $name,
+        'phone' => $phone,
+        'address' => $address,
+        'distance_km' => round(rrp_haversine_km($lat, $lng, $elat, $elng), 1),
+        'emergency' => $emergency,
+        'map' => sprintf('https://www.google.com/maps/search/?api=1&query=%F,%F', $elat, $elng),
+    ];
 }

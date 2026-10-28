@@ -587,11 +587,11 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
       <div class="intro">
         <div class="brand"><svg class="logo-endorsed on-dark" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-dark"/></svg><svg class="logo-endorsed on-light" viewBox="0 0 629 462" role="img" aria-label="siPaw by Nakilab"><use href="#lg-endorsed-light"/></svg></div>
         <h1>Your pet's <span>SI companion.</span></h1>
-        <p class="lede">Add Milo and Luna, ask SIPO anything, and get a nudge before you forget. One app for every paw.</p>
+        <p class="lede"><?= $owner ? 'Welcome back' . (!empty($owner['name']) ? ', ' . rrp_h(strtok(trim((string) $owner['name']), ' ')) : '') . '. SIPO is ready when you are.' : 'Add Milo and Luna, ask SIPO anything, and get a nudge before you forget. One app for every paw.' ?></p>
         <div class="ctas">
 <?php if ($owner): ?>
-        <a class="btn primary" href="dashboard.php">Open home <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        <a class="btn outline" href="dashboard.php">Go to app</a>
+        <a class="btn primary" href="dashboard.php">Open SIPAW <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn outline" href="si-chat.php">Talk to SIPO</a>
         <?php else: ?>
         <a class="btn primary" id="register" href="signup.php">Add your first pet <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         <a class="btn outline" href="#demo">Watch the demo</a>
@@ -713,11 +713,10 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
 
   <section class="block final" id="cta" aria-labelledby="c-title">
     <div class="wrap">
-      <div><h2 id="c-title">Add your first pet.</h2><p>Two minutes. SIPO takes it from there.</p></div>
+      <div><h2 id="c-title"><?= $owner ? 'Your pets are waiting.' : 'Add your first pet.' ?></h2><p><?= $owner ? 'Pick up where you left off.' : 'Two minutes. SIPO takes it from there.' ?></p></div>
       <div class="ctas">
 <?php if ($owner): ?>
-        <a class="btn primary" href="dashboard.php">Open home</a>
-        <a class="btn outline" href="chat.php">Talk to SI</a>
+        <a class="btn primary" href="si-chat.php">Talk to SIPO</a>
         <?php else: ?>
         <a class="btn primary" href="signup.php">Register</a>
         <a class="btn outline" href="login.php">Log in</a>
@@ -740,7 +739,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
         <a href="#features">What SIPO does</a>
         <a href="#demo">Demo</a>
         <a href="#pets">Features</a>
-        <a href="signup.php">Register</a>
+        <?php if (!$owner): ?><a href="signup.php">Register</a><?php endif; ?>
       </div>
       <div class="foot-col">
         <p class="foot-h">Company</p>

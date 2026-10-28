@@ -46,7 +46,7 @@ function rrp_sipo_app_tool_defs(callable $fn): array
             'other_kind' => ['type' => 'string', 'description' => 'If kind=other, what animal'],
             'breed' => ['type' => 'string'],
         ], ['name', 'kind']),
-        $fn('switch_pet', 'Open the chat of another of the owner\'s pets by name.', [
+        $fn('switch_pet', 'Only when the owner explicitly asks to go to another pet\'s chat: shows a button to open it. Never call it just because another pet is mentioned; use pet_name on the action tool instead.', [
             'name' => ['type' => 'string'],
         ], ['name']),
         $fn('list_my_pets', 'List all of the owner\'s pets with kind and whether Lost mode is on.', []),
@@ -63,7 +63,7 @@ function rrp_sipo_app_tool_defs(callable $fn): array
         $fn('post_to_social', 'Publish a post on the Social board as THIS pet. If the owner asks you to write one, write it yourself (short, warm, 1 to 3 emojis, in the pet\'s voice if fun), show the draft, and call this only after they say yes.', [
             'text' => ['type' => 'string'],
         ], ['text']),
-        $fn('open_page', 'Open a page of the app for the owner (e.g. "show my dashboard", "open settings"). Pages: '
+        $fn('open_page', 'Only when the owner explicitly asks to see or open a page (e.g. "show my dashboard", "open settings"): shows a button to open it. Never call it to answer a question about a page. Pages: '
             . implode(', ', array_map(static fn($k, $p) => $k . ' (' . $p[1] . ')', array_keys(rrp_sipo_app_pages()), rrp_sipo_app_pages())), [
             'page' => ['type' => 'string', 'enum' => array_keys(rrp_sipo_app_pages())],
         ], ['page']),
@@ -84,7 +84,7 @@ function rrp_sipo_app_tool_defs(callable $fn): array
 }
 
 /**
- * @param array{owner:array, thread:array, pet:?array} $ctx  (by reference: may set navigate)
+ * @param array{owner:array, thread:array, pet:?array} $ctx  (by reference: may add links = buttons under the reply)
  * @return array<string,mixed>
  */
 function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
@@ -99,7 +99,7 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
                 // Onboarding chat: the normal path binds this chat to the new pet.
                 return rrp_sipo_run_tool('create_pet_profile', $a, $ctx);
             }
-            $kind = (string) ($a['kind'] ?? '');
+            $kind = rrp_sipo_norm_kind((string) ($a['kind'] ?? ''), (string) ($a['other_kind'] ?? ''));
             $res = rrp_create_pet($ownerId, [
                 'name' => (string) ($a['name'] ?? ''),
                 'type' => $kind === 'other' ? 'custom' : $kind,
@@ -112,18 +112,17 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
                     'hint' => $limit ? 'Free has 1 pet for now; Plus allows up to 3 (Settings → Plus).' : null];
             }
             $newId = (int) $res['pet_id'];
-            rrp_sipo_set_current_pet($ownerId, $newId);
             $ctx['events'][] = 'pet_added';
-            $ctx['navigate'] = 'si-chat.php?pet=' . $newId;
-            return ['ok' => true, 'pet_id' => $newId, 'note' => 'Saved. The app opens the new pet\'s chat in a moment; say so briefly.'];
+            $ctx['links'][] = ['url' => 'si-chat.php?pet=' . $newId, 'label' => 'Open ' . trim((string) ($a['name'] ?? 'the new pet')) . '’s chat'];
+            return ['ok' => true, 'pet_id' => $newId, 'note' => 'Saved. A button under your reply opens the new pet\'s chat; this chat stays open.'];
 
         case 'switch_pet':
             $want = mb_strtolower(trim((string) ($a['name'] ?? '')));
             foreach (rrp_pets_by_owner($ownerId) as $p) {
                 if (mb_strtolower((string) $p['name']) === $want) {
-                    rrp_sipo_set_current_pet($ownerId, (int) $p['id']);
-                    $ctx['navigate'] = 'si-chat.php?pet=' . (int) $p['id'];
-                    return ['ok' => true, 'note' => 'The app opens ' . $p['name'] . '\'s chat now.'];
+                    // Never switch on our own (QA B06/B24): offer a button, the owner decides.
+                    $ctx['links'][] = ['url' => 'si-chat.php?pet=' . (int) $p['id'], 'label' => 'Open ' . $p['name'] . '’s chat'];
+                    return ['ok' => true, 'note' => 'A button under your reply opens ' . $p['name'] . '\'s chat. Do not say it already switched.'];
                 }
             }
             return ['ok' => false, 'error' => 'No pet with that name.', 'pets' => array_column(rrp_pets_by_owner($ownerId), 'name')];
@@ -146,7 +145,7 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
             if (!empty($res['ok'])) {
                 $ctx['emergency'] = true;
                 $ctx['events'][] = 'lost_started';
-                $ctx['navigate'] = 'si-chat.php?pet=' . (int) $pet['id'];
+                $ctx['links'][] = ['url' => 'lost.php?pet=' . (int) $pet['id'], 'label' => 'Open Lost mode'];
             }
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null,
                 'note' => !empty($res['ok']) ? 'Nearby SIPAW users are being alerted. Walk the owner through the search plan.' : null];
@@ -162,7 +161,6 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
             $res = rrp_mark_lost_found($ownerId, (int) $alert['id']);
             if (!empty($res['ok'])) {
                 $ctx['events'][] = 'lost_found';
-                $ctx['navigate'] = 'si-chat.php?pet=' . (int) $pet['id'];
             }
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null];
 
@@ -200,9 +198,9 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
             if ($pet && in_array($key, ['health', 'daily', 'routines'], true)) {
                 $url .= '?pet=' . (int) $pet['id'];
             }
-            $ctx['navigate'] = $url;
+            $ctx['links'][] = ['url' => $url, 'label' => 'Open ' . ucfirst($key)];
             $ctx['events'][] = 'page_opened';
-            return ['ok' => true, 'note' => 'The app opens it now; say so in a few words.'];
+            return ['ok' => true, 'note' => 'A button under your reply opens it. Do not say it is already open.'];
 
         case 'log_expense':
             if ($pet === null) {

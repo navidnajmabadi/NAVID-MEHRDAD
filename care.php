@@ -72,8 +72,8 @@ rrp_layout_head('Health — SIPAW', [
 rrp_app_start(['nav' => 'health']);
 ?>
 <div class="topbar care-top">
-  <div class="center" style="text-align:left"><h2>Health</h2></div>
-  <?php rrp_pet_switcher(rrp_vm_pet_switcher($owner)); ?>
+  <div class="center" style="text-align:left"><h2>Health · <?= rrp_h($pet['name']) ?></h2></div>
+  <?php rrp_coin_badge($owner); ?>
 </div>
 
 <div class="pad stack care-page">
@@ -106,7 +106,7 @@ rrp_app_start(['nav' => 'health']);
   </section>
 
   <section class="care-card" id="sec-spending">
-    <h3 class="label">Spending · last 6 months</h3>
+    <h3 class="label">Spending on <?= rrp_h($pet['name']) ?> · last 6 months</h3>
     <?php $sp = $top['spend']; if ($sp && array_sum(array_column($sp['months'], 'total')) > 0): ?>
       <?php rrp_view_bar_chart(array_map(static fn($m) => ['label' => $m['label'], 'value' => round($m['total'])], $sp['months']), $sp['currency']); ?>
       <p class="meta">This year <?= rrp_h(($top['money'])($sp['year'], $sp['currency'])) ?><?php foreach ($sp['by_category'] as $c => $v): ?> · <?= rrp_h(RRP_EXPENSE_CATEGORIES[$c] ?? $c) ?> <?= rrp_h(($top['money'])($v, $sp['currency'])) ?><?php endforeach; ?></p>

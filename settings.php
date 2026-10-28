@@ -85,7 +85,7 @@ rrp_app_start(['nav' => 'settings']);
       <li><a href="plus.php"><span>⭐</span><span><b><?= $plan === 'plus' ? 'Plus' : 'Free plan' ?></b><small class="meta"><?= $plan === 'plus' ? 'Plan details' : 'See Plus' ?></small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="rewards.php"><span>🐾</span><span><b>Rewards</b><small class="meta">Paw coins and invite friends</small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="dashboard.php"><span>🏠</span><span><b>Home overview</b><small class="meta">All pets on one screen</small></span><i aria-hidden="true">›</i></a></li>
-      <li><a href="support.php"><span>💬</span><span><b>Help and support</b><small class="meta">We reply within 7 days</small></span><i aria-hidden="true">›</i></a></li>
+      <li><a href="support.php"><span>💬</span><span><b>Help and support</b><small class="meta">Your tickets and replies · we reply within 7 days</small></span><i aria-hidden="true">›</i></a></li>
       <?php if (rrp_is_super_owner($owner)): ?><li><a href="<?= rrp_h(rrp_asset('admin/')) ?>"><span>🛠️</span><span><b>Admin</b></span><i aria-hidden="true">›</i></a></li><?php endif; ?>
     </ul>
   </section>

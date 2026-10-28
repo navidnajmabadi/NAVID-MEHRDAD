@@ -33,7 +33,7 @@ rrp_admin_shell_start('Accounts', 'accounts');
   <form method="get" class="panel row" style="align-items:flex-end">
     <div style="flex:2">
       <label for="q">Search</label>
-      <input id="q" name="q" value="<?= rrp_h($q) ?>" placeholder="Name, email, phone, city…" />
+      <input id="q" name="q" value="<?= rrp_h($q) ?>" placeholder="Email, city, or owner #…" />
     </div>
     <button type="submit" class="btn btn-secondary">Search</button>
   </form>
@@ -42,15 +42,11 @@ rrp_admin_shell_start('Accounts', 'accounts');
     <div class="panel panel-soft" style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
         <div>
-          <strong><?= rrp_h($o['name']) ?></strong>
+          <strong><?= rrp_h(rrp_admin_mask_name((string) $o['name'], (int) $o['id'])) ?></strong>
           <span class="pill <?= $o['status'] === 'active' ? 'pill-unread' : 'pill-ended' ?>"><?= rrp_h($o['status']) ?></span>
           <div class="meta">
-            <?= rrp_h($o['email']) ?><?= !empty($o['phone']) ? ' · ' . rrp_h($o['phone']) : '' ?><br />
-            <?php if (!empty($o['address'])): ?><?= rrp_h($o['address']) ?><br /><?php endif; ?>
+            <?= rrp_h(rrp_admin_mask_email((string) $o['email'])) ?><?= !empty($o['phone']) ? ' · phone on file' : '' ?><br />
             <?= rrp_h((string) ($o['city'] ?? '—')) ?>, <?= rrp_h((string) ($o['country'] ?? '—')) ?>
-            <?php if ($o['lat'] !== null): ?>
-              · <?= rrp_h((string) $o['lat']) ?>, <?= rrp_h((string) $o['lng']) ?>
-            <?php endif; ?>
           </div>
           <div class="meta" style="margin-top:4px">
             Joined <?= rrp_h($o['created_at']) ?> UTC

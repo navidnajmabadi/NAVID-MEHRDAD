@@ -60,7 +60,7 @@ rrp_app_start(['nav' => 'settings']);
     <?php endif; ?>
 
     <div class="hd-kpis">
-      <div class="hd-kpi is-ok"><span class="label">This month</span><b class="data"><?= rrp_h($money($sum['this_month'], $sum['currency'])) ?></b></div>
+      <div class="hd-kpi is-ok"><span class="label">This month<?= $petFilter ? ' · ' . rrp_h($petFilter['name']) : ' · all pets' ?></span><b class="data"><?= rrp_h($money($sum['this_month'], $sum['currency'])) ?></b></div>
       <div class="hd-kpi"><span class="label">Last month</span><b class="data"><?= rrp_h($money($sum['last_month'], $sum['currency'])) ?></b></div>
       <div class="hd-kpi"><span class="label">This year</span><b class="data"><?= rrp_h($money($sum['year'], $sum['currency'])) ?></b></div>
       <div class="hd-kpi"><span class="label">Monthly average</span><b class="data"><?php $act = array_filter(array_column($sum['months'], 'total')); ?><?= rrp_h($money($act ? array_sum($act) / count($act) : 0, $sum['currency'])) ?></b></div>

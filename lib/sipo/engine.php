@@ -164,6 +164,7 @@ function rrp_sipo_present_message(array $row): array
         'body' => $body,
         'admin_note' => $adminNote ?: null,
         'choices' => $meta['choices'] ?? null,
+        'links' => $meta['links'] ?? null,
         'mascot' => $meta['mascot'] ?? null,
         'proactive' => !empty($meta['proactive']),
         'created_at' => gmdate(DATE_ATOM, strtotime((string) $row['created_at'] . ' UTC') ?: time()),
@@ -236,7 +237,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         $reply['text'],
         $reply['tokens'],
         ['mascot' => $reply['mascot'], 'tools' => $reply['tools'], 'model' => $reply['model'], 'pv' => rrp_naki_core_version_id(),
-            'admin_note' => $reply['admin_note'] ?? null, 'choices' => $reply['choices'] ?? null]
+            'admin_note' => $reply['admin_note'] ?? null, 'choices' => $reply['choices'] ?? null, 'links' => $ctx['links'] ?? null]
     );
     if (!empty($assistant['id'])) {
         rrp_si_maybe_encrypt_message((int) $assistant['id'], $reply['text']);
@@ -250,7 +251,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'pet' => $ctx['pet'] ? rrp_sipo_pet_brief($ctx['pet']) : null,
         'progress' => rrp_sipo_setup_progress($ctx['pet'] ? (rrp_pet_by_id((int) $ctx['pet']['id'], $ownerId) ?: $ctx['pet']) : null),
         'events' => $ctx['events'],
-        'navigate' => $ctx['navigate'] ?? null,
+        'links' => $ctx['links'] ?? [],
         'choices' => $reply['choices'] ?? null,
         'reminders' => $ctx['reminders'] ?? [],
         'coins' => rrp_coin_balance($ownerId),
@@ -399,7 +400,7 @@ function rrp_sipo_extract_profile(array &$ctx): void
 
     if ($pet === null) {
         $name = trim((string) ($x['name'] ?? ''));
-        $kind = (string) ($x['kind'] ?? '');
+        $kind = rrp_sipo_norm_kind((string) ($x['kind'] ?? ''), (string) ($x['other_kind'] ?? ''));
         if ($name === '' || !in_array($kind, ['dog', 'cat', 'bird', 'rabbit', 'hamster', 'other'], true)) {
             return; // not enough yet; SIPO keeps asking
         }
@@ -543,6 +544,19 @@ function rrp_sipo_proactive_instruction(string $kind, bool $hasPet): string
 }
 
 /** Greeting on open: once per local day per thread, only if SIPO hasn't already spoken today. */
+/** Fixed first message (no model): used when the model can't greet an empty chat. */
+function rrp_sipo_static_welcome(array $owner, array $thread): string
+{
+    $name = strtok(trim(rrp_sipo_owner_nickname($owner)), ' ') ?: 'there';
+    $pet = !empty($thread['pet_id']) ? rrp_pet_by_id((int) $thread['pet_id'], (int) $owner['id']) : null;
+    if ($pet) {
+        return "Hi {$name}! I'm SIPO, here for {$pet['name']} 🐾 How is {$pet['name']} doing today?";
+    }
+    return "Hi {$name}! I'm SIPO, your pet's SI companion 🐾 We'll set things up in 4 short sections "
+        . "(Pet info, Routines, Health, Money), about 6 minutes, and you can say skip anytime.\n\n"
+        . "Section 1 of 4 · Pet info (about 1 min): so I know who I'm looking after. What's your pet's name?";
+}
+
 function rrp_sipo_greet_if_due(array $owner, array $thread): ?array
 {
     $now = rrp_sipo_local_now($owner);

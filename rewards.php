@@ -38,7 +38,7 @@ rrp_app_start(['nav' => 'settings']);
       <div><dt>Reminders done</dt><dd><b class="data"><?= (int) $week['done'] ?></b> / <?= (int) $week['due'] ?></dd></div>
     </dl>
     <div class="care-meter" style="margin-top:10px"><span style="width:<?= (int) min(100, round(100 * min(1, $week['active_days'] / max(1, $week['need_days'])) * ($week['due'] ? $week['done'] / $week['due'] : 1))) ?>%"></span></div>
-    <p class="meta"><?= $week['perfect'] ? '🌟 On track for a perfect week!' : 'Keep going, SIPO will cheer you on.' ?> · Saved so far: <b><?= $pct ?>% off</b></p>
+    <p class="meta"><?= $week['perfect'] ? '🌟 On track for a perfect week!' : 'Keep going, SIPO will cheer you on.' ?> · <?= $pct > 0 ? 'Saved so far: <b>' . $pct . '% off</b>' : 'Your first perfect week takes <b>5% off</b>' ?></p>
   </section>
 
   <section class="care-card">

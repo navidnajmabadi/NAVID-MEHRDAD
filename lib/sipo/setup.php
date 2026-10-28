@@ -111,6 +111,8 @@ function rrp_sipo_setup_block(?array $pet, ?array $thread): ?string
         . "- ONE question per message. For questions with a few likely answers (kind, sex, neutered, age range, meals per day, walk length, vaccines up to date, budget range) call ask_choices with 2 to 6 short options; the app adds \"Other\" automatically. Name, breed and weight are free text: no choices.\n"
         . "- Save every answer with the right tool before moving on (update_pet_profile, set_meal_times, set_walk_goal, care_record_done, save_pet_fact, log_expense).\n"
         . "- If the owner says skip, or asks about something else, follow them; come back to setup later, gently, once.\n"
+        . "- When the owner sends a photo, lab report or label, talk only about that file in your reply; no setup question in the same message (QA B12).\n"
+        . "- Never ask again for something listed as Already known.\n"
         . "- When a section is finished, celebrate in a few words (\"Pet info done ✅ 1 of 4\").";
 }
 
@@ -131,5 +133,7 @@ function rrp_sipo_setup_progress(?array $pet): array
         'section' => $plan['current']['label'] ?? null,
         'number' => $plan['number'],
         'minutes_left' => $plan['minutes_left'],
+        // QA B11: the bar opens a checklist of the 4 sections and what each still needs.
+        'list' => array_map(static fn($sec) => ['label' => $sec['label'], 'done' => $sec['complete'], 'missing' => $sec['missing']], $plan['sections']),
     ];
 }

@@ -297,21 +297,35 @@ function rrp_auth_set_remember_cookie(string $value, int $expires): void
 
 function rrp_auth_throttled(string $email): bool
 {
+    // QA B02: the DB check failed silently on live (8 wrong tries, no block). A file counter now backs it up.
+    if (rrp_auth_file_fails('e' . hash('sha256', $email)) >= RRP_LOGIN_MAX_FAILS
+        || rrp_auth_file_fails('i' . hash('sha256', (string) rrp_auth_ip())) >= RRP_LOGIN_MAX_FAILS) {
+        return true;
+    }
     try {
         $stmt = rrp_db()->prepare(
             'SELECT COUNT(*) FROM auth_login_attempts
              WHERE succeeded = 0 AND created_at > (UTC_TIMESTAMP() - INTERVAL ' . RRP_LOGIN_WINDOW_MIN . ' MINUTE)
                AND (email_hash = ? OR ip = ?)'
         );
-        $stmt->execute([hash('sha256', $email), (string) rrp_client_ip()]);
+        $stmt->execute([hash('sha256', $email), (string) rrp_auth_ip()]);
         return (int) $stmt->fetchColumn() >= RRP_LOGIN_MAX_FAILS;
     } catch (Throwable $e) {
-        return false; // 009 not imported yet
+        error_log('rrp_auth_throttled (using file counter): ' . $e->getMessage());
+        return false;
     }
 }
 
 function rrp_auth_record_attempt(string $email, bool $ok): void
 {
+    $keys = ['e' . hash('sha256', $email), 'i' . hash('sha256', (string) rrp_auth_ip())];
+    if ($ok) {
+        @unlink(rrp_auth_file_path($keys[0]));
+    } else {
+        foreach ($keys as $k) {
+            rrp_auth_file_bump($k);
+        }
+    }
     try {
         if ($ok) {
             rrp_db()->prepare('DELETE FROM auth_login_attempts WHERE email_hash = ?')->execute([hash('sha256', $email)]);
@@ -320,9 +334,55 @@ function rrp_auth_record_attempt(string $email, bool $ok): void
         $stmt = rrp_db()->prepare(
             'INSERT INTO auth_login_attempts (email_hash, ip, succeeded, created_at) VALUES (?, ?, 0, UTC_TIMESTAMP())'
         );
-        $stmt->execute([hash('sha256', $email), (string) rrp_client_ip()]);
+        $stmt->execute([hash('sha256', $email), (string) rrp_auth_ip()]);
     } catch (Throwable $e) {
+        error_log('rrp_auth_record_attempt: ' . $e->getMessage());
     }
+}
+
+/**
+ * Visitor address for login throttling. Behind Hostinger's CDN REMOTE_ADDR is the edge, shared by
+ * everyone, so use the first X-Forwarded-For hop when present (spoofing it only dodges the IP limit;
+ * the per-email limit still holds).
+ */
+function rrp_auth_ip(): string
+{
+    $xff = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '');
+    $first = trim(explode(',', $xff)[0] ?? '');
+    if ($first !== '' && filter_var($first, FILTER_VALIDATE_IP)) {
+        return $first;
+    }
+    return (string) rrp_client_ip();
+}
+
+function rrp_auth_file_path(string $key): string
+{
+    $dir = sys_get_temp_dir() . '/sipaw-login';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    return $dir . '/' . $key;
+}
+
+/** Failures in the current window for this key (email or IP hash). */
+function rrp_auth_file_fails(string $key): int
+{
+    $times = json_decode((string) @file_get_contents(rrp_auth_file_path($key)), true);
+    if (!is_array($times)) {
+        return 0;
+    }
+    $since = time() - RRP_LOGIN_WINDOW_MIN * 60;
+    return count(array_filter($times, static fn($t) => (int) $t > $since));
+}
+
+function rrp_auth_file_bump(string $key): void
+{
+    $p = rrp_auth_file_path($key);
+    $times = json_decode((string) @file_get_contents($p), true);
+    $since = time() - RRP_LOGIN_WINDOW_MIN * 60;
+    $times = array_values(array_filter(is_array($times) ? $times : [], static fn($t) => (int) $t > $since));
+    $times[] = time();
+    @file_put_contents($p, json_encode(array_slice($times, -50)), LOCK_EX);
 }
 
 /**

@@ -70,7 +70,7 @@
   try { ok = localStorage.getItem("sipaw_clean_urls_v2"); } catch (e) {}
   if (ok === "1") { history.replaceState(history.state, "", clean); return; }
   if (ok === "0") return;
-  fetch("/" + m[1] + location.search, { method: "HEAD", credentials: "same-origin" })
+  fetch("/" + m[1] + location.search, { method: "HEAD", credentials: "same-origin", headers: { "X-SIPAW-Check": "1" } })
     .then(function (r) {
       var works = r.ok && r.headers.get("X-SIPAW-Page") === m[1] + ".php";
       try { localStorage.setItem("sipaw_clean_urls_v2", works ? "1" : "0"); } catch (e) {}

@@ -357,3 +357,13 @@
 .side-pet-drop[open] .side-pet-chev{transform:rotate(180deg)}
 .side-pet-list{display:flex;flex-direction:column;gap:2px;margin-top:4px;padding-left:12px;border-left:2px solid var(--line);margin-left:22px}
 @media (prefers-reduced-motion:reduce){.side-pet-chev{transition:none}}
+/* Buttons SIPO offers under a reply (open a page or another pet's chat) */
+.sipo-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sipo-link-btn{display:inline-flex;align-items:center;min-height:38px;padding:0 14px;background:var(--blue);color:#fff;text-decoration:none;font-size:14px;font-weight:600;border-radius:var(--r-pill,0)}
+.sipo-link-btn:hover{filter:brightness(1.08)}
+/* Setup checklist under the chat header (QA B11) */
+.sipo-checklist{position:absolute;z-index:40;margin-top:8px;width:min(320px,80vw);padding:12px 14px;background:var(--panel);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.18);border-radius:var(--r-md,0);display:flex;flex-direction:column;gap:8px}
+.sipo-check-row{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.sipo-check-row small{color:var(--sub);font-size:12px}
+.sipo-check-row.is-done b{color:var(--blue)}
+.sipo-who > div{position:relative}

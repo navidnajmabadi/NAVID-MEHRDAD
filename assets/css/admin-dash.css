@@ -21,3 +21,7 @@
 .dash-map{height:320px;border:1px solid var(--line)}
 .pill-ok{color:var(--blue)} .pill-bad{color:var(--red)}
 .mono{font-family:var(--f-data);font-size:12px;white-space:pre-wrap;word-break:break-word}
+/* Admin search: the field takes the room, the button stays compact */
+.admin-body input#q{flex:1 1 200px;min-width:0;width:100%}
+.admin-body form:has(> input#q) button,.admin-body form:has(input#q) .btn{flex:0 0 auto;width:auto}
+.admin-body form:has(input#q) .btn{min-width:96px;padding:0 16px}

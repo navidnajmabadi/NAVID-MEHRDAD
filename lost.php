@@ -93,7 +93,7 @@ rrp_app_start(['nav' => 'lost']);
     <h2>Lost mode</h2>
     <?php if ($open): ?><span class="status red data">Active</span><?php else: ?><span class="status idle data">Off</span><?php endif; ?>
   </div>
-  <span style="width:40px"></span>
+  <?php rrp_coin_badge($owner); ?>
 </div>
 
 <?php rrp_render_flash(); ?>
@@ -156,7 +156,7 @@ rrp_app_start(['nav' => 'lost']);
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
         <input type="hidden" name="action" value="lost_found" />
         <input type="hidden" name="alert_id" value="<?= (int) $open['id'] ?>" />
-        <button type="submit" class="btn solid">She / he is home</button>
+        <button type="submit" class="btn solid lost-found-btn">✓ Found! <?= rrp_h($pet['name'] ?? 'My pet') ?> is home</button>
       </form>
       <a class="btn outline" href="lost-alert.php?id=<?= (int) $open['id'] ?>">Alert details &amp; sightings</a>
       <p class="sub" style="font-size:12px"><?= $open['next_ping_at']
@@ -234,7 +234,7 @@ rrp_app_start(['nav' => 'lost']);
           <p><strong>Magic word:</strong> <?= rrp_h($pet['magic_word']) ?></p>
         <?php endif; ?>
         <?php if (!empty($owner['phone'])): ?>
-          <p><strong>Call:</strong> <?= rrp_h((string) $owner['phone']) ?></p>
+          <p class="poster-phone"><strong>Call:</strong> <?= rrp_h((string) $owner['phone']) ?></p>
         <?php endif; ?>
         <?php $findUrl = rrp_app_url('pet.php?id=' . rawurlencode((string) $pet['public_id'])); ?>
         <div class="bar poster-find">
@@ -246,6 +246,14 @@ rrp_app_start(['nav' => 'lost']);
           </div>
         </div>
       </div>
+      <?php if (!empty($owner['phone'])): ?>
+        <label class="poster-phone-toggle"><input type="checkbox" id="posterShowPhone" checked /> Show my phone number on the poster</label>
+        <script>
+        document.getElementById('posterShowPhone').addEventListener('change', function (e) { // QA B20: owner decides
+          document.querySelectorAll('#lostPoster .poster-phone').forEach(function (el) { el.hidden = !e.target.checked; });
+        });
+        </script>
+      <?php endif; ?>
       <button type="button" class="btn primary" id="posterPng">Download PNG</button>
       <button type="button" class="btn outline" id="posterPdf">Download PDF</button>
       <script>
