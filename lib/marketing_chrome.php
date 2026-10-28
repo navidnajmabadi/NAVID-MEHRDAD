@@ -42,7 +42,7 @@ function rrp_marketing_nav(bool $owner, string $active = ''): void
 <nav class="nav" aria-label="Main">
   <div class="wrap">
     <a href="<?= rrp_h($home) ?>" aria-label="siPaw by Nakilab home">
-      <img class="logo-endorsed" src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-black.svg')) ?>" width="118" height="87" alt="siPaw by Nakilab">
+      <img class="logo-endorsed" src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-wordmark-endorsed-on-black.svg', true)) ?>" width="118" height="87" alt="siPaw by Nakilab">
     </a>
     <ul>
       <li><a href="<?= rrp_h($home) ?>#features">What SIPO does</a></li>

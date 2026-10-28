@@ -123,7 +123,7 @@
               base.hint = "Permission granted — finishing subscription…";
             } else if (!base.subscribed) {
               base.hint =
-                "Enable notifications so LOST HELP ME and tag scans reach you when the app is closed.";
+                "Enable notifications so reminders and Lost mode alerts reach you when the app is closed.";
             } else {
               base.hint = "Push notifications are on for this device.";
             }

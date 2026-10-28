@@ -28,6 +28,13 @@ function rrp_dev_fill_sample(array $owner): array
         ['name' => 'Rocky', 'type' => 'dog', 'breed' => 'Golden Retriever', 'sex' => 'male', 'birth' => '-4 years', 'kg' => [31.2, 31.8, 32.4, 32.1]],
         ['name' => 'Mochi', 'type' => 'cat', 'breed' => 'Scottish Fold', 'sex' => 'female', 'birth' => '-2 years', 'kg' => [4.1, 4.3, 4.4, 4.6]],
     ];
+    // Refill, never duplicate: remove earlier sample pets (same name and breed) first.
+    $old = rrp_db()->prepare('SELECT id FROM pets WHERE owner_id = ? AND ((name = ? AND breed = ?) OR (name = ? AND breed = ?))');
+    $old->execute([$ownerId, 'Rocky', 'Golden Retriever', 'Mochi', 'Scottish Fold']);
+    foreach ($old->fetchAll(PDO::FETCH_COLUMN) as $oldId) {
+        rrp_delete_pet($ownerId, (int) $oldId);
+        rrp_db()->prepare('DELETE FROM pet_expenses WHERE pet_id = ?')->execute([(int) $oldId]);
+    }
     foreach ($samples as $i => $s) {
         $res = rrp_create_pet($ownerId, ['name' => $s['name'], 'type' => $s['type'], 'custom_type' => '', 'breed' => $s['breed']]);
         if (empty($res['ok'])) {

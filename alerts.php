@@ -5,13 +5,13 @@ require_once __DIR__ . '/lib/layout.php';
 
 $owner = rrp_require_owner();
 $notes = rrp_notifications_for_owner((int) $owner['id'], 50);
-$scans = rrp_scans_for_owner((int) $owner['id'], 30);
+$scans = []; // tags and QR scans were removed
 $nearbyLost = rrp_lost_inbox_for_owner((int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 rrp_mark_notifications_read((int) $owner['id']);
 
 $filter = (string) ($_GET['f'] ?? 'all');
-$allowed = ['all', 'scans', 'lost', 'health', 'messages'];
+$allowed = ['all', 'lost', 'health', 'messages'];
 if (!in_array($filter, $allowed, true)) {
     $filter = 'all';
 }
@@ -28,14 +28,13 @@ rrp_app_start(['nav' => 'alerts']);
 <div class="pad stack" style="gap:12px;padding-bottom:8px">
   <div class="box" id="pushNag" data-push-nag>
     <p class="label">Stay in the loop</p>
-    <p class="sub" data-push-hint style="margin-top:8px;font-size:13px">Enable phone notifications for scans, Lost nearby, and care nudges.</p>
+    <p class="sub" data-push-hint style="margin-top:8px;font-size:13px">Enable phone notifications for reminders, Lost nearby, and SIPO check-ins.</p>
     <button type="button" class="btn primary" id="pushEnableBtn" data-push-enable style="margin-top:12px">Enable notifications</button>
   </div>
   <div class="chips" role="group" aria-label="Filter">
     <?php
     $chips = [
         'all' => 'All',
-        'scans' => 'Tag scans',
         'lost' => 'Lost nearby',
         'health' => 'Health',
         'messages' => 'Messages',
@@ -66,19 +65,6 @@ rrp_app_start(['nav' => 'alerts']);
     <?php endforeach; ?>
   <?php endif; ?>
 
-  <?php if (in_array($filter, ['all', 'scans'], true)): ?>
-    <?php foreach ($scans as $s): ?>
-      <div class="event">
-        <span class="d <?= !empty($s['active']) ? 'on' : '' ?>"></span>
-        <div>
-          <b><?= rrp_h($s['pet_name']) ?>’s tag was scanned</b>
-          <small><?= rrp_h($s['mode']) ?> · <?= rrp_h($s['scanned_at']) ?> UTC</small>
-        </div>
-        <time><?= !empty($s['active']) ? 'LIVE' : '' ?></time>
-      </div>
-    <?php endforeach; ?>
-  <?php endif; ?>
-
   <?php if (in_array($filter, ['all', 'health', 'messages'], true)): ?>
     <?php
     $shown = 0;
@@ -90,8 +76,8 @@ rrp_app_start(['nav' => 'alerts']);
         if ($filter === 'messages' && !in_array($type, ['message', 'chat'], true)) {
             continue;
         }
-        if ($filter === 'all' && $type === 'scan') {
-            continue; // already listed via scans
+        if ($type === 'scan') {
+            continue; // tags and QR scans were removed
         }
         $shown++;
         if ($type === 'chat' || $type === 'message') {
@@ -105,8 +91,6 @@ rrp_app_start(['nav' => 'alerts']);
             $href = 'lost-alert.php?id=' . (int) $n['lost_alert_id'];
         } elseif ($type === 'health') {
             $href = 'health-care.php';
-        } elseif ($type === 'scan' && !empty($n['scan_id'])) {
-            $href = 'dashboard.php';
         } else {
             $href = 'alerts.php';
         }
@@ -124,17 +108,17 @@ rrp_app_start(['nav' => 'alerts']);
       <div class="box"><p class="sub" style="margin:0">No health alerts yet. Vaccine and med reminders show here when due.</p></div>
     <?php endif; ?>
     <?php if ($filter === 'messages' && $shown === 0): ?>
-      <div class="box"><p class="sub" style="margin:0">No finder messages yet. When a finder chats from a scan page, it shows here and under Chat.</p></div>
+      <div class="box"><p class="sub" style="margin:0">No messages yet. When someone who found your pet writes to you, it shows here.</p></div>
     <?php endif; ?>
   <?php endif; ?>
 
   <?php if ($filter === 'all' && !$scans && !$notes && !$nearbyLost): ?>
-    <div class="box"><p class="sub" style="margin:0">No alerts yet. You’ll get a note when a tag is scanned or a nearby pet is lost.</p></div>
+    <div class="box"><p class="sub" style="margin:0">No alerts yet. Reminders, SIPO check-ins and lost pets nearby show here.</p></div>
   <?php endif; ?>
 
   <div class="box blue" style="margin-top:8px">
     <p style="margin:0 0 8px;font-weight:500">Phone notifications</p>
-    <p class="sub" style="margin:0 0 12px;font-size:13px" id="pushBanner" data-push-hint>Enable push so scans reach you even when the app is closed.</p>
+    <p class="sub" style="margin:0 0 12px;font-size:13px" id="pushBanner" data-push-hint>Enable push so reminders reach you even when the app is closed.</p>
     <button type="button" class="btn outline" id="pushEnableBtn" data-push-enable>Enable notifications</button>
   </div>
   <div class="gap"></div>

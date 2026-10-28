@@ -207,7 +207,7 @@ function rrp_lost_playbook(array $owner, array $pet, ?array $alert = null): arra
         $helper = [
             "Don't chase {$name}. Crouch down, look away and talk softly; toss a treat if you have one.",
             "Note exactly where and when you saw {$name}, take a photo if you can, and tap \"I saw this pet\".",
-            "If {$name} lets you, check the collar tag or call the owner through SIPAW.",
+            "If {$name} lets you, call the owner through SIPAW.",
         ];
     }
 

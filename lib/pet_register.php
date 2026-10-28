@@ -249,7 +249,7 @@ function rrp_pet_register_send(int $ownerId, array $owner, int $sessionId, strin
     $upd->execute([$petId, $sessionId]);
 
     $name = $payload['name'];
-    $doneMsg = "You’re all set — {$name} is on your pack 🐾 Next, pair a QR tag when you’re ready.";
+    $doneMsg = "You’re all set — {$name} is on your pack 🐾 Ask me anything about them anytime.";
     rrp_pet_register_add_message($sessionId, 'sipo', $doneMsg);
 
     return [

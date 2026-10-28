@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
 
+// API calls: buffer output so rrp_json() can send clean JSON even if a notice was printed first.
+if (str_contains((string) ($_SERVER['SCRIPT_NAME'] ?? ''), '/api/')) {
+    ob_start();
+}
+
 /**
  * Shared bootstrap: config, PDO, session, helpers.
  */
@@ -238,6 +243,10 @@ function rrp_clip(string $value, int $max = 80): string
 
 function rrp_json(array $payload, int $status = 200): void
 {
+    // A stray PHP notice before the JSON breaks r.json() in the browser: drop anything buffered.
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

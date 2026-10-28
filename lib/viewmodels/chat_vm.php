@@ -56,7 +56,7 @@ function rrp_vm_chat(array $owner, bool $newPet = false): array
         'note' => $capNote ?? null,
         'day_part' => $live['day_part'],
         'panel' => $pet ? rrp_vm_pet_panel($pet) : null,
-        'poll_ms' => 20000,
+        'poll_ms' => 8000, // near real time while the chat is open (paused when hidden)
     ];
 }
 

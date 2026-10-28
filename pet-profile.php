@@ -8,7 +8,7 @@ $petId = (int) ($_GET['id'] ?? 0);
 $pet = $petId ? rrp_pet_by_id($petId, (int) $owner['id']) : null;
 if (!$pet) {
     rrp_flash_set('error', 'Pet not found.');
-    rrp_redirect('dashboard.php');
+    rrp_redirect('settings.php');
 }
 
 $nav = rrp_owner_nav_context((int) $owner['id']);
@@ -20,7 +20,20 @@ foreach ($myLost as $la) {
         break;
     }
 }
-$scanUrl = rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id']));
+$delError = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null) && ($_POST['act'] ?? '') === 'delete_pet') {
+    $typed = mb_strtolower(trim((string) ($_POST['confirm_name'] ?? '')));
+    if ($typed !== mb_strtolower(trim((string) $pet['name']))) {
+        $delError = 'Type ' . $pet['name'] . ' exactly to confirm.';
+    } elseif (!empty(rrp_delete_pet((int) $owner['id'], (int) $pet['id'])['ok'])) {
+        rrp_sipo_set_current_pet((int) $owner['id'], null);
+        rrp_flash_set('ok', $pet['name'] . ' was deleted.');
+        rrp_redirect('settings.php');
+    } else {
+        $delError = 'Could not delete. Please try again.';
+    }
+}
+$csrf = rrp_csrf_token();
 
 rrp_layout_head($pet['name'] . ' — SIPAW');
 rrp_app_start(['nav' => 'settings']);
@@ -45,8 +58,6 @@ rrp_app_start(['nav' => 'settings']);
     </p>
     <?php if ($open): ?>
       <span class="status red data" style="margin-top:10px">Lost mode on</span>
-    <?php else: ?>
-      <span class="status live data" style="margin-top:10px">Tag <?= rrp_h(substr((string) $pet['public_id'], -4)) ?> active</span>
     <?php endif; ?>
   </div>
 
@@ -76,15 +87,9 @@ rrp_app_start(['nav' => 'settings']);
   <?php endif; ?>
 
   <div class="actions3">
-    <a href="pet.php?id=<?= rrp_h(rawurlencode($pet['public_id'])) ?>" target="_blank" rel="noopener">
-      <svg aria-hidden="true"><use href="#i-qr"/></svg>Scan page
-    </a>
-    <a href="tag.php?id=<?= (int) $pet['id'] ?>">
-      <svg aria-hidden="true"><use href="#i-poster"/></svg>Tag / QR
-    </a>
-    <a href="health-care.php?pet=<?= (int) $pet['id'] ?>">
-      <svg aria-hidden="true"><use href="#i-doc"/></svg>Passport
-    </a>
+    <a href="care.php?pet=<?= (int) $pet['id'] ?>"><svg aria-hidden="true"><use href="#i-heart"/></svg>Health</a>
+    <a href="routines.php?pet=<?= (int) $pet['id'] ?>"><svg aria-hidden="true"><use href="#i-routine"/></svg>Routines</a>
+    <a href="si-chat.php?pet=<?= (int) $pet['id'] ?>"><svg aria-hidden="true"><use href="#i-chat"/></svg>Ask SIPO</a>
   </div>
 
   <?php if ($open): ?>
@@ -93,7 +98,17 @@ rrp_app_start(['nav' => 'settings']);
     <a class="btn outline" href="lost.php?pet=<?= (int) $pet['id'] ?>">Lost mode</a>
   <?php endif; ?>
 
-  <p class="sub data" style="font-size:11px;word-break:break-all"><?= rrp_h($scanUrl) ?></p>
+  <details class="care-card set-danger pet-delete" id="delete" <?= $delError ? 'open' : '' ?>>
+    <summary class="label">Delete <?= rrp_h($pet['name']) ?></summary>
+    <p class="sub">This removes <?= rrp_h($pet['name']) ?>'s profile, chats with SIPO, health records, routines, reminders, posts and spending for good. It cannot be undone.</p>
+    <?php if ($delError): ?><div class="flash flash-error" role="alert"><?= rrp_h($delError) ?></div><?php endif; ?>
+    <form method="post" class="stack" style="gap:10px;margin-top:10px">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="delete_pet" />
+      <label for="confirmName" class="meta">Type <b><?= rrp_h($pet['name']) ?></b> to confirm</label>
+      <input id="confirmName" name="confirm_name" autocomplete="off" required style="min-height:44px" />
+      <button class="btn set-delete" type="submit">Delete <?= rrp_h($pet['name']) ?> forever</button>
+    </form>
+  </details>
   <div class="gap"></div>
 </div>
 <style>

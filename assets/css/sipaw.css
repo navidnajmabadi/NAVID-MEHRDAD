@@ -926,3 +926,11 @@ button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 @media (prefers-reduced-motion:reduce){
   .sipo-reg-bubble{transition:none}
 }
+/* Lost poster: small logo, QR + clickable link to the finder page */
+.poster .top .poster-logo{width:40px;height:auto}
+.poster .poster-find{align-items:center;gap:14px;font-size:12px}
+.poster .poster-qr{flex:none;width:92px;height:92px;background:#fff}
+.poster .poster-qr img{width:92px;height:92px;image-rendering:pixelated;display:block}
+.poster .poster-find div{display:flex;flex-direction:column;gap:3px}
+.poster .poster-find b{font-size:14px}
+.poster .poster-find a{color:#2E6AFF;font-weight:600;text-decoration:underline}

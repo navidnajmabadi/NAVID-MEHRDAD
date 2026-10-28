@@ -35,8 +35,9 @@ rrp_layout_head('Admin login — SIPAW', ['body_class' => 'admin-body']);
     </a>
   </div>
   <h1>Admin</h1>
-  <p class="lede">Navid &amp; Mehrdad ops console. Separate from owner accounts.</p>
-  <p class="meta" style="margin:-8px 0 16px">First time? Create admins at <a href="setup.php">admin setup</a> (needs <code>admin_setup_secret</code> in config).</p>
+  <p class="lede">Navid &amp; Mehrdad ops console.</p>
+  <a class="btn primary" href="<?= rrp_h(rrp_asset('login.php')) ?>?next=<?= rrp_h(rawurlencode('/admin/index.php')) ?>" style="margin:0 0 18px">Log in with my SIPAW account</a>
+  <p class="meta" style="margin:0 0 16px">Super owners (Navid, Mehrdad) go straight in when logged into SIPAW. Or use an admin email and password below.</p>
   <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
   <form method="post" class="panel" novalidate>
     <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />

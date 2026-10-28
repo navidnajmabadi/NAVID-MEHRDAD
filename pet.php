@@ -30,13 +30,13 @@ if ($pet) {
 $tagTail = $pet ? substr((string) $pet['public_id'], -4) : '----';
 
 rrp_layout_head(
-    $pet ? ('Found ' . $pet['name'] . '? — SIPAW') : 'Tag not found — SIPAW',
+    $pet ? ('Found ' . $pet['name'] . '? — SIPAW') : 'Pet not found — SIPAW',
     [
         'canonical' => $pet ? rrp_app_url('pet.php?id=' . rawurlencode($pet['public_id'])) : rrp_app_url(),
         'body_class' => 'page-scan',
         'description' => $pet
             ? ('You found ' . $pet['name'] . '. Message the owner on siPaw.')
-            : 'siPaw tag not found.',
+            : 'siPaw pet not found.',
     ]
 );
 rrp_app_start(['nav' => false]);
@@ -50,10 +50,10 @@ rrp_app_start(['nav' => false]);
 
   <?php if (!$pet || !$owner): ?>
     <div class="sipo-inline" style="justify-content:center">
-      <sipo-mascot id="sipo" state="alert" theme="ice-blue" size="96" animated="true" label="Sipo alert — tag not found"></sipo-mascot>
+      <sipo-mascot id="sipo" state="alert" theme="ice-blue" size="96" animated="true" label="SIPO alert: pet not found"></sipo-mascot>
     </div>
-    <h2 class="title" style="text-align:center;font-size:28px">Tag not found</h2>
-    <p class="sub" style="text-align:center">This QR isn’t linked to a pet yet, or the account isn’t active.</p>
+    <h2 class="title" style="text-align:center;font-size:28px">Pet not found</h2>
+    <p class="sub" style="text-align:center">This link isn’t connected to a pet, or the account isn’t active.</p>
   <?php else: ?>
     <div class="sipo-inline" style="justify-content:center">
       <sipo-mascot id="sipo" state="happy" theme="ice-blue" size="72" animated="true" label="Sipo, SIPaw assistant"></sipo-mascot>
@@ -119,8 +119,6 @@ rrp_app_start(['nav' => false]);
       <dt>Owner</dt>
       <dd><?= rrp_h($owner['name']) ?></dd>
     </dl>
-
-    <p class="sub" style="font-size:12px;text-align:center">No app needed. Any phone camera can read a siPaw tag.</p>
   <?php endif; ?>
   <div class="gap"></div>
 </div>

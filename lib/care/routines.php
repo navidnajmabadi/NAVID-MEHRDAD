@@ -112,13 +112,14 @@ function rrp_care_status(array $owner, array $pet): array
         } elseif ($lastDone !== null) {
             $state = 'ok';
         }
-        $out[] = $item + [
+        // array_merge, not +: $item already has 'sources' (keys) and we want the resolved [title, url] pairs.
+        $out[] = array_merge($item, [
             'last_done' => $lastDone,
             'next_due' => $next,
             'state' => $state,
             'reminder_id' => $open ? (int) $open['id'] : null,
             'sources' => rrp_care_sources($item['sources']),
-        ];
+        ]);
     }
     return $out;
 }
