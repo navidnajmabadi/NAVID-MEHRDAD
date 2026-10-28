@@ -298,3 +298,10 @@
 .side-pet.is-busy{opacity:.5}
 .side-pet.is-add b{color:var(--blue)}
 .sipo-chat{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+
+/* iPhone notch / status bar (PWA uses black-translucent): keep the menu and top bars below it */
+.menu-btn{top:calc(10px + env(safe-area-inset-top,0px));left:calc(10px + env(safe-area-inset-left,0px))}
+.app-main.has-tab>.topbar,.app-main.has-tab>.homehead{padding-top:calc(8px + env(safe-area-inset-top,0px))}
+.page-sipo .sipo-top{padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.side-menu{padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+.flash{scroll-margin-top:env(safe-area-inset-top,0px)}
