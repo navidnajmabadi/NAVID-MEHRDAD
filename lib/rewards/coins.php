@@ -166,6 +166,14 @@ function rrp_coin_svg(int $size = 18): string
 function rrp_coin_badge(array $owner): void
 {
     $n = rrp_coin_balance((int) $owner['id']);
-    echo '<a class="coin-badge" href="rewards.php" aria-label="' . $n . ' paw coins, rewards">' . rrp_coin_svg(18)
-        . '<span class="data" data-coin-balance>' . $n . '</span></a>';
+    $unread = 0;
+    try {
+        $unread = rrp_notifications_unread_count((int) $owner['id']);
+    } catch (Throwable $e) {
+    }
+    // Notification centre sits beside the coin on every top bar.
+    echo '<span class="top-actions"><a class="iconbtn top-bell" href="alerts.php" aria-label="Notifications' . ($unread ? ', ' . $unread . ' unread' : '') . '">'
+        . '<svg aria-hidden="true"><use href="#i-bell"/></svg>' . ($unread ? '<span class="top-bell-dot data">' . min($unread, 99) . '</span>' : '') . '</a>'
+        . '<a class="coin-badge" href="rewards.php" aria-label="' . $n . ' paw coins, rewards">' . rrp_coin_svg(18)
+        . '<span class="data" data-coin-balance>' . $n . '</span></a></span>';
 }

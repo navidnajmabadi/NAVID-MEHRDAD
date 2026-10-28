@@ -33,7 +33,7 @@ $lat = $area['lat'] ?? 43.65;
 $lng = $area['lng'] ?? -79.38;
 $extra = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />';
 rrp_layout_head('Home area — SIPAW', ['extra_head' => $extra]);
-rrp_app_start(['nav' => 'home']);
+rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="topbar">
   <a class="iconbtn" href="account.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
@@ -86,4 +86,4 @@ rrp_app_start(['nav' => 'home']);
   });
 })();
 </script>
-<?php rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]); ?>
+<?php rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]); ?>

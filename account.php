@@ -30,7 +30,7 @@ $nav = rrp_owner_nav_context((int) $owner['id']);
 $initial = strtoupper(substr((string) ($profile['name'] ?? 'U'), 0, 1));
 
 rrp_layout_head('Account — SIPAW');
-rrp_app_start(['nav' => 'home']);
+rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="topbar">
   <a class="iconbtn" href="dashboard.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
@@ -105,4 +105,4 @@ rrp_app_start(['nav' => 'home']);
   <div class="gap"></div>
 </div>
 <?php
-rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
+rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

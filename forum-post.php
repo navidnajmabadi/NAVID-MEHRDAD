@@ -38,7 +38,7 @@ $comments = rrp_forum_comments($id);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
 rrp_layout_head('Post — SIPAW');
-rrp_app_start(['nav' => 'home']);
+rrp_app_start(['nav' => 'social']);
 ?>
 <div class="topbar">
   <a class="iconbtn" href="forum.php" aria-label="Back"><svg aria-hidden="true"><use href="#i-back"/></svg></a>
@@ -96,4 +96,4 @@ rrp_app_start(['nav' => 'home']);
   </form>
   <div class="gap"></div>
 </div>
-<?php rrp_app_end(['nav' => 'home', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]); ?>
+<?php rrp_app_end(['nav' => 'social', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]); ?>
