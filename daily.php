@@ -7,9 +7,9 @@ require_once __DIR__ . '/lib/layout.php';
 $owner = rrp_require_owner();
 $pets = rrp_pets_by_owner((int) $owner['id']);
 if (!$pets) {
-    rrp_redirect('si-chat.php?new=1');
+    rrp_redirect('care.php');
 }
-$pet = rrp_pet_by_id(rrp_page_pet_id($owner, $pets), (int) $owner['id']);
+$pet = rrp_pet_by_id(rrp_page_pet_id($owner, $pets), (int) $owner['id']) ?: $pets[0];
 $vm = rrp_vm_daily($owner, $pet);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 $csrf = rrp_csrf_token();

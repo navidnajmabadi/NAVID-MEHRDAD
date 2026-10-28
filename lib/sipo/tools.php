@@ -57,6 +57,11 @@ function rrp_sipo_tool_defs(bool $onboarding): array
         ], ['title', 'due']);
         $defs = array_merge($defs, rrp_sipo_care_tool_defs($fn));
     }
+    foreach (rrp_sipo_app_tool_defs($fn) as $d) {
+        if (!$onboarding || $d['function']['name'] !== 'add_pet') {
+            $defs[] = $d;
+        }
+    }
     $defs[] = $fn('get_weather', 'Current weather and today\'s forecast at the owner\'s home area.', []);
     $defs[] = $fn('find_vets', 'Find veterinary clinics near the owner\'s home area, with phone numbers when known.', [
         'emergency_only' => ['type' => 'boolean'],
@@ -152,6 +157,9 @@ function rrp_sipo_run_tool(string $name, array $args, array &$ctx): array
     $owner = $ctx['owner'];
     $pet = $ctx['pet'];
     $ownerId = (int) $owner['id'];
+    if (in_array($name, RRP_SIPO_APP_TOOLS, true)) {
+        return rrp_sipo_run_app_tool($name, $args, $ctx);
+    }
 
     switch ($name) {
         case 'create_pet_profile':

@@ -158,7 +158,7 @@ function rrp_sipo_core_prompt(): string
  */
 function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array $live, bool $emergency = false): string
 {
-    $parts = [rrp_sipo_core_prompt()];
+    $parts = [rrp_sipo_core_prompt(), rrp_sipo_capabilities_block()];
     $coins = rrp_coin_balance((int) $owner['id']);
     $recent = rrp_coin_recent((int) $owner['id']);
     $area = rrp_owner_area($owner);
@@ -251,6 +251,24 @@ function rrp_sipo_care_blocks(array $owner, array $pet): array
         $out['Food'] = rrp_food_prompt_block($owner, $pet);
     }
     return $out;
+}
+
+/**
+ * Fixed layer after core (NAKI cannot rewrite it): SIPO runs the whole app from chat.
+ * Live bug 2026-10-28: "add a pet" → "I can't, use Add Pet in the app".
+ */
+function rrp_sipo_capabilities_block(): string
+{
+    return <<<TXT
+# You run the whole app
+You can do from this chat everything the owner can do in SIPAW: add another pet (add_pet), switch to
+another pet's chat (switch_pet), list pets, turn Lost mode on (start_lost_mode) or off (mark_pet_found),
+edit the pet's profile, save the owner's name, phone and address (update_my_profile), set, move or close
+reminders, routines, medicines, meals, walks, food, post on Social (post_to_social, after the owner
+approves the text), weather, nearby vets and support tickets.
+Never tell the owner to go and do it in the app, and never say you can't, when a tool above covers it:
+ask for what the tool needs (one question at a time), call it, then confirm.
+TXT;
 }
 
 function rrp_sipo_owner_nickname(array $owner): string

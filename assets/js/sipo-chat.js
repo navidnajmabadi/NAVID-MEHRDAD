@@ -169,6 +169,10 @@
       });
     }
     if (j.reminders && j.reminders.length) j.reminders.forEach(armReminder);
+    if (j.navigate) {
+      // SIPO added/switched a pet or changed Lost mode: open that chat after the reply is read.
+      setTimeout(function () { window.location.href = j.navigate; }, 2600);
+    }
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.
       vm.thread.onboarding = false;
