@@ -346,6 +346,9 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             $args = json_decode((string) ($call['function']['arguments'] ?? '{}'), true);
             $result = rrp_sipo_run_tool($name, is_array($args) ? $args : [], $ctx);
             $used[] = $name;
+            if (!empty($result['needs_confirm'])) {
+                $ctx['events'][] = 'needs_confirm';
+            }
             if (empty($result['ok']) && empty($result['needs_confirm'])) {
                 // QA v3 B46: a "please confirm" pause is normal flow, not an error to show anyone.
                 $ctx['tool_errors'][] = $name . ': ' . mb_substr((string) ($result['error'] ?? 'failed'), 0, 160);
@@ -451,13 +454,27 @@ function rrp_sipo_note_extract(array $ctx, array $res): void
     @file_put_contents(sys_get_temp_dir() . '/sipaw-last-extract.json', json_encode($info), LOCK_EX);
 }
 
+/**
+ * SIPO's face for a reply, from what just happened. One mood per reply; the rarer, more serious
+ * one wins (urgent > concerned > sad > confused > celebrate > happy). Night and the "thanks" face
+ * are decided in the chat, where the owner's clock and words are.
+ */
 function rrp_sipo_pick_mascot(array $ctx): string
 {
     $ev = $ctx['events'] ?? [];
     if (in_array('emergency', $ev, true)) {
-        return 'alert';
+        return 'urgent';
     }
-    if (array_intersect($ev, ['pet_created', 'reminder_set', 'profile_updated'])) {
+    if (in_array('lost_started', $ev, true)) {
+        return 'sad';
+    }
+    if (in_array('needs_confirm', $ev, true)) {
+        return 'confused';
+    }
+    if (array_intersect($ev, ['lost_found', 'pet_created'])) {
+        return 'celebrate';
+    }
+    if (array_intersect($ev, ['pet_added', 'reminder_set', 'profile_updated', 'expense_logged', 'social_posted'])) {
         return 'happy';
     }
     return 'idle';
