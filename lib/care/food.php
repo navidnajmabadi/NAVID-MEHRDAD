@@ -373,7 +373,7 @@ function rrp_food_supply_tick(): array
             : "{$row['pet_name']}'s {$f['name']} should last about {$f['days_left']} more day" . ($f['days_left'] === 1 ? '' : 's') . ". Time to pick up a new bag? If you still have plenty, tell me how much is left.";
         $thread = rrp_sipo_thread_for_pet((int) $owner['id'], (int) $row['pet_id']);
         if ($thread) {
-            rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'listening', 'proactive' => 'supply']);
+            rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'concerned', 'proactive' => 'supply']);
         }
         rrp_try_web_push((int) $owner['id'], 'SIPO · ' . $row['pet_name'], $text, rrp_app_url('si-chat.php?pet=' . (int) $row['pet_id']));
         rrp_db()->prepare('UPDATE pet_foods SET supply_warned_for = ? WHERE id = ?')->execute([$f['runs_out_on'], (int) $f['id']]);

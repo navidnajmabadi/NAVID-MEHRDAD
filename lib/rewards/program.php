@@ -93,7 +93,7 @@ function rrp_week_evaluate(array $owner): ?array
         foreach (rrp_pets_by_owner((int) $owner['id']) as $pet) {
             $thread = rrp_sipo_thread_for_pet((int) $owner['id'], (int) $pet['id']);
             if ($thread) {
-                rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'happy', 'proactive' => 'perfect_week']);
+                rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'celebrate', 'proactive' => 'perfect_week']);
             }
             break; // one message, in the first pet's chat
         }
@@ -237,7 +237,7 @@ function rrp_referral_on_paid(int $payerOwnerId): int
     foreach ($owner ? rrp_pets_by_owner($referrer) : [] as $pet) {
         $thread = rrp_sipo_thread_for_pet($referrer, (int) $pet['id']);
         if ($thread) {
-            rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'happy', 'proactive' => 'referral']);
+            rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'celebrate', 'proactive' => 'referral']);
         }
         break;
     }

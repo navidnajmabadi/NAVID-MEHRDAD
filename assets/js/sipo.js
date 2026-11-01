@@ -1,30 +1,40 @@
 /**
- * Sipo — SI (Super Intelligence) mascot Web Component for siPaw.
+ * SIPO v2 "Plush": the SI (Super Intelligence) mascot Web Component for SIPaw.
  *
  * <sipo-mascot
- *   state="idle|thinking|writing|listening|happy|alert"
- *   theme="ice-blue|blue-body|mono|dark"   (app default: ice-blue)
+ *   state="idle|happy|celebrate|thinking|talking|listening|concerned|sad|urgent|sleepy|confused|love"
  *   size="96"
  *   animated="true|false"
  *   label="Sipo, SIPaw assistant"
  *   base=""   optional asset base URL (no trailing slash)
  * ></sipo-mascot>
  *
- * Animated webp/gif when animated + theme ice-blue|blue-body + not prefers-reduced-motion.
- * Otherwise inline themable SVG with --sipaw-* from themes.json.
- * mono/dark always use static themable SVG.
+ * Legacy states still work: writing → talking, alert → concerned.
+ * `theme` is accepted and ignored (v2 has one look).
+ *
+ * Renders the transparent 3D plush: a looping animated WebP (160 px for avatars,
+ * 320 px from 130 px upward), or the still frame when animated="false" or the
+ * visitor prefers reduced motion.
  */
 (function () {
   "use strict";
 
-  var STATES = ["idle", "thinking", "writing", "listening", "happy", "alert"];
-  var ANIMATED_THEMES = { "ice-blue": true, "blue-body": true };
+  var STATES = [
+    "idle",
+    "happy",
+    "celebrate",
+    "thinking",
+    "talking",
+    "listening",
+    "concerned",
+    "sad",
+    "urgent",
+    "sleepy",
+    "confused",
+    "love",
+  ];
+  var ALIASES = { writing: "talking", alert: "concerned" };
   var DEFAULT_LABEL = "Sipo, SIPaw assistant";
-  var DEFAULT_THEME = "ice-blue";
-
-  var themesCache = null;
-  var themesPromise = null;
-  var svgCache = {};
 
   function reduceMotion() {
     try {
@@ -44,95 +54,24 @@
 
   function normalizeState(s) {
     s = String(s || "idle").toLowerCase();
+    if (ALIASES[s]) s = ALIASES[s];
     return STATES.indexOf(s) >= 0 ? s : "idle";
-  }
-
-  function normalizeTheme(t) {
-    t = String(t || DEFAULT_THEME).toLowerCase();
-    if (t === "ice-blue" || t === "blue-body" || t === "mono" || t === "dark") return t;
-    return DEFAULT_THEME;
   }
 
   function assetBase(el) {
     var b = (el.getAttribute("base") || "").trim();
     if (b) return b.replace(/\/$/, "");
     if (window.SIPO_ASSET_BASE) return String(window.SIPO_ASSET_BASE).replace(/\/$/, "");
-    return "assets/mascot/public";
-  }
-
-  function loadThemes(base) {
-    if (themesCache) return Promise.resolve(themesCache);
-    if (themesPromise) return themesPromise;
-    themesPromise = fetch(base + "/themes.json", { credentials: "same-origin" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("themes.json " + r.status);
-        return r.json();
-      })
-      .then(function (j) {
-        themesCache = j;
-        return j;
-      })
-      .catch(function (err) {
-        themesPromise = null;
-        throw err;
-      });
-    return themesPromise;
-  }
-
-  function loadSvg(base, state) {
-    if (svgCache[state]) return Promise.resolve(svgCache[state]);
-    return fetch(base + "/sipo-" + state + ".svg", { credentials: "same-origin" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("svg " + state + " " + r.status);
-        return r.text();
-      })
-      .then(function (txt) {
-        svgCache[state] = txt;
-        return txt;
-      });
-  }
-
-  function applyThemeVars(host, colors) {
-    if (!colors) return;
-    Object.keys(colors).forEach(function (role) {
-      host.style.setProperty("--sipaw-" + role, colors[role]);
-    });
-  }
-
-  function clearThemeVars(host) {
-    [
-      "body",
-      "shade",
-      "seam",
-      "bezel",
-      "bezel-line",
-      "screen",
-      "line",
-      "tip",
-      "tip-hi",
-      "base",
-      "ring",
-      "arm",
-      "arm-shade",
-      "accent",
-      "on-screen",
-      "dim",
-      "pencil",
-      "eraser",
-      "glyph",
-    ].forEach(function (role) {
-      host.style.removeProperty("--sipaw-" + role);
-    });
+    return "assets/mascot/v2";
   }
 
   class SipoMascot extends HTMLElement {
     static get observedAttributes() {
-      return ["state", "theme", "size", "animated", "label", "base"];
+      return ["state", "size", "animated", "label", "base"];
     }
 
     constructor() {
       super();
-      this._gen = 0;
       this._root = this.attachShadow({ mode: "open" });
       this._mq = null;
       this._onMq = null;
@@ -171,27 +110,21 @@
       this.setAttribute("state", normalizeState(v));
     }
 
-    get theme() {
-      return normalizeTheme(this.getAttribute("theme"));
-    }
-    set theme(v) {
-      this.setAttribute("theme", normalizeTheme(v));
-    }
-
     render() {
-      var self = this;
-      var gen = ++this._gen;
       var state = this.state;
-      var theme = this.theme;
       var size = parseInt(this.getAttribute("size") || "96", 10);
       if (!size || size < 16) size = 96;
-      var animated = boolAttr(this, "animated", true);
       var label = this.getAttribute("label") || DEFAULT_LABEL;
       var base = assetBase(this);
-      var useAnim = animated && ANIMATED_THEMES[theme] && !reduceMotion();
+      var animated = boolAttr(this, "animated", true) && !reduceMotion();
+      var variant = !animated ? "still" : size >= 130 ? "l" : "s";
+      var src = base + "/" + state + "-" + variant + ".webp";
 
       this.setAttribute("role", "img");
       this.setAttribute("aria-label", label);
+
+      var img = this._root.querySelector("img");
+      if (img && img.getAttribute("src") === src && img.width === size) return;
 
       var style =
         ":host{display:inline-block;line-height:0;vertical-align:middle}" +
@@ -200,73 +133,17 @@
         "px;height:" +
         size +
         "px}" +
-        ".wrap picture,.wrap img{display:block;width:100%;height:100%;object-fit:contain}" +
-        ".wrap svg{display:block;width:100%;height:100%}";
-
-      if (useAnim) {
-        clearThemeVars(this);
-        var webp = base + "/sipo-" + state + "-" + theme + ".webp";
-        var gif = base + "/sipo-" + state + "-" + theme + ".gif";
-        this._root.innerHTML =
-          "<style>" +
-          style +
-          '</style><div class="wrap"><picture>' +
-          '<source type="image/webp" srcset="' +
-          webp +
-          '">' +
-          '<img src="' +
-          gif +
-          '" alt="" width="' +
-          size +
-          '" height="' +
-          size +
-          '" decoding="async">' +
-          "</picture></div>";
-        var img = this._root.querySelector("img");
-        if (img) {
-          img.addEventListener("error", function () {
-            if (gen !== self._gen) return;
-            self._renderSvg(base, state, theme, size, style, gen);
-          });
-        }
-        return;
-      }
-
-      this._renderSvg(base, state, theme, size, style, gen);
-    }
-
-    _renderSvg(base, state, theme, size, style, gen) {
-      var self = this;
-      Promise.all([loadThemes(base), loadSvg(base, state)])
-        .then(function (pair) {
-          if (gen !== self._gen) return;
-          var themes = pair[0];
-          var svgTxt = pair[1];
-          var preset =
-            themes && themes.presets && themes.presets[theme] ? themes.presets[theme] : null;
-          clearThemeVars(self);
-          if (preset && preset.colors) applyThemeVars(self, preset.colors);
-
-          var doc = new DOMParser().parseFromString(svgTxt, "image/svg+xml");
-          var svg = doc.documentElement;
-          if (!svg || svg.nodeName.toLowerCase() === "parsererror") {
-            self._root.innerHTML = "<style>" + style + '</style><div class="wrap"></div>';
-            return;
-          }
-          svg.setAttribute("width", String(size));
-          svg.setAttribute("height", String(size));
-          svg.setAttribute("aria-hidden", "true");
-
-          self._root.innerHTML = "<style>" + style + "</style>";
-          var wrap = document.createElement("div");
-          wrap.className = "wrap";
-          wrap.appendChild(document.importNode(svg, true));
-          self._root.appendChild(wrap);
-        })
-        .catch(function () {
-          if (gen !== self._gen) return;
-          self._root.innerHTML = "<style>" + style + '</style><div class="wrap"></div>';
-        });
+        ".wrap img{display:block;width:100%;height:100%;object-fit:contain}";
+      this._root.innerHTML =
+        "<style>" +
+        style +
+        '</style><div class="wrap"><img src="' +
+        src +
+        '" alt="" width="' +
+        size +
+        '" height="' +
+        size +
+        '" decoding="async"></div>';
     }
   }
 
@@ -276,16 +153,11 @@
 
   window.Sipo = {
     STATES: STATES,
-    DEFAULT_THEME: DEFAULT_THEME,
     setState: function (state, sel) {
       var el = document.querySelector(sel || "sipo-mascot#sipo, sipo-mascot");
       if (el) el.setAttribute("state", normalizeState(state));
       return el;
     },
-    setTheme: function (theme, sel) {
-      var el = document.querySelector(sel || "sipo-mascot#sipo, sipo-mascot");
-      if (el) el.setAttribute("theme", normalizeTheme(theme));
-      return el;
-    },
+    setTheme: function () {},
   };
 })();

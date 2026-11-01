@@ -172,7 +172,7 @@
   /* Rail keeps the same order top → bottom, SIPO in the middle */
   .tabbar-v2{justify-content:center}
 }
-@media (prefers-reduced-motion:reduce){.tabbar-v2 .tab-sipo-face img{content:url("../mascot/public/sipo-idle.svg")}}
+@media (prefers-reduced-motion:reduce){.tabbar-v2 .tab-sipo-face img{content:url("../mascot/v2/idle-still.webp")}}
 
 /* Top bar: notification bell beside the paw coin */
 .top-actions{display:inline-flex;align-items:center;gap:2px}

@@ -115,7 +115,7 @@ function rrp_auth_aside(): void
     ?>
 <aside class="auth-aside" aria-hidden="true">
   <img class="auth-logo" src="<?= rrp_h(rrp_asset('assets/img/logos/sipaw-wordmark-transparent-white.svg', true)) ?>" alt="" width="120" height="71" style="filter:brightness(0) invert(1)" />
-  <img class="auth-mascot" src="<?= rrp_h(rrp_asset('assets/mascot/public/sipo-happy-ice-blue.webp')) ?>" alt="" width="300" height="300" />
+  <img class="auth-mascot" src="<?= rrp_h(rrp_asset('assets/mascot/v2/happy-l.webp')) ?>" alt="" width="300" height="300" />
   <div>
     <h2>Your pet's<br />SI companion.</h2>
     <p>SIPO remembers the vaccines, meals, walks and vet notes, so you can just enjoy your pet.</p>
@@ -185,7 +185,7 @@ function rrp_sipo_fab(string $active): void
     }
     $topic = rrp_sipo_ask_topic_for_page();
     $href = 'si-chat.php' . ($topic ? '?ask=' . $topic : '');
-    $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
+    $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     echo '<a class="sipo-fab" href="' . rrp_h($href) . '" aria-label="Ask SIPO about this page"><img src="' . rrp_h($mascot) . '" alt="" width="40" height="40" /><span>Ask SIPO</span></a>' . "\n";
 }
 
@@ -206,7 +206,7 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
         ['finance.php', 'Finance', 'What you spend on your pets', 'i-doc'],
         ['settings.php', 'Settings', 'Profile, password, account', 'i-gear'],
     ];
-    $mascot = rrp_asset('assets/mascot/public/sipo-idle-ice-blue.webp');
+    $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     ?>
 <button type="button" class="menu-btn" id="menuBtn" aria-label="Menu" aria-controls="sideMenu" aria-expanded="false">
   <span></span><span></span><span></span><?php if ($unread > 0): ?><i class="menu-dot" aria-hidden="true"></i><?php endif; ?>

@@ -55,7 +55,7 @@ php -S localhost:8000
 
 ### Sipo mascot preview
 
-Open **`/sipo-preview.php`** after starting the PHP server — grid of 6 states × 4 themes (Ice Blue default, blue-body, mono, dark). Source package under `assets/mascot/` (untouched); public names at `assets/mascot/public/` (`sipo-{state}.svg`, `sipo-{state}-{theme}.webp|.gif`, `themes.json`).
+Open **`/sipo-preview.php`** after starting the PHP server to see all 12 moods of SIPO v2 Plush (3D). Assets live in `assets/mascot/v2/` as `{mood}-still.webp` (256 px), `{mood}-s.webp` (160 px loop) and `{mood}-l.webp` (320 px loop), all with transparent backgrounds. Use `<sipo-mascot state="happy" size="96">` (`assets/js/sipo.js`); states `writing` and `alert` still work as aliases of `talking` and `concerned`.
 
 ## Deploy
 

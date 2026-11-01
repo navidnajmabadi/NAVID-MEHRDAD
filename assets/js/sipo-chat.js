@@ -22,6 +22,22 @@
   var lastId = 0;
   var busy = false;
   var restState = "idle";
+  var SERIOUS = { urgent: 1, concerned: 1, alert: 1, sad: 1, confused: 1 };
+  var THANKS = /\b(thanks|thank you|thank u|thx|merci|appreciate it|love you)\b/i;
+
+  // 22:00-06:00 on the owner's clock SIPO is sleepy; a warning face always wins over it.
+  function isNight() {
+    var h;
+    try {
+      h = parseInt(new Date().toLocaleString("en-GB", { hour: "numeric", hour12: false, timeZone: vm.tz || undefined }), 10);
+    } catch (e) {
+      h = new Date().getHours();
+    }
+    return h >= 22 || h < 6;
+  }
+  function calm() {
+    return isNight() ? "sleepy" : "idle";
+  }
   var idleStatus = status.textContent;
   var seen = {};
   var booted = false; // history renders without the entrance animation
@@ -95,7 +111,7 @@
     maybeDayDivider(msg.created_at || new Date().toISOString());
     var row = document.createElement("div");
     row.className = "sipo-msg " + (msg.role === "assistant" ? "from-sipo" : "from-me");
-    if (msg.mascot === "alert") row.className += " is-alert";
+    if (msg.mascot === "alert" || msg.mascot === "urgent") row.className += " is-alert";
     if (booted) row.className += " is-new";
     var p = document.createElement("p");
     renderBody(p, String(msg.body || ""));
@@ -185,13 +201,15 @@
     });
   }
 
-  function applyReply(j) {
+  function applyReply(j, thanked) {
     if (j.assistant && j.assistant.body) {
       bubble(j.assistant);
-      restState = j.assistant.mascot || "idle";
-      setFace(restState);
-      if (restState === "happy") {
-        setTimeout(function () { if (!busy) setFace("idle"); }, 4000);
+      var mood = j.assistant.mascot || "idle";
+      if (thanked && (mood === "idle" || mood === "happy")) mood = "love";
+      restState = SERIOUS[mood] ? mood : calm();
+      setFace(SERIOUS[mood] ? mood : mood === "idle" ? calm() : mood);
+      if (mood === "happy" || mood === "celebrate" || mood === "love") {
+        setTimeout(function () { if (!busy && !SERIOUS[restState]) setFace(calm()); }, mood === "happy" ? 4000 : 5500);
       }
     }
     if (j.progress) showProgress(j.progress);
@@ -344,6 +362,7 @@
     setFace("thinking");
     setStatus("Thinking…");
     clearChoices();
+    var thanked = THANKS.test(text);
     var mine = bubble({ role: "user", body: text, created_at: new Date().toISOString() });
     showTyping(true);
     var writingTimer = setTimeout(function () { setFace("writing"); setStatus("Writing…"); }, 1400);
@@ -357,18 +376,18 @@
           if (j.message.id > lastId) lastId = j.message.id;
         }
         if (!j.ok) {
-          setFace("idle");
+          setFace(calm());
           if (j.gate) showGate(j);
           else bubble({ role: "assistant", body: j.error || "Something went wrong. Try again.", created_at: new Date().toISOString() });
           return;
         }
         showGate(null);
-        applyReply(j);
+        applyReply(j, thanked);
       })
       .catch(function () {
         clearTimeout(writingTimer);
         showTyping(false);
-        setFace("idle");
+        setFace(calm());
         bubble({ role: "assistant", body: "I couldn't reach the server. Check your connection and try again.", created_at: new Date().toISOString() });
       })
       .then(function () {
@@ -385,11 +404,11 @@
       .then(function (j) {
         showTyping(false);
         if (j.ok && j.assistant) applyReply(j);
-        else setFace("idle");
+        else setFace(calm());
       })
       .catch(function () {
         showTyping(false);
-        setFace("idle");
+        setFace(calm());
       });
   }
 
@@ -411,7 +430,7 @@
   }
   input.addEventListener("input", function () {
     autosize();
-    if (!busy) setFace(input.value.trim() ? "listening" : restState === "alert" ? "alert" : "idle");
+    if (!busy) setFace(input.value.trim() ? "listening" : SERIOUS[restState] ? restState : calm());
   });
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing && window.matchMedia("(hover:hover)").matches) {
@@ -468,7 +487,7 @@
         .then(function (j) {
           showTyping(false);
           if (!j.ok) {
-            setFace("idle");
+            setFace(calm());
             bubble({ role: "assistant", body: j.error || "I couldn't read that file.", created_at: new Date().toISOString() });
             return;
           }
@@ -482,7 +501,7 @@
         })
         .catch(function () {
           showTyping(false);
-          setFace("idle");
+          setFace(calm());
           bubble({ role: "assistant", body: "Upload failed. Check your connection and try again.", created_at: new Date().toISOString() });
         })
         .then(function () {
@@ -497,6 +516,7 @@
   (vm.messages || []).forEach(bubble);
   var lastMsg = (vm.messages || [])[(vm.messages || []).length - 1];
   if (lastMsg && lastMsg.role === "assistant" && lastMsg.choices) showChoices(lastMsg.choices);
+  setFace(calm());
   booted = true;
   showGate(vm.gate);
   if (!vm.gate && vm.auto_ask) {
