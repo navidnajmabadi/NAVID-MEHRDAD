@@ -241,6 +241,60 @@ function rrp_admin_geo_points(int $limit = 500): array
     return $rows;
 }
 
+/**
+ * SIPO use per owner for the Admin Accounts page: messages sent, tokens (permanent daily rows),
+ * last chat. Messages come from the chat itself so they are right even for days before token
+ * tracking was saved.
+ *
+ * @param list<int> $ids
+ * @return array<int, array{msgs_today:int, msgs_7d:int, msgs_all:int, tokens_today:int, tokens_7d:int, tokens_all:int, last_chat:?string}>
+ */
+function rrp_admin_usage_map(array $ids): array
+{
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+    $blank = ['msgs_today' => 0, 'msgs_7d' => 0, 'msgs_all' => 0, 'tokens_today' => 0, 'tokens_7d' => 0, 'tokens_all' => 0, 'last_chat' => null];
+    $out = array_fill_keys($ids, $blank);
+    if (!$ids) {
+        return $out;
+    }
+    $in = implode(',', $ids);
+    try {
+        $rows = rrp_db()->query(
+            "SELECT t.owner_id,
+                    SUM(m.created_at >= UTC_DATE()) AS msgs_today,
+                    SUM(m.created_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY) AS msgs_7d,
+                    COUNT(*) AS msgs_all,
+                    MAX(m.created_at) AS last_chat
+             FROM chat_messages m JOIN chat_threads t ON t.id = m.thread_id
+             WHERE t.thread_kind = 'si' AND m.sender_role = 'user' AND t.owner_id IN ($in)
+             GROUP BY t.owner_id"
+        )->fetchAll();
+        foreach ($rows as $r) {
+            $o = (int) $r['owner_id'];
+            $out[$o]['msgs_today'] = (int) $r['msgs_today'];
+            $out[$o]['msgs_7d'] = (int) $r['msgs_7d'];
+            $out[$o]['msgs_all'] = (int) $r['msgs_all'];
+            $out[$o]['last_chat'] = $r['last_chat'];
+        }
+        $today = function_exists('rrp_si_toronto_day') ? rrp_si_toronto_day() : gmdate('Y-m-d');
+        $rows = rrp_db()->query(
+            "SELECT owner_id,
+                    SUM(CASE WHEN usage_day = " . rrp_db()->quote($today) . " THEN token_count ELSE 0 END) AS tokens_today,
+                    SUM(CASE WHEN usage_day >= (CURDATE() - INTERVAL 7 DAY) THEN token_count ELSE 0 END) AS tokens_7d,
+                    SUM(token_count) AS tokens_all
+             FROM si_usage_daily WHERE owner_id IN ($in) GROUP BY owner_id"
+        )->fetchAll();
+        foreach ($rows as $r) {
+            $o = (int) $r['owner_id'];
+            $out[$o]['tokens_today'] = (int) $r['tokens_today'];
+            $out[$o]['tokens_7d'] = (int) $r['tokens_7d'];
+            $out[$o]['tokens_all'] = (int) $r['tokens_all'];
+        }
+    } catch (Throwable $e) {
+    }
+    return $out;
+}
+
 function rrp_admin_search_owners(string $q, int $limit = 50): array
 {
     $q = trim($q);

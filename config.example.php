@@ -112,6 +112,7 @@ return [
 
     // SIPO limits (lib/sipo/limits.php). free_daily_msgs 0 = unlimited (test mode).
     'sipo' => [
+        'limits_enabled' => false, // false = no Cool Down, no daily cap, no Plus gates, no pet cap (test period)
         'cooldown_tokens' => 100000,
         'cooldown_minutes' => 120,
         'free_daily_msgs' => 0,
