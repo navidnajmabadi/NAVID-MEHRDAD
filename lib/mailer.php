@@ -9,7 +9,7 @@ declare(strict_types=1);
 /**
  * @return array{ok:bool, error?:string, via?:string}
  */
-function rrp_send_mail_result(string $to, string $subject, string $bodyText): array
+function rrp_send_mail_result(string $to, string $subject, string $bodyText, ?string $bodyHtml = null): array
 {
     $cfg = rrp_load_config();
     $from = (string) ($cfg['mail_from'] ?? 'noreply@nakilab.com');
@@ -28,7 +28,7 @@ function rrp_send_mail_result(string $to, string $subject, string $bodyText): ar
             ];
         }
 
-        $sent = rrp_smtp_send($smtp, $from, $fromName, $to, $subject, $bodyText);
+        $sent = rrp_smtp_send($smtp, $from, $fromName, $to, $subject, $bodyText, $bodyHtml);
         if (empty($sent['ok'])) {
             return [
                 'ok' => false,
@@ -40,14 +40,15 @@ function rrp_send_mail_result(string $to, string $subject, string $bodyText): ar
     }
 
     // Legacy PHP mail() for non-reset alerts when SMTP is off.
+    $mime = rrp_mail_mime($bodyText, $bodyHtml);
     $headers = [
         'MIME-Version: 1.0',
-        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Type: ' . $mime['content_type'],
         'From: ' . rrp_mail_encode_address($fromName, $from),
         'Reply-To: ' . $from,
         'X-Mailer: SIPAW/1',
     ];
-    $ok = @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $bodyText, implode("\r\n", $headers));
+    $ok = @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $mime['body'], implode("\r\n", $headers));
     if (!$ok) {
         return [
             'ok' => false,
@@ -59,9 +60,29 @@ function rrp_send_mail_result(string $to, string $subject, string $bodyText): ar
 }
 
 /** @deprecated prefer rrp_send_mail_result — bool for legacy callers */
-function rrp_send_mail(string $to, string $subject, string $bodyText): bool
+function rrp_send_mail(string $to, string $subject, string $bodyText, ?string $bodyHtml = null): bool
 {
-    return !empty(rrp_send_mail_result($to, $subject, $bodyText)['ok']);
+    return !empty(rrp_send_mail_result($to, $subject, $bodyText, $bodyHtml)['ok']);
+}
+
+/**
+ * Message body and its Content-Type: plain text alone, or text + HTML (multipart/alternative, so
+ * every mail app can show one). Quoted-printable keeps lines short and non-ASCII safe.
+ *
+ * @return array{content_type:string, body:string}
+ */
+function rrp_mail_mime(string $text, ?string $html = null): array
+{
+    $qp = static fn(string $s): string => quoted_printable_encode(str_replace(["\r\n", "\r"], "\n", $s));
+    if ($html === null || $html === '') {
+        return ['content_type' => 'text/plain; charset=UTF-8', 'body' => $text];
+    }
+    $b = 'sipaw_' . bin2hex(random_bytes(12));
+    $body = "This is a multi-part message in MIME format.\r\n\r\n"
+        . "--{$b}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n" . $qp($text) . "\r\n"
+        . "--{$b}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n" . $qp($html) . "\r\n"
+        . "--{$b}--\r\n";
+    return ['content_type' => 'multipart/alternative; boundary="' . $b . '"', 'body' => $body];
 }
 
 function rrp_mail_encode_address(string $name, string $email): string
@@ -72,7 +93,7 @@ function rrp_mail_encode_address(string $name, string $email): string
 /**
  * @return array{ok:bool, error?:string}
  */
-function rrp_smtp_send(array $smtp, string $from, string $fromName, string $to, string $subject, string $body): array
+function rrp_smtp_send(array $smtp, string $from, string $fromName, string $to, string $subject, string $body, ?string $bodyHtml = null): array
 {
     $host = $smtp['host'] ?? '';
     $port = (int) ($smtp['port'] ?? 465);
@@ -175,13 +196,18 @@ function rrp_smtp_send(array $smtp, string $from, string $fromName, string $to, 
         return ['ok' => false, 'error' => $err];
     }
 
+    $mime = rrp_mail_mime($body, $bodyHtml);
+    // SMTP DATA: a body line that starts with "." must be doubled, or the server ends the message early.
+    $payload = preg_replace('/^\./m', '..', str_replace(["\r\n", "\r"], "\n", $mime['body'])) ?? $mime['body'];
+    $payload = str_replace("\n", "\r\n", $payload);
     $msg = 'From: ' . rrp_mail_encode_address($fromName, $from) . "\r\n"
         . 'To: <' . $to . ">\r\n"
         . 'Subject: =?UTF-8?B?' . base64_encode($subject) . "?=\r\n"
+        . 'Date: ' . date('r') . "\r\n"
         . "MIME-Version: 1.0\r\n"
-        . "Content-Type: text/plain; charset=UTF-8\r\n"
+        . 'Content-Type: ' . $mime['content_type'] . "\r\n"
         . "\r\n"
-        . $body . "\r\n.";
+        . $payload . "\r\n.";
 
     $bodyResp = $cmd($msg);
     if ($err = $expectOk($bodyResp, 'message')) {

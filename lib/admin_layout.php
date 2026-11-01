@@ -6,6 +6,7 @@ function rrp_admin_nav(string $active = 'home'): void
     $items = [
         'home' => ['index.php', 'Overview'],
         'accounts' => ['accounts.php', 'Accounts'],
+        'emails' => ['emails.php', 'Emails'],
         'geo' => ['geo.php', 'Map / cities'],
         'tickets' => ['tickets.php', 'Tickets'],
         'coupons' => ['coupons.php', 'Coupons'],

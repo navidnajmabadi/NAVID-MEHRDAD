@@ -32,6 +32,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         rrp_ui_set_skin((string) ($_POST['skin'] ?? 'studio'));
         rrp_flash_set('ok', 'Look changed ✨');
         rrp_redirect('settings.php#appearance');
+    } elseif ($act === 'report_pref') {
+        $on = !empty($_POST['report_weekly']) ? 1 : 0;
+        rrp_db()->prepare('UPDATE owners SET report_weekly = ? WHERE id = ?')->execute([$on, (int) $owner['id']]);
+        rrp_flash_set('ok', $on ? 'Weekly health report is on 📬 It arrives on Sundays.' : 'Weekly health report is off.');
+        rrp_redirect('settings.php#reports');
+    } elseif ($act === 'report_test') {
+        $r = rrp_report_send($owner);
+        rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok'])
+            ? 'Sent! Check your inbox (and spam) for your health report.'
+            : 'We could not send the email right now. Please try again in a little while.');
+        if (empty($r['ok'])) {
+            error_log('settings report_test: ' . ($r['error'] ?? 'failed'));
+        }
+        rrp_redirect('settings.php#reports');
     } elseif ($act === 'delete_request') {
         $r = rrp_account_delete_request($owner);
         rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok'])
@@ -122,6 +136,19 @@ rrp_app_start(['nav' => 'settings']);
           <b><?= rrp_h(RRP_UI_SKINS[$k]) ?></b><small><?= rrp_h($why) ?></small>
         </button>
       <?php endforeach; ?>
+    </form>
+  </section>
+
+  <section class="care-card" id="reports">
+    <h3 class="label">Health report by email</h3>
+    <p class="meta" style="margin:0 0 10px">Every Sunday SIPO emails you how each pet did: walks, potty, weight trend, vaccines and lab flags, plus a caring note.</p>
+    <form method="post" class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="report_pref" />
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="report_weekly" value="1" <?= !empty($owner['report_weekly']) ? 'checked' : '' ?> onchange="this.form.submit()" /> Send me the weekly report</label>
+    </form>
+    <form method="post" style="margin-top:10px">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="report_test" />
+      <button type="submit" class="btn btn-secondary">Send me one now</button>
     </form>
   </section>
 
