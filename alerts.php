@@ -120,7 +120,7 @@ rrp_app_start(['nav' => 'alerts']);
 </div>
 <?php if (!empty($nearbyLost) && in_array($filter, ['all', 'lost'], true)): ?>
 <script>
-window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/v2'), '/')) ?>;
 </script>
 <script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
 <?php endif; ?>

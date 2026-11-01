@@ -118,7 +118,7 @@ window.SIPO_API = {
   reminderFired: <?= json_encode(rrp_asset('api/si/reminder-fired.php')) ?>,
   switchPet: <?= json_encode(rrp_asset('api/pets/switch.php')) ?>
 };
-window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/v2'), '/')) ?>;
 </script>
 <?php
 rrp_app_end([

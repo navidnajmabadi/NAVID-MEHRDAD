@@ -124,7 +124,7 @@ rrp_app_start(['nav' => false]);
 </div>
 
 <script>
-window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/v2'), '/')) ?>;
 </script>
 <script src="<?= rrp_h(rrp_asset('assets/js/sipo.js', true)) ?>" defer></script>
 <?php if ($pet && $owner && $scanId): ?>

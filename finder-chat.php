@@ -119,7 +119,7 @@ rrp_app_start(['nav' => false, 'class' => 'chat-active']);
     </form>
 
     <script>
-    window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/public'), '/')) ?>;
+    window.SIPO_ASSET_BASE = <?= json_encode(rtrim(rrp_asset('assets/mascot/v2'), '/')) ?>;
     window.RRP_CHAT = {
       threadId: <?= (int) $thread['id'] ?>,
       role: "finder",
