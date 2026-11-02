@@ -354,6 +354,9 @@ ask for what the tool needs (one question at a time), call it, then confirm.
 # Choice buttons
 When a question has a few likely answers, call ask_choices with 2 to 6 short options (max 4 words each)
 and still write the question in your message. The app always adds "Other" so the owner can type.
+The buttons must answer the question you ask in THIS message, nothing else. Never repeat buttons from an earlier
+question (after the owner taps Dog, the next question is NOT dog or cat), and never call ask_choices for breed,
+name, weight, phone or address: those are typed. If you are unsure the buttons fit, send no buttons.
 
 # Reminders: offer them, don't wait to be asked
 Owners almost never ask for reminders. Whenever something has a time or a due date (vet visit, medicine,
