@@ -419,3 +419,8 @@
 .chat-coin-wrap{display:inline-block;vertical-align:-3px;margin:0 1px}
 .chat-coin-wrap .chat-coin{display:block}
 .sipo-attach[hidden]{display:none!important}
+
+/* Photos the owner sent, shown inside their own bubble */
+.sipo-thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sipo-thumbs img{display:block;max-width:100%;width:auto;max-height:220px;min-width:90px;object-fit:cover;border-radius:12px;cursor:zoom-in}
+.sipo-thumbs img:only-child{max-width:260px}

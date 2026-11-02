@@ -486,6 +486,22 @@
       setFace("thinking");
       setStatus(files.length > 1 ? "Reading your " + files.length + " files…" : "Reading your file…");
       var mine = bubble({ role: "user", body: "📎 " + (files.length > 1 ? files.length + " files" : files[0].name), created_at: new Date().toISOString() });
+      // Show the photos themselves in the bubble (this device only: files are not kept on the server).
+      if (mine) {
+        var shots = files.filter(function (f) { return /^image\//.test(f.type); }).slice(0, 4);
+        if (shots.length) {
+          var strip = document.createElement("div");
+          strip.className = "sipo-thumbs";
+          shots.forEach(function (f) {
+            var im = document.createElement("img");
+            im.alt = f.name;
+            im.src = URL.createObjectURL(f);
+            im.addEventListener("click", function () { window.open(im.src, "_blank", "noopener"); });
+            strip.appendChild(im);
+          });
+          mine.insertBefore(strip, mine.querySelector("p"));
+        }
+      }
       showTyping(true);
       window.sipoUploadMany(files, {
         url: api.upload, csrf: api.csrf, threadId: threadId,
