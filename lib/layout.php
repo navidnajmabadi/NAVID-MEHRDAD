@@ -202,11 +202,13 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
         ['si-chat.php', 'SIPO', 'Ask or tell SIPO anything', null],
         ['care.php', 'Health', 'Dashboard, charts, labs, food', 'i-heart'],
         ['routines.php', 'Routines', 'What is scheduled and due', 'i-routine'],
-        ['forum.php', 'Pack', 'Posts from pets near and far', 'i-social'],
         ['lost.php', $lostActive ? 'Lost mode is on' : 'Lost pet', $lostActive ? 'Open the search' : 'How it works, one tap to start', 'i-lost'],
         ['finance.php', 'Expenses', 'What you spend on your pets', 'i-doc'],
         ['settings.php', 'Settings', 'Profile, password, account', 'i-gear'],
     ];
+    if (rrp_social_enabled()) {
+        array_splice($items, 4, 0, [['forum.php', 'Pack', 'Posts from pets near and far', 'i-social']]);
+    }
     $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     ?>
 <button type="button" class="menu-btn" id="menuBtn" aria-label="Menu" aria-controls="sideMenu" aria-expanded="false">

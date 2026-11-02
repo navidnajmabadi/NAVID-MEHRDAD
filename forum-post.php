@@ -4,6 +4,9 @@ require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/layout.php';
 
 $owner = rrp_require_owner();
+if (!rrp_social_enabled()) {
+    rrp_redirect('dashboard.php');
+}
 $pets = rrp_pets_by_owner((int) $owner['id']);
 $id = (int) ($_GET['id'] ?? $_POST['post_id'] ?? 0);
 $error = null;

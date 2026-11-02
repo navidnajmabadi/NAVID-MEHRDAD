@@ -20,9 +20,8 @@ function rrp_sipo_app_pages(): array
         'health' => ['care.php', 'Health dashboard: profile, routines, vaccines, treatments, labs, food, charts'],
         'daily' => ['daily.php', 'Daily life: bathroom, walks, grooming'],
         'routines' => ['routines.php', 'Everything scheduled: overdue, today, this week'],
-        'social' => ['forum.php', 'Social board: posts from pets'],
         'lost' => ['lost.php', 'Lost mode page and how it works'],
-        'finance' => ['finance.php', 'Spending on pets: monthly totals and categories'],
+        'finance' => ['finance.php', 'Expenses on pets: monthly totals and categories'],
         'settings' => ['settings.php', 'Settings: profile, pets, password, account'],
         'account' => ['account.php', 'Owner profile: name, phone, address'],
         'notifications' => ['alerts.php', 'Notification centre'],
@@ -60,9 +59,9 @@ function rrp_sipo_app_tool_defs(callable $fn): array
             'phone' => ['type' => 'string'],
             'address' => ['type' => 'string', 'description' => 'Home address or area, used for nearby Lost mode alerts'],
         ]),
-        $fn('post_to_social', 'Publish a post on the Social board as THIS pet. If the owner asks you to write one, write it yourself (short, warm, 1 to 3 emojis, in the pet\'s voice if fun), show the draft, and call this only after they say yes.', [
+        ...(rrp_social_enabled() ? [$fn('post_to_social', 'Publish a post on the Social board as THIS pet. If the owner asks you to write one, write it yourself (short, warm, 1 to 3 emojis, in the pet\'s voice if fun), show the draft, and call this only after they say yes.', [
             'text' => ['type' => 'string'],
-        ], ['text']),
+        ], ['text'])] : []),
         $fn('open_page', 'Only when the owner explicitly asks to see or open a page (e.g. "show my dashboard", "open settings"): shows a button to open it. Never call it to answer a question about a page. Pages: '
             . implode(', ', array_map(static fn($k, $p) => $k . ' (' . $p[1] . ')', array_keys(rrp_sipo_app_pages()), rrp_sipo_app_pages())), [
             'page' => ['type' => 'string', 'enum' => array_keys(rrp_sipo_app_pages())],
@@ -179,6 +178,9 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null];
 
         case 'post_to_social':
+            if (!rrp_social_enabled()) {
+                return ['ok' => false, 'error' => 'Posting is not available right now.'];
+            }
             if ($pet === null) {
                 return ['ok' => false, 'error' => 'No pet in this chat yet.'];
             }

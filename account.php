@@ -97,7 +97,7 @@ rrp_app_start(['nav' => 'settings']);
   </div>
 
   <p class="sub" style="font-size:12px;text-align:center">
-    <a class="link" href="forum.php">Boards</a> ·
+    <?php if (rrp_social_enabled()): ?><a class="link" href="forum.php">Boards</a> ·<?php endif; ?>
     <a class="link" href="si-chat.php">SIPO</a> ·
     <a class="link" href="support.php">Support</a> ·
     <a class="link" href="logout.php">Log out</a>

@@ -5,6 +5,9 @@ require_once __DIR__ . '/lib/layout.php';
 
 // Boards (brief §E): pet posts with one photo, likes/dislikes, follows, reports. ?pet=<public_id> = pet profile.
 $owner = rrp_require_owner();
+if (!rrp_social_enabled()) {
+    rrp_redirect('dashboard.php');
+}
 $pets = rrp_pets_by_owner((int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 $profile = !empty($_GET['pet']) ? rrp_forum_pet_profile((string) $_GET['pet'], (int) $owner['id']) : null;

@@ -14,9 +14,11 @@ function rrp_admin_nav(string $active = 'home'): void
         'brain' => ['naki.php', 'NAKI brain'],
         'site' => ['site.php', 'Site health'],
         'sipo' => ['sipo-check.php', 'SIPO check'],
-        'moderation' => ['moderation.php', 'Moderation'],
         'logs' => ['logs.php', 'Logs'],
     ];
+    if (rrp_social_enabled()) {
+        $items['moderation'] = ['moderation.php', 'Moderation'];
+    }
     echo '<nav class="admin-nav" aria-label="Admin">' . "\n";
     foreach ($items as $key => [$href, $label]) {
         $cls = $key === $active ? ' class="is-active"' : '';

@@ -110,9 +110,9 @@ rrp_app_start(['nav' => 'health']);
     <?php $sp = $top['spend']; if ($sp && array_sum(array_column($sp['months'], 'total')) > 0): ?>
       <?php rrp_view_bar_chart(array_map(static fn($m) => ['label' => $m['label'], 'value' => round($m['total'])], $sp['months']), $sp['currency']); ?>
       <p class="meta">This year <?= rrp_h(($top['money'])($sp['year'], $sp['currency'])) ?><?php foreach ($sp['by_category'] as $c => $v): ?> · <?= rrp_h(RRP_EXPENSE_CATEGORIES[$c] ?? $c) ?> <?= rrp_h(($top['money'])($v, $sp['currency'])) ?><?php endforeach; ?></p>
-      <a class="link" href="finance.php">Open Finance</a>
+      <a class="link" href="finance.php">Open Expenses</a>
     <?php else: ?>
-      <p class="sub">No spending yet. Tell SIPO "I spent 30 on food" or add it in <a class="link" href="finance.php">Finance</a>.</p>
+      <p class="sub">No spending yet. Tell SIPO "I spent 30 on food" or add it in <a class="link" href="finance.php">Expenses</a>.</p>
     <?php endif; ?>
   </section>
 

@@ -5,7 +5,7 @@ require_once __DIR__ . '/lib/layout.php';
 require_once __DIR__ . '/lib/finance.php';
 require_once __DIR__ . '/lib/views/health_dashboard.php';
 
-// Finance: what the owner spends on their pets. SIPO logs the same entries from chat.
+// Expenses: what the owner spends on their pets. SIPO logs the same entries from chat.
 $owner = rrp_require_owner();
 $pets = rrp_pets_by_owner((int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
@@ -36,7 +36,7 @@ $money = static fn(float $v, string $c) => ($c === 'USD' ? '$' : ($c === 'EUR' ?
 $csrf = rrp_csrf_token();
 $today = rrp_sipo_local_now($owner)->format('Y-m-d');
 
-rrp_layout_head('Finance — SIPAW', [
+rrp_layout_head('Expenses — SIPAW', [
     'extra_head' => '<link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" />',
     'body_class' => 'page-care',
 ]);
@@ -44,7 +44,7 @@ rrp_app_start(['nav' => 'settings']);
 ?>
 <div class="topbar">
   <span></span>
-  <div class="center"><h2>Finance</h2></div>
+  <div class="center"><h2>Expenses</h2></div>
   <?php rrp_coin_badge($owner); ?>
 </div>
 <div class="pad stack care-page">
@@ -58,6 +58,18 @@ rrp_app_start(['nav' => 'settings']);
         <?php foreach ($pets as $p): ?><a href="finance.php?pet=<?= (int) $p['id'] ?>" <?= $petFilter && (int) $petFilter['id'] === (int) $p['id'] ? 'aria-current="page"' : '' ?>><?= rrp_h($p['name']) ?></a><?php endforeach; ?>
       </nav>
     <?php endif; ?>
+
+    <section class="care-card fin-total">
+      <span class="label">Total spent<?= $petFilter ? ' on ' . rrp_h($petFilter['name']) : ' on all your pets' ?> · last 12 months</span>
+      <b class="data fin-big"><?= rrp_h($money(array_sum(array_column($sum['months'], 'total')), $sum['currency'])) ?></b>
+      <?php if (!$petFilter && count($sum['by_pet']) > 1): $mxp = max(array_column($sum['by_pet'], 'total')) ?: 1; ?>
+        <div class="fin-cats">
+          <?php foreach ($sum['by_pet'] as $bp): ?>
+            <a class="fin-cat" href="finance.php?pet=<?= (int) $bp['id'] ?>"><span><?= rrp_h($bp['name']) ?></span><i style="width:<?= round(100 * $bp['total'] / $mxp) ?>%"></i><b class="data"><?= rrp_h($money($bp['total'], $sum['currency'])) ?></b></a>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </section>
 
     <div class="hd-kpis">
       <div class="hd-kpi is-ok"><span class="label">This month<?= $petFilter ? ' · ' . rrp_h($petFilter['name']) : ' · all pets' ?></span><b class="data"><?= rrp_h($money($sum['this_month'], $sum['currency'])) ?></b></div>
