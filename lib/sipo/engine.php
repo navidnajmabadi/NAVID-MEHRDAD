@@ -235,7 +235,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
     rrp_sipo_extract_profile($ctx);
 
     // Our own buttons (photo and profile offers) are answered by code, in a fixed order.
-    $reply = rrp_onb_intercept($ctx, $body) ?? rrp_labs_intercept($ctx, $body) ?? rrp_sipo_generate($ctx, null);
+    $reply = rrp_onb_intercept($ctx, $body) ?? rrp_labs_intercept($ctx, $body) ?? rrp_learn_intercept($ctx, $body) ?? rrp_sipo_generate($ctx, null);
     $reply = rrp_onb_after_reply($ctx, $reply);
     $reply = rrp_labs_offer($ctx, $reply, $body);
 

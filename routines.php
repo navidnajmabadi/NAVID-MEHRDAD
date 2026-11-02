@@ -27,6 +27,13 @@ if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csr
     rrp_redirect('routines.php?pet=' . $petId);
 }
 
+if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null) && ($_POST['act'] ?? '') === 'daily') {
+    $kind = (string) ($_POST['kind'] ?? '');
+    $r = rrp_daily_check_log($owner, $pet, $kind, null, 'button');
+    rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? (RRP_DAILY_ITEMS[$kind][0] ?? '✓') . ' ' . (RRP_DAILY_ITEMS[$kind][1] ?? 'Done') . ' logged for ' . $pet['name'] : ($r['error'] ?? 'Could not save that.'));
+    rrp_redirect('routines.php?pet=' . $petId);
+}
+
 if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
     $id = (int) ($_POST['reminder_id'] ?? 0);
     // Identical open reminders (same title + time, e.g. created twice) are handled together.
@@ -152,6 +159,30 @@ rrp_app_start(['nav' => 'routines']);
       </div>
     </section>
 
+    <?php $dt = rrp_daily_today($owner, $pet); ?>
+    <section class="care-card rt-daily">
+      <h3 class="label">Every day</h3>
+      <div class="rt-tiles">
+        <?php foreach ($dt as $kind => $d): ?>
+          <form method="post" class="rt-tile<?= $d['count'] ? ' is-done' : '' ?>">
+            <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="daily" /><input type="hidden" name="kind" value="<?= rrp_h($kind) ?>" />
+            <span class="rt-ico" aria-hidden="true"><?= $d['icon'] ?></span>
+            <b><?= rrp_h($d['label']) ?></b>
+            <small><?= $d['count'] ? (int) $d['count'] . '× today · ' . rrp_h((string) $d['last']) : ($d['usual'] ? 'usually ~' . rrp_h($d['usual']) : 'not yet today') ?></small>
+            <button type="submit" class="btn <?= $d['count'] ? 'outline' : 'primary' ?>" aria-label="Log <?= rrp_h($d['label']) ?>"><?= $d['count'] ? '+1' : 'Log' ?></button>
+          </form>
+        <?php endforeach; ?>
+      </div>
+      <?php if ($daily || ($walk && $walk['goal'])): ?>
+        <ul class="rt-list">
+          <?php if ($walk && $walk['goal']): ?><li><span class="rt-when data"><?= (int) $walk['today_minutes'] ?>/<?= (int) $walk['goal'] ?>m</span><b class="rt-title">🦮 Walk goal</b><a class="link" href="walk.php">Start a walk</a></li><?php endif; ?>
+          <?php foreach ($daily as $d): ?><li><span class="rt-when data"><?= rrp_h($d['time']) ?></span><b class="rt-title"><?= rrp_h($d['title']) ?></b><small class="meta"><?= rrp_h($d['note']) ?></small></li><?php endforeach; ?>
+        </ul>
+      <?php endif; ?>
+    </section>
+
+    <h3 class="label rt-sec">Health</h3>
+
     <?php foreach ($groups as $g => $rows): if (!$rows) continue; ?>
       <section class="care-card rt-group rt-<?= $g ?>">
         <h3 class="label"><?= $labels[$g] ?></h3>
@@ -159,7 +190,7 @@ rrp_app_start(['nav' => 'routines']);
           <?php foreach ($rows as $r): ?>
             <li>
               <span class="rt-when data"><?= rrp_h($r['when']) ?></span>
-              <b class="rt-title"><?= rrp_h((string) $r['title']) ?></b>
+              <b class="rt-title"><?= rrp_routine_icon((string) $r['title']) ?> <?= rrp_h((string) $r['title']) ?></b>
               <?php if ($g === 'overdue' || $g === 'today'): ?>
                 <form method="post" class="rt-acts">
                   <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="reminder_id" value="<?= (int) $r['id'] ?>" />
@@ -173,15 +204,7 @@ rrp_app_start(['nav' => 'routines']);
       </section>
     <?php endforeach; ?>
 
-    <?php if ($daily || ($walk && $walk['goal'])): ?>
-      <section class="care-card">
-        <h3 class="label">Every day</h3>
-        <ul class="rt-list">
-          <?php foreach ($daily as $d): ?><li><span class="rt-when data"><?= rrp_h($d['time']) ?></span><b class="rt-title"><?= rrp_h($d['title']) ?></b><small class="meta"><?= rrp_h($d['note']) ?></small></li><?php endforeach; ?>
-          <?php if ($walk && $walk['goal']): ?><li><span class="rt-when data"><?= (int) $walk['today_minutes'] ?>/<?= (int) $walk['goal'] ?>m</span><b class="rt-title">🦮 Walk goal</b><a class="link" href="walk.php">Start a walk</a></li><?php endif; ?>
-        </ul>
-      </section>
-    <?php endif; ?>
+
 
     <?php if ($unscheduled): ?>
       <section class="care-card">

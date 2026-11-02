@@ -292,6 +292,9 @@ function rrp_sipo_care_blocks(array $owner, array $pet): array
     if ($labs) {
         $out['Lab results (latest per test)'] = $labs;
     }
+    if ($basics = rrp_knowledge_for_pet($pet)) {
+        $out['Health basics (reference, not a diagnosis; the vet and this pet\'s own records win)'] = $basics;
+    }
     $out['Daily life'] = rrp_daily_prompt_block($owner, $pet);
     if (in_array($pet['type'] ?? '', ['dog', 'cat'], true) || rrp_foods_for_pet($petId)) {
         $out['Food'] = rrp_food_prompt_block($owner, $pet);
