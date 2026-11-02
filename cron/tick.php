@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * Every run: reminders due, care follow-ups, meals, food supply, Lost mode pings.
  * Every 15 minutes (minute 0-4, 15-19, 30-34, 45-49): SIPO check-ins, rewards,
- * renewals and NAKI (they call the model, so not every 5 minutes).
+ * renewals, the Sunday weekly health report email and NAKI (they call the model, so not every 5 minutes).
  * The older per-job URLs keep working; remove them in hPanel once this one runs.
  */
 
@@ -43,13 +43,17 @@ $run('health', static fn() => rrp_health_cron_tick(50));
 $run('followups', static fn() => rrp_care_followup_tick(60));
 $run('meals', static fn() => rrp_food_meal_tick());
 $run('supply', static fn() => rrp_food_supply_tick());
+$run('onboarding_nudge', static fn() => rrp_onb_nudge_tick());
 rrp_ops_heartbeat('cron_health');
 
 $quarter = ((int) gmdate('i')) % 15 < 5 || isset($_GET['all']);
 if ($quarter) {
+    $run('watch', static fn() => rrp_watch_tick(40));
+    $run('learn', static fn() => rrp_learn_tick(40));
     $run('sipo_nudges', static fn() => rrp_sipo_nudge_tick(40));
     $run('rewards', static fn() => rrp_rewards_tick());
     $run('renewals', static fn() => rrp_billing_renewal_tick());
+    $run('weekly_report', static fn() => rrp_report_tick(20));
     $run('naki', static fn() => rrp_naki_tick());
     rrp_ops_heartbeat('cron_sipo');
 }

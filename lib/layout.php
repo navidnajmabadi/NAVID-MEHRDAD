@@ -198,14 +198,17 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
     $isSuper = $owner && rrp_is_super_owner($owner);
     $page = basename((string) ($_SERVER['SCRIPT_NAME'] ?? ''));
     $items = [
+        ['dashboard.php', 'Dashboard', 'Today at a glance', 'i-home'],
         ['si-chat.php', 'SIPO', 'Ask or tell SIPO anything', null],
         ['care.php', 'Health', 'Dashboard, charts, labs, food', 'i-heart'],
         ['routines.php', 'Routines', 'What is scheduled and due', 'i-routine'],
-        ['forum.php', 'Pack', 'Posts from pets near and far', 'i-social'],
         ['lost.php', $lostActive ? 'Lost mode is on' : 'Lost pet', $lostActive ? 'Open the search' : 'How it works, one tap to start', 'i-lost'],
-        ['finance.php', 'Finance', 'What you spend on your pets', 'i-doc'],
+        ['finance.php', 'Expenses', 'What you spend on your pets', 'i-doc'],
         ['settings.php', 'Settings', 'Profile, password, account', 'i-gear'],
     ];
+    if (rrp_social_enabled()) {
+        array_splice($items, 4, 0, [['forum.php', 'Pack', 'Posts from pets near and far', 'i-social']]);
+    }
     $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     ?>
 <button type="button" class="menu-btn" id="menuBtn" aria-label="Menu" aria-controls="sideMenu" aria-expanded="false">
@@ -214,14 +217,6 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
 <div class="side-backdrop" id="sideBackdrop" hidden></div>
 <nav class="side-menu" id="sideMenu" aria-label="Menu" data-csrf="<?= rrp_h(rrp_csrf_token()) ?>" hidden>
   <div class="side-head"><?php rrp_logo_endorsed(); ?><button type="button" class="iconbtn" data-menu-close aria-label="Close menu">×</button></div>
-  <ul role="list">
-    <?php foreach ($items as [$href, $label, $sub, $icon]): $cur = $page === $href; ?>
-      <li><a href="<?= rrp_h($href) ?>" class="<?= $href === 'si-chat.php' ? 'is-sipo ' : '' ?><?= $href === 'lost.php' ? 'is-lost ' : '' ?>"<?= $cur ? ' aria-current="page"' : '' ?>>
-        <?php if ($icon === null): ?><img src="<?= rrp_h($mascot) ?>" alt="" width="36" height="36" /><?php else: ?><svg aria-hidden="true"><use href="#<?= rrp_h($icon) ?>"/></svg><?php endif; ?>
-        <span><b><?= rrp_h($label) ?></b><small><?= rrp_h($sub) ?></small></span>
-      </a></li>
-    <?php endforeach; ?>
-  </ul>
   <?php if ($owner): $sw = rrp_vm_pet_switcher($owner); ?>
     <div class="side-pets" id="sidePets">
       <p class="label">My pet</p>
@@ -257,6 +252,14 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
       <?php endif; ?>
     </div>
   <?php endif; ?>
+  <ul role="list">
+    <?php foreach ($items as [$href, $label, $sub, $icon]): $cur = $page === $href; ?>
+      <li><a href="<?= rrp_h($href) ?>" class="<?= $href === 'si-chat.php' ? 'is-sipo ' : '' ?><?= $href === 'lost.php' ? 'is-lost ' : '' ?>"<?= $cur ? ' aria-current="page"' : '' ?>>
+        <?php if ($icon === null): ?><img src="<?= rrp_h($mascot) ?>" alt="" width="36" height="36" /><?php else: ?><svg aria-hidden="true"><use href="#<?= rrp_h($icon) ?>"/></svg><?php endif; ?>
+        <span><b><?= rrp_h($label) ?></b><small><?= rrp_h($sub) ?></small></span>
+      </a></li>
+    <?php endforeach; ?>
+  </ul>
   <?php if ($isSuper): ?>
     <div class="side-admin">
       <p class="label">Admin</p>
@@ -350,6 +353,7 @@ function rrp_layout_foot(array $opts = []): void
 <script src="<?= rrp_h(rrp_asset('assets/js/pet-switcher.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/install.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/menu.js', true)) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/bell.js', true)) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
 <script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src, true)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>

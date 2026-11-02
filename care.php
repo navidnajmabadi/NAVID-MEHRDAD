@@ -84,13 +84,13 @@ rrp_app_start(['nav' => 'health']);
 
   <div class="care-actions">
     <label class="btn primary care-upload">
-      <input type="file" id="careFile" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
-      <svg aria-hidden="true"><use href="#i-doc"/></svg><span>Add lab report or label</span>
+      <input type="file" id="careFile" accept="image/jpeg,image/png,image/webp,application/pdf" multiple hidden />
+      <svg aria-hidden="true"><use href="#i-doc"/></svg><span>Add lab reports or a label</span>
     </label>
     <a class="btn outline" href="si-chat.php?ask=health">Ask SIPO</a>
     <a class="btn outline" href="health-care.php">Edit records</a>
   </div>
-  <p class="meta" id="careUploadNote" aria-live="polite">Photo or PDF, up to 10 MB. SIPO saves the numbers and deletes the file.</p>
+  <p class="meta" id="careUploadNote" aria-live="polite">Photos or PDFs (several at once, any order), up to 10 MB each. SIPO saves the numbers and deletes the file.</p>
 
   <?php $top = rrp_vm_health_top($owner, $pet, $vm); rrp_view_health_top($top); ?>
   <?php rrp_view_health_dashboard($vm, false); ?>
@@ -110,9 +110,9 @@ rrp_app_start(['nav' => 'health']);
     <?php $sp = $top['spend']; if ($sp && array_sum(array_column($sp['months'], 'total')) > 0): ?>
       <?php rrp_view_bar_chart(array_map(static fn($m) => ['label' => $m['label'], 'value' => round($m['total'])], $sp['months']), $sp['currency']); ?>
       <p class="meta">This year <?= rrp_h(($top['money'])($sp['year'], $sp['currency'])) ?><?php foreach ($sp['by_category'] as $c => $v): ?> · <?= rrp_h(RRP_EXPENSE_CATEGORIES[$c] ?? $c) ?> <?= rrp_h(($top['money'])($v, $sp['currency'])) ?><?php endforeach; ?></p>
-      <a class="link" href="finance.php">Open Finance</a>
+      <a class="link" href="finance.php">Open Expenses</a>
     <?php else: ?>
-      <p class="sub">No spending yet. Tell SIPO "I spent 30 on food" or add it in <a class="link" href="finance.php">Finance</a>.</p>
+      <p class="sub">No spending yet. Tell SIPO "I spent 30 on food" or add it in <a class="link" href="finance.php">Expenses</a>.</p>
     <?php endif; ?>
   </section>
 
@@ -131,7 +131,7 @@ rrp_app_start(['nav' => 'health']);
     <?php foreach ($links as $l): ?>
       <form method="post" class="care-linkrow">
         <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="action" value="revoke" /><input type="hidden" name="id" value="<?= (int) $l['id'] ?>" />
-        <span class="meta">Link from <?= rrp_h(substr((string) $l['created_at'], 0, 10)) ?> · opened <?= (int) $l['view_count'] ?>× · until <?= rrp_h(substr((string) $l['expires_at'], 0, 10)) ?></span>
+        <span class="meta">Link from <?= rrp_h(substr((string) $l['created_at'], 0, 10)) ?> · <span class="share-views" title="Times your vet opened this link" aria-label="Opened <?= (int) $l['view_count'] ?> times"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><b><?= (int) $l['view_count'] ?></b></span> · until <?= rrp_h(substr((string) $l['expires_at'], 0, 10)) ?></span>
         <button class="link" type="submit">Turn off</button>
       </form>
     <?php endforeach; ?>
@@ -142,16 +142,13 @@ rrp_app_start(['nav' => 'health']);
   var input = document.getElementById('careFile');
   var note = document.getElementById('careUploadNote');
   input && input.addEventListener('change', function(){
-    var f = input.files && input.files[0];
-    if (!f) return;
-    if (f.size > 10 * 1024 * 1024) { note.textContent = 'That file is over 10 MB.'; return; }
-    var fd = new FormData();
-    fd.append('csrf', <?= json_encode($csrf) ?>);
-    fd.append('thread_id', <?= (int) ($thread['id'] ?? 0) ?>);
-    fd.append('file', f);
-    note.textContent = 'SIPO is reading it…';
-    fetch(<?= json_encode(rrp_asset('api/si/upload.php')) ?>, {method:'POST', credentials:'same-origin', body: fd})
-      .then(function(r){ return r.json(); })
+    var files = [].slice.call(input.files || []).slice(0, 10);
+    input.value = '';
+    if (!files.length) return;
+    if (files.some(function(f){ return f.size > 10 * 1024 * 1024; })) { note.textContent = 'A file is over 10 MB.'; return; }
+    note.textContent = files.length > 1 ? 'SIPO is reading ' + files.length + ' files…' : 'SIPO is reading it…';
+    window.sipoUploadMany(files, {url: <?= json_encode(rrp_asset('api/si/upload.php')) ?>, csrf: <?= json_encode($csrf) ?>, threadId: <?= (int) ($thread['id'] ?? 0) ?>,
+      onStep: function(i, n){ note.textContent = 'Reading file ' + i + ' of ' + n + '…'; }})
       .then(function(j){
         if (!j.ok) { note.textContent = j.error || 'Could not read that file.'; return; }
         note.textContent = 'Saved. SIPO replied in your chat.';
@@ -168,4 +165,4 @@ rrp_app_start(['nav' => 'health']);
 })();
 </script>
 <?php
-rrp_app_end(['nav' => 'health', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);
+rrp_app_end(['nav' => 'health', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active'], 'scripts' => ['assets/js/upload-many.js']]);

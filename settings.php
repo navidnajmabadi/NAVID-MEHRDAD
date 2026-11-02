@@ -32,6 +32,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         rrp_ui_set_skin((string) ($_POST['skin'] ?? 'studio'));
         rrp_flash_set('ok', 'Look changed ✨');
         rrp_redirect('settings.php#appearance');
+    } elseif ($act === 'profile') {
+        $r = rrp_onb_save_profile($owner, $_POST, false);
+        rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Profile saved 💙' : ($r['error'] ?? 'Could not save.'));
+        rrp_redirect('settings.php#profile');
+    } elseif ($act === 'photo') {
+        try {
+            if (!empty($_POST['remove'])) {
+                $path = rrp_save_pet_image(null, null, 'owners');
+                rrp_db()->prepare('UPDATE owners SET avatar_path = NULL WHERE id = ?')->execute([(int) $owner['id']]);
+                rrp_flash_set('ok', 'Photo removed.');
+            } else {
+                $path = rrp_save_pet_image($_FILES['photo'] ?? null, $owner['avatar_path'] ?? null, 'owners');
+                if ($path) {
+                    rrp_db()->prepare('UPDATE owners SET avatar_path = ? WHERE id = ?')->execute([$path, (int) $owner['id']]);
+                    rrp_flash_set('ok', 'Photo saved 💙');
+                } else {
+                    rrp_flash_set('error', 'Choose a photo first.');
+                }
+            }
+        } catch (Throwable $e) {
+            rrp_flash_set('error', $e->getMessage());
+        }
+        rrp_redirect('settings.php#profile');
+    } elseif ($act === 'report_pref') {
+        $on = !empty($_POST['report_weekly']) ? 1 : 0;
+        rrp_db()->prepare('UPDATE owners SET report_weekly = ? WHERE id = ?')->execute([$on, (int) $owner['id']]);
+        rrp_flash_set('ok', $on ? 'Weekly health report is on 📬 It arrives on Sundays.' : 'Weekly health report is off.');
+        rrp_redirect('settings.php#reports');
+    } elseif ($act === 'report_test') {
+        $r = rrp_report_send($owner);
+        rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok'])
+            ? 'Sent! Check your inbox (and spam) for your health report.'
+            : 'We could not send the email right now. Please try again in a little while.');
+        if (empty($r['ok'])) {
+            error_log('settings report_test: ' . ($r['error'] ?? 'failed'));
+        }
+        rrp_redirect('settings.php#reports');
     } elseif ($act === 'delete_request') {
         $r = rrp_account_delete_request($owner);
         rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok'])
@@ -57,7 +94,7 @@ rrp_app_start(['nav' => 'settings']);
   <?php rrp_render_flash(); ?>
 
   <a class="care-status set-me" href="account.php">
-    <span class="avatar"><?= rrp_h($initial) ?></span>
+    <?php if (!empty($owner['avatar_path'])): ?><img class="avatar" src="<?= rrp_h($owner['avatar_path']) ?>" alt="" width="40" height="40" /><?php else: ?><span class="avatar"><?= rrp_h($initial) ?></span><?php endif; ?>
     <div>
       <h2><?= rrp_h((string) ($owner['name'] ?? 'Your profile')) ?></h2>
       <p class="sub"><?= rrp_h((string) ($owner['email'] ?? '')) ?> · Edit profile, phone and address</p>
@@ -112,6 +149,30 @@ rrp_app_start(['nav' => 'settings']);
     </form>
   </section>
 
+  <section class="care-card" id="profile">
+    <h3 class="label">Your profile</h3>
+    <form method="post" enctype="multipart/form-data" class="set-photo" id="photoForm">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="photo" />
+      <?php if (!empty($owner['avatar_path'])): ?><img class="avatar" src="<?= rrp_h($owner['avatar_path']) ?>" alt="Your photo" width="64" height="64" /><?php else: ?><span class="avatar" aria-hidden="true"><?= rrp_h($initial) ?></span><?php endif; ?>
+      <div>
+        <label class="btn outline" for="pfPhoto">Change photo</label>
+        <input id="pfPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()" />
+        <?php if (!empty($owner['avatar_path'])): ?><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
+      </div>
+    </form>
+    <form method="post" class="auth-form" style="padding:0">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="profile" />
+      <div class="field"><label for="pfName">Name</label><div class="in"><input id="pfName" name="name" required maxlength="80" value="<?= rrp_h(trim((string) ($owner['nickname'] ?? '')) ?: (string) ($owner['name'] ?? '')) ?>" /></div></div>
+      <?php $pfCode = rrp_onb_country_code((string) ($owner['country'] ?? '')); ?>
+      <div class="field"><label for="pfCountry">Country</label><div class="in"><select id="pfCountry" name="country">
+        <option value="">Not set</option>
+        <?php foreach (rrp_onb_countries() as $code => $cname): ?><option value="<?= rrp_h($code) ?>" <?= $pfCode === $code ? 'selected' : '' ?>><?= rrp_h($cname) ?></option><?php endforeach; ?>
+      </select></div></div>
+      <div class="field"><label for="pfCity">City</label><div class="in"><input id="pfCity" name="city" maxlength="80" value="<?= rrp_h((string) ($owner['city'] ?? '')) ?>" /></div></div>
+      <button class="btn secondary" type="submit">Save profile</button>
+    </form>
+  </section>
+
   <section class="care-card" id="appearance">
     <h3 class="label">Appearance</h3>
     <form method="post" class="skin-pick">
@@ -122,6 +183,31 @@ rrp_app_start(['nav' => 'settings']);
           <b><?= rrp_h(RRP_UI_SKINS[$k]) ?></b><small><?= rrp_h($why) ?></small>
         </button>
       <?php endforeach; ?>
+    </form>
+  </section>
+
+  <section class="care-card" id="notifications">
+    <h3 class="label">Phone notifications</h3>
+    <p class="sub" id="pnHint">Checking this device…</p>
+    <div class="set-photo" style="margin:10px 0 0">
+      <div>
+        <button type="button" class="btn primary" id="pnEnable" hidden>Turn on</button>
+        <button type="button" class="btn outline" id="pnTest">Send me a test</button>
+      </div>
+    </div>
+    <p class="meta" id="pnResult" aria-live="polite"></p>
+  </section>
+
+  <section class="care-card" id="reports">
+    <h3 class="label">Health report by email</h3>
+    <p class="meta" style="margin:0 0 10px">Every Sunday SIPO emails you how each pet did: walks, potty, weight trend, vaccines and lab flags, plus a caring note.</p>
+    <form method="post" class="row" style="gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="report_pref" />
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="report_weekly" value="1" <?= !empty($owner['report_weekly']) ? 'checked' : '' ?> onchange="this.form.submit()" /> Send me the weekly report</label>
+    </form>
+    <form method="post" style="margin-top:10px">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="report_test" />
+      <button type="submit" class="btn btn-secondary">Send me one now</button>
     </form>
   </section>
 
@@ -151,5 +237,32 @@ rrp_app_start(['nav' => 'settings']);
   </section>
   <p class="meta" style="text-align:center"><a class="link" href="legal.php">Terms and privacy</a></p>
 </div>
+<?php
+?>
+<script>
+(function () {
+  var hint = document.getElementById('pnHint'), en = document.getElementById('pnEnable'), test = document.getElementById('pnTest'), out = document.getElementById('pnResult');
+  function refresh() {
+    if (!window.RRPPush) { setTimeout(refresh, 300); return; }
+    window.RRPPush.status().then(function (s) {
+      hint.textContent = s.subscribed ? 'On for this device. Reminders and SIPO reach you even when the app is closed.' : (s.hint || 'Off on this device.');
+      en.hidden = !(s.supported && s.configured && !s.subscribed && s.permission !== 'denied' && !(s.ios && !s.standalone));
+    });
+  }
+  refresh();
+  en.addEventListener('click', function () {
+    window.RRPPush.enable().then(function (r) { out.textContent = r && r.ok ? 'Turned on 💙' : 'Could not turn it on (' + ((r && r.error) || 'unknown') + ').'; refresh(); });
+  });
+  test.addEventListener('click', function () {
+    out.textContent = 'Sending…';
+    var fd = new FormData(); fd.append('csrf', <?= json_encode($csrf) ?>);
+    fetch('api/push-test.php', { method: 'POST', credentials: 'same-origin', body: fd }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j.devices) { out.textContent = j.error || 'Could not send.'; return; }
+      out.textContent = (j.ok ? 'Sent. It should pop up now. ' : 'It did not go through. ') +
+        j.devices.map(function (d) { return d.service + ': ' + (d.ok ? 'delivered to the push service (' + d.status + ')' : 'failed (' + (d.error || d.status) + ')'); }).join(' · ');
+    }).catch(function () { out.textContent = 'Could not reach the server.'; });
+  });
+})();
+</script>
 <?php
 rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

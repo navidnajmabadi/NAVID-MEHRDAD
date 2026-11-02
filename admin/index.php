@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/lib/bootstrap.php';
 require_once dirname(__DIR__) . '/lib/layout.php';
 require_once dirname(__DIR__) . '/lib/admin_layout.php';
+require_once dirname(__DIR__) . '/lib/views/health_dashboard.php';
 
 $admin = rrp_require_admin();
 $stats = rrp_admin_stats();
@@ -41,11 +42,13 @@ rrp_admin_shell_start('Overview', 'home');
     </div>
   </div>
 
-  <section class="panel" aria-labelledby="billStub">
-    <h2 id="billStub">Billing placeholders</h2>
-    <p class="meta" style="margin:0">
-      Seat price target: <strong>$5 / pet / month</strong> · yearly −30% · coupons table ready · wallet on owners.
-      Payments provider TBD — no checkout in this release.
-    </p>
+  <?php $g = rrp_ins_growth(14); ?>
+  <section class="panel">
+    <h2>Last 14 days</h2>
+    <p class="meta">New owners per day</p>
+    <?php rrp_view_bar_chart(array_map(static fn($d) => ['label' => substr($d['date'], 8), 'value' => $d['value']], $g['signups']), 'owners'); ?>
+    <p class="meta" style="margin-top:10px">Pets added per day</p>
+    <?php rrp_view_bar_chart(array_map(static fn($d) => ['label' => substr($d['date'], 8), 'value' => $d['value']], $g['pets']), 'pets'); ?>
+    <p class="meta" style="margin-top:10px"><a class="link" href="insights.php">More charts in Insights</a></p>
   </section>
 <?php rrp_admin_shell_end(); ?>

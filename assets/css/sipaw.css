@@ -978,3 +978,23 @@ button:disabled,a[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
 .page-auth .app-main .auth-form,.page-auth .app-main form.auth-form{padding-left:4px;padding-right:4px}
 .page-auth .app-main .auth-form.sso{padding-bottom:0}
 .page-auth #login-form{padding:8px 4px 0}
+
+/* Welcome (first sign-in): SIPO full body, three short steps */
+.page-welcome .wel{max-width:480px;margin:0 auto;padding:20px 18px 36px;display:flex;flex-direction:column;gap:16px;min-height:100vh;justify-content:center}
+.wel-dots{display:flex;gap:6px;justify-content:center}
+.wel-dots i{width:30px;height:4px;border-radius:99px;background:var(--line)}
+.wel-dots i.on{background:var(--blue)}
+.wel-form{display:flex;flex-direction:column;gap:16px}
+.wel-step{display:flex;flex-direction:column;gap:14px;animation:welIn .38s ease both}
+.wel-js .wel-step{display:none}
+.wel-js .wel-step.on{display:flex}
+.wel-sipo{width:min(60vw,285px);height:auto;align-self:center;filter:drop-shadow(0 18px 28px rgba(46,106,255,.22))}
+.wel-sipo.sm{width:104px}
+.wel-bubble{border:1px solid var(--line);border-radius:18px;padding:16px 18px;background:var(--bg)}
+.wel-bubble h1{margin:0 0 6px;font-size:22px;line-height:1.25}
+.wel-bubble p{margin:0;color:var(--sub);font-size:15px;line-height:1.55}
+.wel-bubble ul{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5}
+.wel-bubble li::before{content:"✓ ";color:var(--blue);font-weight:700}
+.wel-step select{width:100%}
+@keyframes welIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.wel-step{animation:none}}

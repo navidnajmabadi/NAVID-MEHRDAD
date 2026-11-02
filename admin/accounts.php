@@ -23,12 +23,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $q = trim((string) ($_GET['q'] ?? ''));
 $owners = rrp_admin_search_owners($q, 80);
+$usage = rrp_admin_usage_map(array_map(static fn($o) => (int) $o['id'], $owners));
+$sum = ['msgs' => 0, 'tokens' => 0];
+foreach ($usage as $u) {
+    $sum['msgs'] += $u['msgs_7d'];
+    $sum['tokens'] += $u['tokens_7d'];
+}
 
 rrp_admin_shell_start('Accounts', 'accounts');
 ?>
   <h1>Accounts</h1>
-  <p class="lede">Search and suspend owner accounts.</p>
+  <p class="lede">Search owner accounts, see how much each one uses SIPO, and suspend if needed.</p>
   <?php rrp_render_flash(); ?>
+
+  <div class="panel panel-soft" style="margin-bottom:10px">
+    <strong>Last 7 days, accounts shown:</strong>
+    <?= number_format($sum['msgs']) ?> messages to SIPO · <?= number_format($sum['tokens']) ?> tokens
+  </div>
 
   <form method="get" class="panel row" style="align-items:flex-end">
     <div style="flex:2">
@@ -53,6 +64,15 @@ rrp_admin_shell_start('Accounts', 'accounts');
             · sub <?= rrp_h((string) $o['subscription_status']) ?>
             · wallet $<?= rrp_h(number_format((float) $o['wallet_balance'], 2)) ?>
           </div>
+          <?php $u = $usage[(int) $o['id']] ?? null; if ($u): ?>
+          <div class="meta" style="margin-top:4px">
+            <b>SIPO use</b>:
+            today <?= (int) $u['msgs_today'] ?> msgs · <?= number_format($u['tokens_today']) ?> tokens;
+            7 days <?= (int) $u['msgs_7d'] ?> msgs · <?= number_format($u['tokens_7d']) ?> tokens;
+            all time <?= (int) $u['msgs_all'] ?> msgs · <?= number_format($u['tokens_all']) ?> tokens;
+            last chat <?= $u['last_chat'] ? rrp_h((string) $u['last_chat']) . ' UTC' : 'never' ?>
+          </div>
+          <?php endif; ?>
         </div>
         <form method="post">
           <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />

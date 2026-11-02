@@ -3,7 +3,7 @@
  * and a cached copy showed owners stale chats and broke login ("Session expired").
  * Only static files are cached (stale-while-revalidate). Offline → offline.html.
  */
-const CACHE = "sipaw-static-v3";
+const CACHE = "sipaw-static-v4";
 const OFFLINE = "./offline.html";
 const PRECACHE = [
   OFFLINE,
@@ -83,21 +83,29 @@ self.addEventListener("push", (event) => {
   }
 
   const openUrl = data.url || "./si-chat.php";
+  const urgent = openUrl.indexOf("lost-alert") !== -1 || openUrl.indexOf("lost.php") !== -1;
+  // Each notification gets its own tag so they stack instead of replacing each other, and they stay
+  // on screen until tapped or dismissed (Chrome on desktop hides them after ~5 seconds otherwise).
+  const tag = data.tag || ("sipaw-" + Date.now());
   event.waitUntil(
     self.registration.showNotification(data.title || "SIPAW", {
       body: data.body || "",
       icon: data.icon || "./assets/icons/icon-192.png",
       badge: data.badge || "./assets/icons/icon-192.png",
       data: { url: openUrl },
-      renotify: true,
-      tag: openUrl.indexOf("lost-alert") !== -1 ? "rrp-lost" : "rrp-alert",
-      requireInteraction: openUrl.indexOf("lost-alert") !== -1,
+      tag: tag,
+      renotify: false,
+      requireInteraction: true,
+      timestamp: Date.now(),
+      vibrate: urgent ? [200, 100, 200, 100, 200] : [120, 60, 120],
+      actions: [{ action: "open", title: "Open" }, { action: "dismiss", title: "Dismiss" }],
     })
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+  if (event.action === "dismiss") return;
   const target = (event.notification.data && event.notification.data.url) || "./si-chat.php";
   const abs = new URL(target, self.location.origin).href;
 

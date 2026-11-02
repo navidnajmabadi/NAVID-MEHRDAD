@@ -16,6 +16,14 @@ $vm = rrp_vm_chat($owner, !empty($_GET['new']));
 // "Ask SIPO" from another page: SIPO explains that page (the question is sent once on load).
 $askKey = (string) ($_GET['ask'] ?? '');
 $vm['auto_ask'] = !empty($vm['thread']['pet']) && isset(RRP_SIPO_ASK_TOPICS[$askKey]) ? RRP_SIPO_ASK_TOPICS[$askKey] : null;
+if ($askKey === 'lab' && !empty($vm['thread']['pet'])) {
+    foreach (rrp_labs_trends((int) $vm['thread']['pet']['id']) as $a) {
+        if ($a['key'] === (string) ($_GET['lab'] ?? '')) {
+            $vm['auto_ask'] = 'Please analyse ' . $a['label'] . ' for ' . $vm['thread']['pet']['name'] . ': the latest value against its range, the trend over the earlier reports, and what could explain it given the breed, age, weight and routines. Tell me what to ask the vet.';
+            break;
+        }
+    }
+}
 $nav = rrp_owner_nav_context((int) $owner['id']);
 $csrf = rrp_csrf_token();
 $petName = $vm['thread']['pet']['name'] ?? null;
@@ -70,7 +78,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
     <form class="sipo-composer" id="sipoForm" autocomplete="off">
       <?php if (!$vm['thread']['onboarding']): ?>
       <label class="sipo-attach" title="Send a photo or PDF (lab report, food label, prescription, pet photo)">
-        <input type="file" id="sipoFile" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
+        <input type="file" id="sipoFile" accept="image/jpeg,image/png,image/webp,application/pdf" multiple hidden />
         <svg aria-hidden="true"><use href="#i-clip"/></svg><span class="sr-only">Attach a photo or PDF</span>
       </label>
       <?php endif; ?>
@@ -125,5 +133,5 @@ rrp_app_end([
     'nav' => 'chat',
     'unread' => $nav['unread'],
     'lost_active' => $nav['lost_active'],
-    'scripts' => ['assets/js/sipo.js', 'assets/js/sipo-chat.js'],
+    'scripts' => ['assets/js/sipo.js', 'assets/js/upload-many.js', 'assets/js/sipo-chat.js'],
 ]);

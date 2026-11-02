@@ -125,7 +125,7 @@ You read files that a pet owner sends about their {$kind} "{$pet['name']}". Retu
  "prescription": {"medicine": "", "dose_as_written": "exactly as printed", "frequency_as_written": "",
                   "duration_as_written": "", "condition": "", "vet": ""}
 }
-Rules: copy numbers exactly as printed; never guess a value or range that is not on the page;
+Rules: reports may be in Persian or Arabic: read Persian digits (۰-۹) as normal numbers. Dates may be Persian (Jalali/Shamsi), e.g. 1403/05/12 or ۱۴۰۳/۰۵/۱۲: convert them to the Gregorian YYYY-MM-DD in examined_on (the app double-checks). Copy numbers exactly as printed; never guess a value or range that is not on the page;
 convert "ME (calculated): 3,650 kcal/kg" style numbers to plain numbers; leave sections you don't need as null.
 A photo of an animal with no document is "pet_photo".
 TXT;
@@ -143,6 +143,9 @@ function rrp_care_route_extract(array $owner, array $pet, array $x, string $tmp,
     if ($kind === 'lab_report' && !empty($x['lab']['results'])) {
         $r = rrp_labs_save($owner, $pet, (array) $x['lab'] + ['summary' => $x['summary'] ?? null]);
         $saved = $r;
+        if (!empty($r['ok']) && !empty($r['duplicate'])) {
+            return ['ok' => true, 'kind' => $kind, 'body' => "📎 Lab report from {$r['date']} was already saved, so I did not add it twice.", 'saved' => $saved];
+        }
         if (!empty($r['ok'])) {
             $c = $r['counts'];
             $lines = ["📎 Lab report from {$r['date']}: " . array_sum($c) . ' results — ' . $c['normal'] . ' in range, ' . ($c['low'] + $c['high']) . ' outside.'];

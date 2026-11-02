@@ -4,6 +4,7 @@ declare(strict_types=1);
 /**
  * Pet spending (pet_expenses, migration 006): log from SIPO or the Finance page,
  * monthly totals and by-category breakdown for the dashboard.
+ * Shown to owners as "Expenses" (page file stays finance.php so old links keep working).
  */
 
 const RRP_EXPENSE_CATEGORIES = ['food' => 'Food', 'vet' => 'Vet', 'meds' => 'Medicine', 'groom' => 'Grooming', 'supplies' => 'Supplies', 'other' => 'Other'];
@@ -50,7 +51,7 @@ function rrp_expense_currency(array $owner): string
 
 /**
  * @return array{currency:string, this_month:float, last_month:float, year:float,
- *   months:list<array{month:string,label:string,total:float}>, by_category:array<string,float>, recent:list<array>}
+ *   months:list<array{month:string,label:string,total:float}>, by_category:array<string,float>, by_pet:list<array{id:int,name:string,total:float,this_month:float}>, recent:list<array>}
  */
 function rrp_expense_summary(array $owner, ?array $pet = null, int $months = 6): array
 {
@@ -83,6 +84,18 @@ function rrp_expense_summary(array $owner, ?array $pet = null, int $months = 6):
     $st->execute([...$args, $now->format('Y-01-01')]);
     $year = (float) $st->fetchColumn();
 
+    // Per pet, over the same window: shown on the "All pets" view next to the combined total.
+    $byPet = [];
+    $st = rrp_db()->prepare(
+        "SELECT p.id, p.name, SUM(e.amount) AS t, SUM(CASE WHEN DATE_FORMAT(e.spent_on, '%Y-%m') = ? THEN e.amount ELSE 0 END) AS tm
+         FROM pet_expenses e JOIN pets p ON p.id = e.pet_id
+         WHERE e.owner_id = ? AND e.currency = ? AND e.spent_on >= ? GROUP BY p.id, p.name ORDER BY t DESC"
+    );
+    $st->execute([$now->format('Y-m'), (int) $owner['id'], $cur, $from]);
+    foreach ($st->fetchAll() as $r) {
+        $byPet[] = ['id' => (int) $r['id'], 'name' => (string) $r['name'], 'total' => (float) $r['t'], 'this_month' => (float) $r['tm']];
+    }
+
     $st = rrp_db()->prepare(
         'SELECT e.id, e.category, e.amount, e.currency, e.spent_on, e.note, p.name AS pet_name FROM pet_expenses e JOIN pets p ON p.id = e.pet_id
          WHERE e.owner_id = ?' . ($pet ? ' AND e.pet_id = ?' : '') . ' ORDER BY e.spent_on DESC, e.id DESC LIMIT 20'
@@ -96,6 +109,7 @@ function rrp_expense_summary(array $owner, ?array $pet = null, int $months = 6):
         'year' => $year,
         'months' => $series,
         'by_category' => $cat,
+        'by_pet' => $byPet,
         'recent' => $st->fetchAll(),
     ];
 }

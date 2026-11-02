@@ -6,6 +6,7 @@ declare(strict_types=1);
  * - Cool Down: more than ~100K tokens in a rolling 2 hours → pause 2 hours.
  * - Any sense of urgency lifts every limit for that message.
  * - Free plan daily cap comes from config (0 = unlimited while in test mode).
+ * - All of it is OFF unless sipo.limits_enabled is true (see rrp_limits_on() in plan.php).
  */
 
 function rrp_sipo_cfg(string $key, mixed $default): mixed
@@ -27,6 +28,8 @@ function rrp_sipo_track_tokens(int $ownerId, int $tokens): void
     if ($tokens <= 0) {
         return;
     }
+    // Permanent per-day usage for Admin (the window below is wiped by a Cool Down).
+    rrp_si_bump_usage($ownerId, 0, $tokens);
     try {
         $stmt = rrp_db()->prepare(
             'INSERT INTO sipo_token_window (owner_id, bucket_start, tokens) VALUES (?, ?, ?)
@@ -53,6 +56,9 @@ function rrp_sipo_tokens_recent(int $ownerId, int $minutes): int
 /** Cool Down end time if the owner is cooling down, else null. Starts one when over budget. */
 function rrp_sipo_cooldown_until(array $owner): ?DateTimeImmutable
 {
+    if (!rrp_limits_on()) {
+        return null;
+    }
     $utc = new DateTimeZone('UTC');
     $now = new DateTimeImmutable('now', $utc);
     $until = !empty($owner['sipo_cooldown_until']) ? new DateTimeImmutable((string) $owner['sipo_cooldown_until'], $utc) : null;
@@ -110,7 +116,7 @@ function rrp_sipo_looks_urgent(string $text): bool
 function rrp_sipo_gate(array $owner, string $text = ''): array
 {
     $emergency = $text !== '' && rrp_sipo_looks_urgent($text);
-    if ($emergency || rrp_is_super_owner($owner)) {
+    if ($emergency || rrp_is_super_owner($owner) || !rrp_limits_on()) {
         return ['ok' => true, 'emergency' => $emergency];
     }
 

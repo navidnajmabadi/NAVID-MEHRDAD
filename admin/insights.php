@@ -13,7 +13,7 @@ $points = rrp_ins_map_points();
 $species = rrp_ins_species();
 $conds = array_slice(rrp_ins_conditions_by_city(), 0, 25);
 $labs = rrp_ins_lab_rates();
-$social = rrp_ins_social();
+$growth = rrp_ins_growth(30);
 $min = rrp_ins_min_group();
 $usd = static fn(int $c) => '$' . number_format($c / 100, 2);
 $bars = static function (array $rows, string $k = 'k', string $n = 'n'): void {
@@ -84,14 +84,13 @@ rrp_admin_shell_start('Insights', 'insights');
       </table>
     </section>
     <section class="dash-card">
-      <h2>Boards (admin only)</h2>
-      <p class="meta">Posts <?= (int) $social['posts_30'] ?> · comments <?= (int) $social['comments_30'] ?> · removed <?= (int) $social['removed_30'] ?> (30 days)</p>
-      <p class="meta">Talked about most: <?= rrp_h(implode(', ', array_map(static fn($w, $n) => "{$w} ({$n})", array_keys($social['top_words']), $social['top_words']))) ?: '—' ?></p>
-    </section>
-    <section class="dash-card">
-      <h2>Report factory</h2>
-      <p class="meta">De-identified CSV for analysis and future reports.</p>
-      <ul><?php foreach (rrp_ins_reports() as $k => $label): ?><li><a class="link" href="report.php?r=<?= rrp_h($k) ?>"><?= rrp_h($label) ?></a></li><?php endforeach; ?></ul>
+      <h2>Growth · 30 days</h2>
+      <p class="meta">New owners per day (<?= (int) array_sum(array_column($growth['signups'], 'value')) ?> total)</p>
+      <?php rrp_view_bar_chart(array_map(static fn($d) => ['label' => substr($d['date'], 8), 'value' => $d['value']], $growth['signups']), 'owners'); ?>
+      <p class="meta" style="margin-top:10px">Pets added per day (<?= (int) array_sum(array_column($growth['pets'], 'value')) ?> total)</p>
+      <?php rrp_view_bar_chart(array_map(static fn($d) => ['label' => substr($d['date'], 8), 'value' => $d['value']], $growth['pets']), 'pets'); ?>
+      <p class="meta" style="margin-top:10px">Lab results saved per day (<?= (int) array_sum(array_column($growth['labs'], 'value')) ?> total)</p>
+      <?php rrp_view_bar_chart(array_map(static fn($d) => ['label' => substr($d['date'], 8), 'value' => $d['value']], $growth['labs']), 'results'); ?>
     </section>
   </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>

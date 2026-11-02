@@ -78,7 +78,7 @@ function rrp_lost_inbox_for_owner(int $ownerId, int $limit = 20): array
 /**
  * @return array{ok:bool, alert_id?:int, recipients?:int, error?:string}
  */
-function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?float $seenLng = null): array
+function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?float $seenLng = null, ?string $seenNote = null): array
 {
     $pet = rrp_pet_by_id($petId, $ownerId);
     if (!$pet) {
@@ -95,11 +95,26 @@ function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?flo
         return ['ok' => false, 'error' => 'Account not active.'];
     }
 
-    // Centre: home area from the map (since PR 1 signup has no address) → geocoded address →
-    // the owner's GPS at the last-seen spot.
-    $lat = $owner['home_lat'] !== null ? (float) $owner['home_lat'] : ($owner['lat'] !== null ? (float) $owner['lat'] : null);
-    $lng = $owner['home_lng'] !== null ? (float) $owner['home_lng'] : ($owner['lng'] !== null ? (float) $owner['lng'] : null);
+    // The alert goes to owners around where the pet was LAST SEEN: GPS if shared, else the place the
+    // owner typed (geocoded, with their city for context). Home area only when neither is known.
+    $seenNote = $seenNote !== null ? trim($seenNote) : '';
+    if (($seenLat === null || $seenLng === null) && $seenNote !== '') {
+        $ctxCity = trim((string) ($owner['address'] ?? ''));
+        $g = rrp_geocode_address($seenNote . ($ctxCity !== '' ? ', ' . $ctxCity : ''));
+        if (!empty($g['ok'])) {
+            $seenLat = (float) $g['lat'];
+            $seenLng = (float) $g['lng'];
+        }
+    }
+    $centre = 'last_seen';
+    $lat = $seenLat;
+    $lng = $seenLng;
 
+    if ($lat === null || $lng === null) {
+        $centre = 'home';
+        $lat = $owner['home_lat'] !== null ? (float) $owner['home_lat'] : ($owner['lat'] !== null ? (float) $owner['lat'] : null);
+        $lng = $owner['home_lng'] !== null ? (float) $owner['home_lng'] : ($owner['lng'] !== null ? (float) $owner['lng'] : null);
+    }
     if (($lat === null || $lng === null) && trim((string) ($owner['address'] ?? '')) !== '') {
         rrp_owner_apply_geocode($ownerId, (string) $owner['address']);
         $stmt->execute([$ownerId]);
@@ -108,15 +123,10 @@ function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?flo
         $lng = $owner['lng'] !== null ? (float) $owner['lng'] : null;
     }
 
-    if (($lat === null || $lng === null) && $seenLat !== null && $seenLng !== null) {
-        $lat = $seenLat;
-        $lng = $seenLng;
-    }
-
     if ($lat === null || $lng === null) {
         return [
             'ok' => false,
-            'error' => 'SIPAW needs to know roughly where to alert. Tap "I\'m where they were last seen", or set your home area on the map, then try again.',
+            'error' => 'SIPAW needs to know where ' . $pet['name'] . ' was last seen to alert the right area. Share the spot ("I\'m where they were last seen") or type the place, then try again.',
         ];
     }
 
@@ -129,8 +139,9 @@ function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?flo
             'INSERT INTO lost_alerts (
                 pet_id, owner_id, status, center_lat, center_lng, radius_km,
                 pet_name, pet_type, image_path, identifying_marks, magic_word, medical_notes,
+                last_seen_lat, last_seen_lng, last_seen_note,
                 started_at, ping_count, last_ping_at, next_ping_at
-             ) VALUES (?, ?, \'open\', ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), 0, NULL, UTC_TIMESTAMP())'
+             ) VALUES (?, ?, \'open\', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), 0, NULL, UTC_TIMESTAMP())'
         );
         $ins->execute([
             $petId,
@@ -144,6 +155,9 @@ function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?flo
             $pet['identifying_marks'],
             $pet['magic_word'],
             $medical,
+            $centre === 'last_seen' ? $lat : null,
+            $centre === 'last_seen' ? $lng : null,
+            $seenNote !== '' ? mb_substr($seenNote, 0, 255) : null,
         ]);
         $alertId = (int) $pdo->lastInsertId();
 
@@ -168,7 +182,7 @@ function rrp_trigger_lost(int $ownerId, int $petId, ?float $seenLat = null, ?flo
         rrp_lost_send_ping($alert, true);
     }
 
-    return ['ok' => true, 'alert_id' => $alertId, 'recipients' => count($nearby)];
+    return ['ok' => true, 'alert_id' => $alertId, 'recipients' => count($nearby), 'centre' => $centre, 'radius_km' => $radius];
 }
 
 /**
@@ -245,6 +259,9 @@ function rrp_lost_send_ping(array $alert, bool $isImmediate = false): void
         'Distinctive marks: ' . ($alert['identifying_marks'] ?: '—'),
         'Magic word: ' . ($alert['magic_word'] ?: '—'),
     ];
+    if (!empty($alert['last_seen_note'])) {
+        array_splice($bodyParts, 2, 0, ['Last seen near: ' . $alert['last_seen_note']]);
+    }
     if (!empty($alert['medical_notes'])) {
         $bodyParts[] = 'Medical: ' . $alert['medical_notes'];
     }

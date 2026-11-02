@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = rrp_register_owner($_POST);
             if (!empty($result['ok'])) {
                 rrp_referral_attach((int) $result['owner_id'], $_COOKIE['sipaw_ref'] ?? null);
-                rrp_redirect('si-chat.php?new=1');
+                rrp_redirect('welcome.php');
             }
             $error = $result['error'] ?? 'Could not create account.';
         }

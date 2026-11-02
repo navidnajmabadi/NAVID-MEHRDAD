@@ -180,6 +180,16 @@ function rrp_care_catalog(string $species, string $region, ?string $lifestyle = 
         }
     }
 
+    if ($isDog || $isCat) {
+        $rows[] = [
+            'key' => $species . '_bloodwork', 'group' => 'checkup', 'title' => 'Blood and urine tests',
+            'interval_days' => 365, 'when' => 'Once a year for adults, twice a year for seniors',
+            'note' => 'Catches kidney, liver, thyroid and sugar changes early.',
+            'sources' => ['wsava'],
+            'ask' => 'When were the last blood tests done?',
+        ];
+    }
+
     // Every species
     $rows[] = [
         'key' => $species . '_checkup', 'group' => 'checkup', 'title' => 'Vet health check',

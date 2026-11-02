@@ -177,6 +177,37 @@ function rrp_ins_social(): array
 }
 
 /** Report factory: dataset key → [title, rows]. */
+/**
+ * Daily counts for the last $days days (zero-filled): owners joined, pets added, lab results saved.
+ *
+ * @return array{signups:list<array{date:string,value:float}>, pets:list<array{date:string,value:float}>, labs:list<array{date:string,value:float}>}
+ */
+function rrp_ins_growth(int $days = 30): array
+{
+    $since = gmdate('Y-m-d', time() - ($days - 1) * 86400);
+    $count = static function (string $sql) use ($since): array {
+        $m = [];
+        foreach (rrp_ins_q($sql, [$since]) as $r) {
+            $m[(string) $r['d']] = (float) $r['n'];
+        }
+        return $m;
+    };
+    $sets = [
+        'signups' => $count('SELECT DATE(created_at) AS d, COUNT(*) AS n FROM owners WHERE created_at >= ? GROUP BY d'),
+        'pets' => $count('SELECT DATE(created_at) AS d, COUNT(*) AS n FROM pets WHERE created_at >= ? GROUP BY d'),
+        'labs' => $count('SELECT DATE(e.created_at) AS d, COUNT(*) AS n FROM health_lab_results r JOIN health_examinations e ON e.id = r.examination_id WHERE e.created_at >= ? GROUP BY d'),
+    ];
+    $out = [];
+    foreach ($sets as $k => $m) {
+        $out[$k] = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d = gmdate('Y-m-d', time() - $i * 86400);
+            $out[$k][] = ['date' => $d, 'value' => $m[$d] ?? 0.0];
+        }
+    }
+    return $out;
+}
+
 function rrp_ins_reports(): array
 {
     return [

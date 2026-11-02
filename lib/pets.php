@@ -75,7 +75,7 @@ function rrp_pet_type_label(array $pet): string
     return ucfirst((string) $pet['type']);
 }
 
-function rrp_save_pet_image(?array $file, ?string $existing = null): ?string
+function rrp_save_pet_image(?array $file, ?string $existing = null, string $folder = 'pets'): ?string
 {
     if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
         return $existing;
@@ -99,7 +99,7 @@ function rrp_save_pet_image(?array $file, ?string $existing = null): ?string
         throw new RuntimeException('Use a JPG, PNG, WebP, or GIF image.');
     }
 
-    $dir = dirname(__DIR__) . '/uploads/pets';
+    $dir = dirname(__DIR__) . '/uploads/' . $folder;
     if (!is_dir($dir)) {
         mkdir($dir, 0755, true);
     }
@@ -117,7 +117,7 @@ function rrp_save_pet_image(?array $file, ?string $existing = null): ?string
         }
     }
 
-    return 'uploads/pets/' . $name;
+    return 'uploads/' . $folder . '/' . $name;
 }
 
 function rrp_create_pet(int $ownerId, array $data, ?array $file = null): array

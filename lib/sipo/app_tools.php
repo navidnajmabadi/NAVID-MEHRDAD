@@ -20,9 +20,8 @@ function rrp_sipo_app_pages(): array
         'health' => ['care.php', 'Health dashboard: profile, routines, vaccines, treatments, labs, food, charts'],
         'daily' => ['daily.php', 'Daily life: bathroom, walks, grooming'],
         'routines' => ['routines.php', 'Everything scheduled: overdue, today, this week'],
-        'social' => ['forum.php', 'Social board: posts from pets'],
         'lost' => ['lost.php', 'Lost mode page and how it works'],
-        'finance' => ['finance.php', 'Spending on pets: monthly totals and categories'],
+        'finance' => ['finance.php', 'Expenses on pets: monthly totals and categories'],
         'settings' => ['settings.php', 'Settings: profile, pets, password, account'],
         'account' => ['account.php', 'Owner profile: name, phone, address'],
         'notifications' => ['alerts.php', 'Notification centre'],
@@ -51,7 +50,8 @@ function rrp_sipo_app_tool_defs(callable $fn): array
         ], ['name']),
         $fn('list_my_pets', 'List all of the owner\'s pets with kind and whether Lost mode is on.', []),
         $fn('start_lost_mode', 'Turn on Lost mode for THIS pet when the owner says it is lost or missing. Alerts nearby SIPAW users.', [
-            'seen_lat' => ['type' => 'number', 'description' => 'Only if the owner shared where it was last seen'],
+            'seen_place' => ['type' => 'string', 'description' => 'WHERE the pet was last seen, in the owner\'s words (street, park, area, landmark). Ask for it before calling; the alert goes to owners around that spot.'],
+            'seen_lat' => ['type' => 'number', 'description' => 'Only if the owner shared their GPS spot'],
             'seen_lng' => ['type' => 'number'],
         ]),
         $fn('mark_pet_found', 'Close Lost mode for THIS pet when the owner says it is home or found.', []),
@@ -60,9 +60,9 @@ function rrp_sipo_app_tool_defs(callable $fn): array
             'phone' => ['type' => 'string'],
             'address' => ['type' => 'string', 'description' => 'Home address or area, used for nearby Lost mode alerts'],
         ]),
-        $fn('post_to_social', 'Publish a post on the Social board as THIS pet. If the owner asks you to write one, write it yourself (short, warm, 1 to 3 emojis, in the pet\'s voice if fun), show the draft, and call this only after they say yes.', [
+        ...(rrp_social_enabled() ? [$fn('post_to_social', 'Publish a post on the Social board as THIS pet. If the owner asks you to write one, write it yourself (short, warm, 1 to 3 emojis, in the pet\'s voice if fun), show the draft, and call this only after they say yes.', [
             'text' => ['type' => 'string'],
-        ], ['text']),
+        ], ['text'])] : []),
         $fn('open_page', 'Only when the owner explicitly asks to see or open a page (e.g. "show my dashboard", "open settings"): shows a button to open it. Never call it to answer a question about a page. Pages: '
             . implode(', ', array_map(static fn($k, $p) => $k . ' (' . $p[1] . ')', array_keys(rrp_sipo_app_pages()), rrp_sipo_app_pages())), [
             'page' => ['type' => 'string', 'enum' => array_keys(rrp_sipo_app_pages())],
@@ -141,14 +141,16 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
             }
             $lat = isset($a['seen_lat']) ? (float) $a['seen_lat'] : null;
             $lng = isset($a['seen_lng']) ? (float) $a['seen_lng'] : null;
-            $res = rrp_trigger_lost($ownerId, (int) $pet['id'], $lat, $lng);
+            $res = rrp_trigger_lost($ownerId, (int) $pet['id'], $lat, $lng, isset($a['seen_place']) ? (string) $a['seen_place'] : null);
             if (!empty($res['ok'])) {
                 $ctx['emergency'] = true;
                 $ctx['events'][] = 'lost_started';
                 $ctx['links'][] = ['url' => 'lost.php?pet=' . (int) $pet['id'], 'label' => 'Open Lost mode'];
             }
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null,
-                'note' => !empty($res['ok']) ? 'Nearby SIPAW users are being alerted. Walk the owner through the search plan.' : null];
+                'note' => !empty($res['ok'])
+                    ? 'SIPAW owners ' . (($res['centre'] ?? '') === 'last_seen' ? 'around the last-seen spot' : 'around the owner\'s home area') . ' (' . (int) ($res['recipients'] ?? 0) . ' owners, ' . (float) ($res['radius_km'] ?? 0) . ' km) are being alerted. Walk the owner through the search plan.'
+                    : null];
 
         case 'mark_pet_found':
             if ($pet === null) {
@@ -179,6 +181,9 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null];
 
         case 'post_to_social':
+            if (!rrp_social_enabled()) {
+                return ['ok' => false, 'error' => 'Posting is not available right now.'];
+            }
             if ($pet === null) {
                 return ['ok' => false, 'error' => 'No pet in this chat yet.'];
             }

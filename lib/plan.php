@@ -40,9 +40,18 @@ function rrp_is_super_owner(array $owner): bool
     return in_array($email, rrp_super_owner_emails(), true);
 }
 
+/**
+ * Usage limits (Cool Down, daily SIPO cap, Plus-only features, pet cap) are OFF for everyone during
+ * the test period. Set 'limits_enabled' => true in the live config to bring them back.
+ */
+function rrp_limits_on(): bool
+{
+    return rrp_config_ready() && !empty((rrp_load_config()['sipo'] ?? [])['limits_enabled']);
+}
+
 function rrp_owner_plan(array $owner): string
 {
-    if (rrp_is_super_owner($owner)) {
+    if (rrp_is_super_owner($owner) || !rrp_limits_on()) {
         return 'plus';
     }
     $plan = strtolower((string) ($owner['plan'] ?? 'free'));
@@ -60,7 +69,7 @@ function rrp_plan_pet_limit(string $plan): int
 
 function rrp_owner_pet_limit(array $owner): int
 {
-    if (rrp_is_super_owner($owner)) {
+    if (rrp_is_super_owner($owner) || !rrp_limits_on()) {
         return RRP_PLAN_SUPER_PETS;
     }
     return rrp_plan_pet_limit(rrp_owner_plan($owner));

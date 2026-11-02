@@ -528,7 +528,7 @@ function rrp_sipo_update_pet_fields(int $petId, int $ownerId, array $args): arra
             rrp_coin_award($ownerId, 'profile_field', 'Profile: ' . str_replace('_', ' ', $k), 'profile:' . $k, $petId, $petId);
         }
         if (in_array('weight_kg', $saved, true)) {
-            // Keep a dated trail for weight charts (PR 2).
+            rrp_weight_log($petId, (float) $args['weight_kg'], 'sipo');
             rrp_sipo_save_fact($ownerId, $petId, 'weight_' . gmdate('Y_m_d'), $args['weight_kg'] . ' kg', 'health');
         }
         return $saved;

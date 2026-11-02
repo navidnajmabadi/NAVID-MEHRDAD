@@ -165,7 +165,7 @@ function rrp_sipo_nudge_tick(int $maxSend = 40): array
         }
         $pet = rrp_pet_by_id((int) $pick['thread']['pet_id'], (int) $owner['id']);
         $title = 'SIPO · ' . ($pet['name'] ?? 'your pet');
-        rrp_try_web_push((int) $owner['id'], $title, mb_substr($msg['body'], 0, 140), rrp_app_url('si-chat.php?pet=' . (int) $pick['thread']['pet_id']));
+        rrp_sipo_push((int) $owner['id'], $title, mb_substr($msg['body'], 0, 140), rrp_app_url('si-chat.php?pet=' . (int) $pick['thread']['pet_id']));
         rrp_sipo_log_nudge($owner, (int) $pick['thread']['pet_id'], (int) $pick['thread']['id'], (int) $msg['id'], $pick['kind'], true);
         $stats['sent']++;
     }

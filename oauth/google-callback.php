@@ -18,6 +18,6 @@ if (empty($res['ok'])) {
     rrp_redirect('/login.php');
 }
 if (!empty($res['new'])) {
-    rrp_redirect('/si-chat.php?new=1'); // brand-new owner: SIPO starts onboarding
+    rrp_redirect('/welcome.php'); // brand-new owner: SIPO says hello first, then starts the pet chat
 }
 rrp_redirect('/' . ltrim(($res['next'] ?? '') ?: 'dashboard.php', '/'));

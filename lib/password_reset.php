@@ -65,13 +65,7 @@ function rrp_password_reset_request(string $email): array
 
     $url = rtrim(rrp_app_url(), '/') . '/reset-password.php?token=' . rawurlencode($token);
     $name = trim((string) ($owner['name'] ?? 'there'));
-    $body = "Hi {$name},\n\n"
-        . "Reset your SIPAW password with this link (expires in 2 hours):\n\n"
-        . "{$url}\n\n"
-        . "If you did not ask for this, ignore this email.\n\n"
-        . "— SIPAW by NAKILAB\n";
-
-    $sent = rrp_send_mail_result($email, 'Reset your SIPAW password', $body);
+    $sent = rrp_email_send($email, rrp_email_password_reset($name === 'there' ? '' : $name, $url, 2));
     if (empty($sent['ok'])) {
         error_log('rrp_password_reset_request: mail failed for ' . $email . ' — ' . ($sent['error'] ?? ''));
         return [

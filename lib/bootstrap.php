@@ -301,6 +301,12 @@ require_once __DIR__ . '/plan.php';
 require_once __DIR__ . '/pets.php';
 require_once __DIR__ . '/scans.php';
 require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/email.php';
+require_once __DIR__ . '/report.php';
+require_once __DIR__ . '/onboarding.php';
+require_once __DIR__ . '/sipo/knowledge.php';
+require_once __DIR__ . '/care/learn.php';
+require_once __DIR__ . '/care/watch.php';
 require_once __DIR__ . '/password_reset.php';
 require_once __DIR__ . '/webpush.php';
 require_once __DIR__ . '/notify.php';
@@ -310,6 +316,12 @@ require_once __DIR__ . '/admin.php';
 require_once __DIR__ . '/tickets.php';
 require_once __DIR__ . '/coupons.php';
 require_once __DIR__ . '/chat.php';
+/** The Pack/social board is hidden for now. The code stays; set RRP_SOCIAL_ENABLED=1 in the environment to bring it back. */
+function rrp_social_enabled(): bool
+{
+    return in_array(strtolower((string) getenv('RRP_SOCIAL_ENABLED')), ['1', 'true', 'yes', 'on'], true);
+}
+
 require_once __DIR__ . '/social/photos.php';
 require_once __DIR__ . '/social/moderation.php';
 require_once __DIR__ . '/rewards/coins.php';

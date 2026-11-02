@@ -64,20 +64,50 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
 <section class="care-card" id="sec-labs">
   <h3 class="label">Lab results</h3>
   <?php if (!$vm['labs']): ?>
-    <p class="sub">No lab results yet.<?= $readOnly ? '' : ' Send a blood test photo or PDF to SIPO and the numbers land here.' ?></p>
+    <p class="sub">No lab results yet.<?= $readOnly ? '' : ' Send a blood test photo or PDF to SIPO, or add the numbers by hand, and they land here.' ?></p>
   <?php else: ?>
-    <div class="care-labs">
-      <?php foreach ($vm['labs'] as $a): $l = $a['latest']; $abn = in_array($l['flag'], ['low', 'high'], true); ?>
-        <div class="care-lab<?= $abn ? ' is-abnormal' : ($a['watch'] ? ' is-watch' : '') ?>">
-          <div class="care-lab-head">
-            <b><?= rrp_h($a['label']) ?></b>
-            <span class="data"><?= rrp_h(rtrim(rtrim(number_format($l['value'], 2, '.', ''), '0'), '.')) ?> <?= rrp_h((string) $a['unit']) ?></span>
-          </div>
-          <p class="meta"><?= $abn ? '<span class="flag">' . rrp_h(strtoupper($l['flag'])) . '</span> · ' : '' ?>
-            <?= ($l['ref_low'] !== null || $l['ref_high'] !== null) ? 'Normal ' . rrp_h($l['ref_low'] . '–' . $l['ref_high']) : 'No range on report' ?>
-            · <?= rrp_h($l['date']) ?><?= count($a['points']) > 1 ? ' · ' . ['up' => '↑ rising', 'down' => '↓ falling', 'flat' => '→ steady'][$a['direction']] : '' ?><?= $a['watch'] ? ' · <b class="watch">near the edge of normal</b>' : '' ?></p>
-          <?php if (count($a['points']) >= 2): rrp_view_line_chart($a['points'], $l['ref_low'], $l['ref_high'], (string) $a['unit']); endif; ?>
+    <?php $nRed = count(array_filter($vm['labs'], static fn($a) => $a['alert'] === 'red')); $nAmber = count(array_filter($vm['labs'], static fn($a) => $a['alert'] === 'amber')); ?>
+    <?php if ($nRed || $nAmber): ?>
+      <p class="lab-summary"><?php if ($nRed): ?><span class="lab-dot is-red"></span><?= (int) $nRed ?> outside the normal range<?php endif; ?><?= $nRed && $nAmber ? ' · ' : '' ?><?php if ($nAmber): ?><span class="lab-dot is-amber"></span><?= (int) $nAmber ?> changing fast<?php endif; ?></p>
+    <?php endif; ?>
+    <div class="lab-list">
+      <?php foreach ($vm['labs'] as $a): $l = $a['latest']; $pts = $a['points'];
+        $fmt = static fn($v) => rtrim(rtrim(number_format((float) $v, 2, '.', ''), '0'), '.');
+        $hasRange = $l['ref_low'] !== null || $l['ref_high'] !== null;
+        $rangeTxt = $l['ref_low'] !== null && $l['ref_high'] !== null ? $fmt($l['ref_low']) . ' to ' . $fmt($l['ref_high']) : ($l['ref_high'] !== null ? 'up to ' . $fmt($l['ref_high']) : ($l['ref_low'] !== null ? 'at least ' . $fmt($l['ref_low']) : ''));
+        $pct = $a['change_pct'];
+        $dir = $a['direction'];
+      ?>
+      <details class="lab-row is-<?= rrp_h($a['alert']) ?>">
+        <summary>
+          <span class="lab-name"><b><?= rrp_h($a['label']) ?></b><small><?= $a['alert'] === 'red' ? ($l['flag'] === 'high' ? 'Above normal' : 'Below normal') : ($a['alert'] === 'amber' ? ($a['sharp'] ? 'Changing fast' : 'Near the edge') : ($hasRange ? 'In range' : 'No range on report')) ?></small></span>
+          <?php rrp_view_sparkline($pts, $a['alert']); ?>
+          <span class="lab-val data"><?= rrp_h($fmt($l['value'])) ?><small><?= rrp_h((string) $a['unit']) ?></small></span>
+          <span class="lab-chg <?= $pct === null ? '' : ($pct > 0 ? 'is-up' : ($pct < 0 ? 'is-down' : '')) ?>"><?= $pct === null ? '–' : ($pct > 0 ? '▲ ' : ($pct < 0 ? '▼ ' : '')) . rrp_h($fmt(abs($pct))) . '%' ?></span>
+        </summary>
+        <div class="lab-open">
+          <?php if ($info = rrp_lab_info((string) $a['key'])): ?><p class="lab-info"><?= rrp_h($info) ?></p><?php endif; ?>
+          <?php if (count($pts) >= 2): rrp_view_line_chart($pts, $l['ref_low'], $l['ref_high'], (string) $a['unit']); ?>
+            <p class="lab-axis"><span><?= rrp_h($pts[0]['date']) ?></span><span><?= rrp_h($l['date']) ?></span></p>
+          <?php else: rrp_view_range_gauge((float) $l['value'], $l['ref_low'], $l['ref_high']); endif; ?>
+          <dl class="lab-params">
+            <div><dt>Latest</dt><dd><?= rrp_h($fmt($l['value'])) ?> <?= rrp_h((string) $a['unit']) ?></dd></div>
+            <div><dt>Safe range</dt><dd><?= $rangeTxt !== '' ? rrp_h($rangeTxt) . ' ' . rrp_h((string) $a['unit']) : 'Not on the report' ?></dd></div>
+            <div><dt>Tested</dt><dd><?= rrp_h($l['date']) ?></dd></div>
+            <?php if (count($pts) >= 2): $pv = $pts[count($pts) - 2]; ?>
+              <div><dt>Before</dt><dd><?= rrp_h($fmt($pv['value'])) ?> · <?= rrp_h($pv['date']) ?></dd></div>
+              <div><dt>Change</dt><dd><?= $pct === null ? '–' : ($pct > 0 ? '+' : '') . rrp_h($fmt($pct)) . '%' ?> <?= ['up' => '↑ rising', 'down' => '↓ falling', 'flat' => '→ steady'][$dir] ?></dd></div>
+            <?php endif; ?>
+            <div><dt>Reports</dt><dd><?= count($pts) ?></dd></div>
+          </dl>
+          <?php if (count($pts) >= 2): ?>
+            <ul class="lab-history"><?php foreach (array_reverse($pts) as $pt): ?><li class="<?= in_array($pt['flag'], ['low', 'high'], true) ? 'is-red' : '' ?>"><span><?= rrp_h($pt['date']) ?></span><b class="data"><?= rrp_h($fmt($pt['value'])) ?></b><em><?= in_array($pt['flag'], ['low', 'high'], true) ? rrp_h(strtoupper($pt['flag'])) : '' ?></em></li><?php endforeach; ?></ul>
+          <?php endif; ?>
+          <?php if (!$readOnly): ?>
+            <a class="btn primary lab-ask" href="si-chat.php?ask=lab&amp;lab=<?= rrp_h(rawurlencode((string) $a['key'])) ?>">Ask SIPO to analyse <?= rrp_h($a['label']) ?></a>
+          <?php endif; ?>
         </div>
+      </details>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
@@ -135,6 +165,47 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
     <?php endforeach; endforeach; ?></ul>
   </details>
 </section>
+<?php
+}
+
+/** Tiny trend line for a closed lab row (last 8 reports). */
+function rrp_view_sparkline(array $points, string $alert): void
+{
+    $pts = array_slice($points, -8);
+    $w = 64;
+    $h = 26;
+    if (count($pts) < 2) {
+        echo '<span class="lab-spark is-empty" aria-hidden="true"></span>';
+        return;
+    }
+    $vals = array_column($pts, 'value');
+    $min = min($vals);
+    $max = max($vals);
+    $span = $max - $min ?: 1.0;
+    $d = '';
+    foreach ($pts as $i => $p) {
+        $x = 2 + $i * ($w - 4) / (count($pts) - 1);
+        $y = $h - 3 - ($p['value'] - $min) / $span * ($h - 6);
+        $d .= ($i ? ' L' : 'M') . round($x, 1) . ' ' . round($y, 1);
+    }
+    echo '<svg class="lab-spark is-' . rrp_h($alert) . '" viewBox="0 0 ' . $w . ' ' . $h . '" aria-hidden="true"><path d="' . rrp_h($d) . '"/></svg>';
+}
+
+/** One value on its safe range, for indicators with a single report. */
+function rrp_view_range_gauge(float $v, ?float $lo, ?float $hi): void
+{
+    if ($lo === null || $hi === null || $hi <= $lo) {
+        return;
+    }
+    $span = $hi - $lo;
+    $min = $lo - $span * 0.5;
+    $max = $hi + $span * 0.5;
+    $pos = static fn(float $x) => max(2, min(98, 100 * ($x - $min) / ($max - $min)));
+    ?>
+<div class="lab-gauge" role="img" aria-label="Value <?= rrp_h((string) $v) ?>, safe range <?= rrp_h((string) $lo) ?> to <?= rrp_h((string) $hi) ?>">
+  <span class="safe" style="left:<?= round($pos($lo), 1) ?>%;width:<?= round($pos($hi) - $pos($lo), 1) ?>%"></span>
+  <i class="mark<?= $v < $lo || $v > $hi ? ' is-red' : '' ?>" style="left:<?= round($pos($v), 1) ?>%"></i>
+</div>
 <?php
 }
 

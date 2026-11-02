@@ -367,3 +367,44 @@
 .sipo-check-row small{color:var(--sub);font-size:12px}
 .sipo-check-row.is-done b{color:var(--blue)}
 .sipo-who > div{position:relative}
+
+/* Profile photo */
+.set-photo{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.set-photo .avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;font-size:24px}
+.set-photo>div{display:flex;gap:8px;flex-wrap:wrap}
+.set-me .avatar{border-radius:50%;object-fit:cover}
+
+/* Dashboard section tiles */
+.home2-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.home2-tiles a{display:flex;flex-direction:column;gap:2px;padding:14px;border:1px solid var(--line);background:var(--bg);color:inherit;text-decoration:none}
+.home2-tiles a:hover{border-color:var(--blue)}
+.home2-tiles svg{width:26px;height:26px;color:var(--blue);margin-bottom:6px}
+.home2-tiles small{opacity:.65;font-size:12px}
+.home2-tiles .is-lost svg,.home2-tiles .is-lost b{color:#e5484d}
+/* Draggable SIPO button */
+.sipo-fab{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.sipo-fab.is-lifted{transform:scale(1.08);box-shadow:0 14px 34px rgba(0,0,0,.55),0 0 0 3px var(--bg);transition:none;cursor:grabbing}
+
+/* Notification bell popup */
+.top-bell{position:relative}
+.top-bell-dot[hidden]{display:none}
+.bell-pop{position:fixed;z-index:80;width:min(380px,calc(100vw - 16px));max-height:min(70vh,560px);display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--line);box-shadow:0 16px 40px rgba(0,0,0,.35)}
+.bell-pop[hidden]{display:none}
+.bell-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.bell-all{background:none;border:0;color:var(--blue);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:4px 0}
+.bell-all:disabled{opacity:.4;cursor:default}
+.bell-list{list-style:none;margin:0;padding:0;overflow-y:auto;flex:1}
+.bell-list li{border-bottom:1px solid var(--line)}
+.bell-list li.is-unread{background:color-mix(in srgb,var(--blue) 9%,transparent)}
+.bell-item{display:flex;gap:10px;padding:11px 14px;color:inherit;text-decoration:none}
+.bell-item:hover{background:color-mix(in srgb,var(--blue) 6%,transparent)}
+.bell-ico{font-size:20px;line-height:1.2}
+.bell-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.bell-txt b{font-size:14px}
+.bell-txt small{font-size:12px;opacity:.7;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.bell-txt time{font-size:11px;opacity:.5}
+.bell-empty{padding:22px 14px;font-size:13px;opacity:.65}
+.bell-foot{padding:10px 14px;display:flex;flex-direction:column;gap:6px}
+.bell-foot:empty{display:none}
+.bell-foot small{font-size:12px;opacity:.7}
+.bell-foot small:empty{display:none}
