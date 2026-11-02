@@ -9,13 +9,20 @@ header('X-Robots-Tag: noindex, nofollow');
 header('Referrer-Policy: no-referrer');
 header('Cache-Control: private, no-store');
 
-$share = rrp_share_resolve((string) ($_GET['t'] ?? ''));
+$token = (string) ($_GET['t'] ?? '');
+if ($token === '') {
+    // No link at all (typed address or a stray button): this page is only for vets with a private link.
+    // An owner who is signed in goes to the place where the link is made.
+    $me = function_exists('rrp_current_owner') ? rrp_current_owner() : null;
+    rrp_redirect($me ? 'care.php#share' : 'index.php');
+}
+$share = rrp_share_resolve($token);
 $extra = '<meta name="robots" content="noindex, nofollow" /><link rel="stylesheet" href="' . rrp_h(rrp_asset('assets/css/care.css', true)) . '" />';
 if (!$share) {
     http_response_code(404);
     rrp_layout_head('Link expired — SIPAW', ['extra_head' => $extra, 'body_class' => 'page-care page-vet']);
     rrp_app_start(['nav' => false]);
-    echo '<div class="pad stack"><h2 class="title">This link has expired</h2><p class="sub">Ask the owner to create a new one in SIPAW → Health → Share with your vet.</p></div>';
+    echo '<div class="pad stack"><h2 class="title">This link is not valid any more</h2><p class="sub">It may have expired or been switched off. Ask the owner to create a new one in SIPAW → Health → Share with your vet.</p></div>';
     rrp_app_end(['nav' => false, 'push' => false]);
     exit;
 }

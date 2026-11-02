@@ -28,7 +28,6 @@ function rrp_sipo_app_pages(): array
         'rewards' => ['rewards.php', 'Paw coins and invite friends'],
         'plus' => ['plus.php', 'Plus plan and payment'],
         'walk' => ['walk.php', 'Start a tracked walk'],
-        'vets' => ['vet.php', 'Vet records'],
         'area' => ['area.php', 'Home area on the map'],
         'support' => ['support.php', 'Help and support tickets'],
     ];
