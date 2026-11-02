@@ -236,12 +236,17 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
 
     // Our own buttons (photo and profile offers) are answered by code, in a fixed order.
     $reply = rrp_onb_intercept($ctx, $body) ?? rrp_labs_intercept($ctx, $body) ?? rrp_learn_intercept($ctx, $body);
-    if ($reply === null) {
+    $fromModel = $reply === null;
+    if ($fromModel) {
         // Model answers only: buttons must fit the question actually asked (lib/sipo/choices.php).
         $reply = rrp_sipo_guard_choices(rrp_sipo_generate($ctx, null), $body);
     }
     $reply = rrp_onb_after_reply($ctx, $reply);
     $reply = rrp_labs_offer($ctx, $reply, $body);
+    if ($fromModel && empty($ctx['links'])) {
+        // SIPO drives: a reply that stops without a question gets the next setup question (lib/sipo/driver.php).
+        $reply = rrp_drive_next($ctx, $reply, $body);
+    }
 
     $assistant = rrp_sipo_insert_message(
         (int) $ctx['thread']['id'],

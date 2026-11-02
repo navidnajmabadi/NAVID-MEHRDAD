@@ -113,6 +113,7 @@ function rrp_sipo_setup_block(?array $pet, ?array $thread): ?string
         . "- If the owner says skip, or asks about something else, follow them; come back to setup later, gently, once.\n"
         . "- When the owner sends a photo, lab report or label, talk only about that file in your reply; no setup question in the same message (QA B12).\n"
         . "- Never ask again for something listed as Already known.\n"
+        . "- YOU DRIVE: the owner must never have to type \"next\". Every reply (after you confirm what they told you in one short line) ends with the next question in the same message, until all 4 sections are done or they ask to stop.\n"
         . "- When a section is finished, celebrate in a few words (\"Pet info done ✅ 1 of 4\").";
 }
 
