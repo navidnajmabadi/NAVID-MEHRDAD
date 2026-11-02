@@ -17,12 +17,12 @@ foreach ($pets as $p) {
 }
 
 $tab = (string) ($_GET['tab'] ?? 'vax');
-if (!in_array($tab, ['vax', 'meds', 'feed', 'vet'], true)) {
+if (!in_array($tab, ['vax', 'labs', 'meds', 'feed', 'vet'], true)) {
     $tab = 'vax';
 }
 
 $dbReady = true;
-$vaxList = $medList = $feedList = $vetList = [];
+$vaxList = $medList = $feedList = $vetList = $labExams = [];
 $fedToday = [];
 
 if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
@@ -33,6 +33,18 @@ if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csr
             $r = rrp_vax_add($petId, $_POST);
             rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Vaccine saved.' : ($r['error'] ?? 'Could not save.'));
             $tab = 'vax';
+        } elseif ($action === 'lab_add') {
+            $rows = [];
+            foreach ((array) ($_POST['lab_label'] ?? []) as $i => $label) {
+                $rows[] = ['label' => $label, 'value' => $_POST['lab_value'][$i] ?? '', 'range' => $_POST['lab_range'][$i] ?? '', 'unit' => $_POST['lab_unit'][$i] ?? ''];
+            }
+            $r = rrp_labs_manual_add($owner, $pet, (string) ($_POST['lab_kind'] ?? ''), (string) ($_POST['lab_date'] ?? ''), $rows);
+            rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Saved ' . (int) $r['saved'] . ' indicator' . ($r['saved'] === 1 ? '' : 's') . '. See them on the Health page.' : ($r['error'] ?? 'Could not save.'));
+            $tab = 'labs';
+        } elseif ($action === 'lab_del') {
+            rrp_labs_exam_delete($petId, (int) ($_POST['id'] ?? 0));
+            rrp_flash_set('ok', 'Test removed.');
+            $tab = 'labs';
         } elseif ($action === 'vax_del') {
             rrp_vax_delete($petId, (int) ($_POST['id'] ?? 0));
             rrp_flash_set('ok', 'Vaccine removed.');
@@ -80,6 +92,7 @@ if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csr
 if ($pet) {
     try {
         $vaxList = rrp_vax_list($petId);
+        $labExams = rrp_labs_exam_list($petId);
         $medList = rrp_meds_list($petId);
         $feedList = rrp_feed_list($petId);
         $fedToday = rrp_feed_today_map($petId);
@@ -117,7 +130,7 @@ rrp_app_start(['nav' => 'health']);
   </div>
 
   <div class="tabs" role="tablist">
-    <?php foreach (['vax' => 'Vaccines', 'meds' => 'Meds', 'feed' => 'Food', 'vet' => 'Vet'] as $k => $label): ?>
+    <?php foreach (['vax' => 'Vaccines', 'labs' => 'Labs', 'meds' => 'Meds', 'feed' => 'Food', 'vet' => 'Vet'] as $k => $label): ?>
       <a href="health-care.php?pet=<?= (int) $petId ?>&tab=<?= $k ?>" role="tab" aria-pressed="<?= $tab === $k ? 'true' : 'false' ?>" style="display:flex;align-items:center;justify-content:center;height:42px;font-family:var(--f-display);font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:<?= $tab === $k ? 'var(--text)' : 'var(--sub)' ?>;text-decoration:none;position:relative">
         <?= rrp_h($label) ?>
         <?php if ($tab === $k): ?><span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--blue)"></span><?php endif; ?>
@@ -182,12 +195,68 @@ rrp_app_start(['nav' => 'health']);
         <span class="label">Add vaccine</span>
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
         <input type="hidden" name="action" value="vax_add" />
-        <div class="field"><label for="vax_name">Name</label><div class="in"><input id="vax_name" name="name" required maxlength="120" placeholder="Rabies" /></div></div>
-        <div class="field"><label for="vax_given">Given on</label><div class="in"><input id="vax_given" name="given_on" type="date" /></div></div>
-        <div class="field"><label for="vax_due">Next due</label><div class="in"><input id="vax_due" name="next_due" type="date" /></div></div>
+        <?php
+        $vaxSpecies = in_array($pet['type'] ?? '', ['dog', 'cat'], true) ? (string) $pet['type'] : 'dog';
+        $vaxOpts = [];
+        foreach (rrp_care_catalog($vaxSpecies, rrp_care_region($owner, $pet)) as $row) {
+            if (($row['group'] ?? '') === 'vaccine') {
+                $vaxOpts[] = ['title' => (string) $row['title'], 'days' => (int) ($row['interval_days'] ?? 365)];
+            }
+        }
+        ?>
+        <div class="field"><label for="vax_pick">Vaccine</label><div class="in"><select id="vax_pick" name="name_pick" required>
+          <option value="">Choose a vaccine</option>
+          <?php foreach ($vaxOpts as $o): ?><option value="<?= rrp_h($o['title']) ?>" data-days="<?= (int) $o['days'] ?>"><?= rrp_h($o['title']) ?></option><?php endforeach; ?>
+          <option value="__other">Other (type it)</option>
+        </select></div></div>
+        <div class="field" id="vaxOtherWrap" hidden><label for="vax_name">Vaccine name</label><div class="in"><input id="vax_name" name="name" maxlength="120" placeholder="Name of the vaccine" /></div></div>
+        <div class="field"><label for="vax_given">Date given</label><div class="in"><input id="vax_given" name="given_on" type="date" required /></div></div>
+        <div class="field"><label for="vax_due">Next due <small>(filled in for you, change it if your vet said otherwise)</small></label><div class="in"><input id="vax_due" name="next_due" type="date" /></div></div>
         <div class="field"><label for="vax_notes">Notes</label><div class="in"><input id="vax_notes" name="notes" maxlength="500" /></div></div>
         <button type="submit" class="btn primary">Save vaccine</button>
       </form>
+
+    <?php elseif ($tab === 'labs'): ?>
+      <form method="post" class="box stack" style="gap:10px" id="labForm">
+        <span class="label">Add test results</span>
+        <p class="sub" style="margin:0;font-size:13px">Type what the report says. Or send a photo or PDF to SIPO on the Health page and it fills this in for you.</p>
+        <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+        <input type="hidden" name="action" value="lab_add" />
+        <div class="field"><label for="lab_kind">Kind of test</label><div class="in"><select id="lab_kind" name="lab_kind">
+          <?php foreach (RRP_LAB_KINDS as $k => $kd): ?><option value="<?= rrp_h($k) ?>"><?= rrp_h($kd[0]) ?></option><?php endforeach; ?>
+        </select></div></div>
+        <div class="field"><label for="lab_date">Date of the test</label><div class="in"><input id="lab_date" name="lab_date" type="date" required max="<?= rrp_h(rrp_sipo_local_now($owner)->format('Y-m-d')) ?>" /></div></div>
+        <div id="labRows" class="lab-rows"></div>
+        <button type="button" class="btn outline" id="labMore">+ Add another indicator</button>
+        <button type="submit" class="btn primary">Save results</button>
+      </form>
+      <?php foreach (RRP_LAB_KINDS as $k => $kd): ?>
+        <datalist id="dl_<?= rrp_h($k) ?>"><?php foreach ($kd[1] as $name): ?><option value="<?= rrp_h($name) ?>"></option><?php endforeach; ?></datalist>
+      <?php endforeach; ?>
+
+      <div class="box">
+        <span class="label">Saved tests</span>
+        <?php if (!$labExams): ?>
+          <p class="sub" style="margin:12px 0 0;font-size:13px">No tests yet.</p>
+        <?php else: ?>
+          <div class="list" style="margin-top:10px">
+            <?php foreach ($labExams as $e): ?>
+              <div class="li">
+                <div style="flex:1">
+                  <b><?= rrp_h((string) $e['title']) ?> · <?= rrp_h((string) $e['examined_on']) ?></b>
+                  <small><?php foreach ($e['results'] as $i => $res): $val = $res['value_num'] !== null ? rtrim(rtrim(number_format((float) $res['value_num'], 2, '.', ''), '0'), '.') : (string) $res['value_text']; ?><?= $i ? ' · ' : '' ?><?= rrp_h((string) $res['analyte_label']) ?> <?= rrp_h($val) ?><?= $res['unit'] ? ' ' . rrp_h((string) $res['unit']) : '' ?><?= in_array($res['flag'], ['low', 'high'], true) ? ' (' . rrp_h($res['flag']) . ')' : '' ?><?php endforeach; ?></small>
+                </div>
+                <form method="post" onsubmit="return confirm('Remove this test and its numbers?');">
+                  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+                  <input type="hidden" name="action" value="lab_del" />
+                  <input type="hidden" name="id" value="<?= (int) $e['id'] ?>" />
+                  <button type="submit" class="iconbtn" aria-label="Remove" style="width:36px;height:36px">×</button>
+                </form>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+      </div>
 
     <?php elseif ($tab === 'meds'): ?>
       <?php if (!empty($pet['medical_pills']) || !empty($pet['medical_conditions'])): ?>
@@ -338,5 +407,47 @@ rrp_app_start(['nav' => 'health']);
     <div class="gap"></div>
   </div>
 <?php endif; ?>
+<?php
+?>
+<script>
+(function () {
+  var pick = document.getElementById('vax_pick');
+  if (pick) {
+    var other = document.getElementById('vaxOtherWrap'), name = document.getElementById('vax_name');
+    var given = document.getElementById('vax_given'), due = document.getElementById('vax_due'), touched = false;
+    due.addEventListener('input', function () { touched = true; });
+    function fill() {
+      var days = parseInt(pick.selectedOptions[0] && pick.selectedOptions[0].getAttribute('data-days'), 10);
+      if (touched || !days || !given.value) return;
+      var d = new Date(given.value + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days);
+      due.value = d.toISOString().slice(0, 10);
+    }
+    pick.addEventListener('change', function () {
+      var isOther = pick.value === '__other';
+      other.hidden = !isOther; name.required = isOther;
+      if (!isOther) name.value = pick.value;
+      fill();
+    });
+    given.addEventListener('change', fill);
+  }
+  var rows = document.getElementById('labRows');
+  if (rows) {
+    var kind = document.getElementById('lab_kind');
+    function add() {
+      var d = document.createElement('div'); d.className = 'lab-row';
+      d.innerHTML = '<div class="field"><label>Indicator</label><div class="in"><input name="lab_label[]" list="dl_' + kind.value + '" maxlength="120" placeholder="e.g. ALT" /></div></div>' +
+        '<div class="field"><label>Current value</label><div class="in"><input name="lab_value[]" inputmode="decimal" maxlength="40" placeholder="e.g. 85" /></div></div>' +
+        '<div class="field"><label>Normal range</label><div class="in"><input name="lab_range[]" maxlength="40" placeholder="e.g. 10-100" /></div></div>' +
+        '<div class="field"><label>Unit <small>(optional)</small></label><div class="in"><input name="lab_unit[]" maxlength="40" placeholder="e.g. U/L" /></div></div>';
+      rows.appendChild(d);
+    }
+    add();
+    document.getElementById('labMore').addEventListener('click', add);
+    kind.addEventListener('change', function () {
+      [].forEach.call(rows.querySelectorAll('input[name="lab_label[]"]'), function (i) { i.setAttribute('list', 'dl_' + kind.value); });
+    });
+  }
+})();
+</script>
 <?php
 rrp_app_end(['nav' => 'health', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

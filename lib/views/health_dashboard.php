@@ -73,6 +73,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
             <b><?= rrp_h($a['label']) ?></b>
             <span class="data"><?= rrp_h(rtrim(rtrim(number_format($l['value'], 2, '.', ''), '0'), '.')) ?> <?= rrp_h((string) $a['unit']) ?></span>
           </div>
+          <?php if ($info = rrp_lab_info((string) $a['key'])): ?><p class="lab-info"><?= rrp_h($info) ?></p><?php endif; ?>
           <p class="meta"><?= $abn ? '<span class="flag">' . rrp_h(strtoupper($l['flag'])) . '</span> · ' : '' ?>
             <?= ($l['ref_low'] !== null || $l['ref_high'] !== null) ? 'Normal ' . rrp_h($l['ref_low'] . '–' . $l['ref_high']) : 'No range on report' ?>
             · <?= rrp_h($l['date']) ?><?= count($a['points']) > 1 ? ' · ' . ['up' => '↑ rising', 'down' => '↓ falling', 'flat' => '→ steady'][$a['direction']] : '' ?><?= $a['watch'] ? ' · <b class="watch">near the edge of normal</b>' : '' ?></p>

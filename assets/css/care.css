@@ -206,3 +206,11 @@
   .care-actions > .btn{flex:0 0 auto;padding:0 20px}
   .care-actions > .care-upload{flex:1 1 260px;max-width:340px}
 }
+
+/* Indicator explanation: one faint line */
+.lab-info{margin:2px 0 6px;font-size:12px;line-height:1.4;opacity:.55}
+.share-views{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
+.share-views svg{width:16px;height:16px}
+.lab-rows{display:flex;flex-direction:column;gap:14px}
+.lab-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border:1px solid var(--line)}
+.lab-row .field:first-child{grid-column:1/-1}

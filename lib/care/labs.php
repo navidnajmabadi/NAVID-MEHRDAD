@@ -208,3 +208,135 @@ function rrp_labs_prompt_block(int $petId): ?string
     }
     return implode("\n", $lines);
 }
+
+/** One quiet line under each indicator: what it measures, in plain words (never a diagnosis). */
+const RRP_LAB_INFO = [
+    'alt' => 'A liver enzyme. It rises when liver cells are irritated.',
+    'ast' => 'An enzyme from the liver and muscles. It rises with liver or muscle strain.',
+    'alp' => 'An enzyme from the liver and bones. Young, growing pets run higher.',
+    'ggt' => 'A liver and bile duct enzyme. It rises when bile flow is slowed.',
+    'bun' => 'Waste from protein. It shows how well the kidneys clear the blood.',
+    'creatinine' => 'A muscle waste product the kidneys filter. A key kidney marker.',
+    'sdma' => 'An early kidney marker that rises before creatinine does.',
+    'glucose' => 'Blood sugar. Stress, especially in cats, can push it up for a while.',
+    'total_protein' => 'All the proteins in the blood. It reflects hydration, liver and immune health.',
+    'albumin' => 'A blood protein made by the liver. It keeps fluid inside the vessels.',
+    'globulin' => 'Blood proteins tied to the immune system.',
+    'bilirubin' => 'A yellow pigment from old red blood cells, cleared by the liver.',
+    'cholesterol' => 'A blood fat. It can rise with diet, thyroid or hormone changes.',
+    'phosphorus' => 'A mineral for bones. The kidneys keep it in balance.',
+    'calcium' => 'A mineral for bones, nerves and muscles.',
+    'sodium' => 'A salt that balances water in the body.',
+    'potassium' => 'A salt that keeps the heart and muscles working.',
+    'chloride' => 'A salt that works with sodium to balance fluids.',
+    't4' => 'A thyroid hormone. High in many older cats, low in some dogs.',
+    'wbc' => 'White blood cells, the body’s defenders. They rise with infection or stress.',
+    'rbc' => 'Red blood cells, which carry oxygen.',
+    'hgb' => 'The protein in red blood cells that carries oxygen.',
+    'hct' => 'The share of blood made of red cells. Low means anaemia, high can mean dehydration.',
+    'plt' => 'Platelets, which help the blood clot.',
+    'usg' => 'How concentrated the urine is. It shows how well the kidneys save water.',
+];
+
+function rrp_lab_info(string $key): ?string
+{
+    return RRP_LAB_INFO[$key] ?? null;
+}
+
+/** Test kinds an owner can enter by hand, with the indicators we suggest while typing. */
+const RRP_LAB_KINDS = [
+    'blood' => ['Blood test', ['ALT', 'AST', 'ALP', 'GGT', 'BUN', 'Creatinine', 'SDMA', 'Glucose', 'Total protein', 'Albumin', 'Globulin', 'Bilirubin', 'Cholesterol', 'Phosphorus', 'Calcium', 'Sodium', 'Potassium', 'Chloride', 'T4', 'WBC', 'RBC', 'HGB', 'HCT', 'PLT']],
+    'stool' => ['Stool test', ['Giardia', 'Coccidia', 'Roundworm', 'Hookworm', 'Whipworm', 'Occult blood', 'pH']],
+    'urine' => ['Urine test', ['USG', 'pH', 'Protein', 'Glucose', 'Ketones', 'Bilirubin', 'Blood', 'WBC', 'RBC', 'UPC ratio']],
+];
+
+/** "10-100", "10 to 100", "<5", ">3", "10" → [low, high] (either may be null). */
+function rrp_lab_parse_range(string $s): array
+{
+    $s = trim(str_replace(['–', '—', '−', ','], ['-', '-', '-', '.'], $s));
+    if ($s === '') {
+        return [null, null];
+    }
+    if (preg_match('/^(?:<|≤|up to|max)\s*(-?\d+(?:\.\d+)?)$/i', $s, $m)) {
+        return [null, (float) $m[1]];
+    }
+    if (preg_match('/^(?:>|≥|min)\s*(-?\d+(?:\.\d+)?)$/i', $s, $m)) {
+        return [(float) $m[1], null];
+    }
+    if (preg_match('/^(-?\d+(?:\.\d+)?)\s*(?:-|to)\s*(-?\d+(?:\.\d+)?)$/i', $s, $m)) {
+        $a = (float) $m[1];
+        $b = (float) $m[2];
+        return [min($a, $b), max($a, $b)];
+    }
+    return [null, null];
+}
+
+/**
+ * Manual entry: one date, one kind, several rows of [indicator, value, range].
+ * @param list<array{label?:string,value?:string,range?:string,unit?:string}> $rows
+ * @return array{ok:bool,error?:string,saved?:int}
+ */
+function rrp_labs_manual_add(array $owner, array $pet, string $kind, string $date, array $rows): array
+{
+    if (!isset(RRP_LAB_KINDS[$kind])) {
+        return ['ok' => false, 'error' => 'Choose blood, stool or urine.'];
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || strtotime($date) === false || $date > rrp_sipo_local_now($owner)->format('Y-m-d')) {
+        return ['ok' => false, 'error' => 'Pick the date of the test (not in the future).'];
+    }
+    $results = [];
+    foreach ($rows as $r) {
+        $label = trim((string) ($r['label'] ?? ''));
+        $raw = str_replace(',', '.', trim((string) ($r['value'] ?? '')));
+        if ($label === '' && $raw === '') {
+            continue;
+        }
+        if ($label === '' || $raw === '') {
+            return ['ok' => false, 'error' => 'Each row needs an indicator and a value.'];
+        }
+        [$lo, $hi] = rrp_lab_parse_range((string) ($r['range'] ?? ''));
+        $row = ['label' => $label, 'unit' => trim((string) ($r['unit'] ?? '')), 'ref_low' => $lo, 'ref_high' => $hi];
+        if (is_numeric($raw)) {
+            $row['value'] = (float) $raw;
+        } else {
+            $row['value'] = null;
+            $row['value_text'] = $raw; // e.g. "Positive", "Negative"
+        }
+        $results[] = $row;
+    }
+    if (!$results) {
+        return ['ok' => false, 'error' => 'Add at least one indicator with its value.'];
+    }
+    $save = rrp_labs_save($owner, $pet, [
+        'examined_on' => $date,
+        'exam_type' => $kind === 'blood' ? 'blood' : ($kind === 'urine' ? 'urine' : 'other'),
+        'title' => RRP_LAB_KINDS[$kind][0],
+        'results' => $results,
+    ], 'manual');
+    return !empty($save['ok']) ? ['ok' => true, 'saved' => count($results)] : $save;
+}
+
+/** Saved tests for the manual list, newest first. */
+function rrp_labs_exam_list(int $petId, int $limit = 30): array
+{
+    try {
+        $st = rrp_db()->prepare('SELECT id, title, examined_on, source FROM health_examinations WHERE pet_id = ? ORDER BY examined_on DESC, id DESC LIMIT ' . max(1, $limit));
+        $st->execute([$petId]);
+        $exams = $st->fetchAll();
+        $q = rrp_db()->prepare('SELECT analyte_label, value_num, value_text, unit, flag FROM health_lab_results WHERE examination_id = ? ORDER BY id ASC');
+        foreach ($exams as &$e) {
+            $q->execute([(int) $e['id']]);
+            $e['results'] = $q->fetchAll();
+        }
+        return $exams;
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+function rrp_labs_exam_delete(int $petId, int $examId): bool
+{
+    $st = rrp_db()->prepare('DELETE FROM health_examinations WHERE id = ? AND pet_id = ?');
+    $st->execute([$examId, $petId]);
+    return $st->rowCount() > 0;
+}

@@ -131,7 +131,7 @@ rrp_app_start(['nav' => 'health']);
     <?php foreach ($links as $l): ?>
       <form method="post" class="care-linkrow">
         <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="action" value="revoke" /><input type="hidden" name="id" value="<?= (int) $l['id'] ?>" />
-        <span class="meta">Link from <?= rrp_h(substr((string) $l['created_at'], 0, 10)) ?> · opened <?= (int) $l['view_count'] ?>× · until <?= rrp_h(substr((string) $l['expires_at'], 0, 10)) ?></span>
+        <span class="meta">Link from <?= rrp_h(substr((string) $l['created_at'], 0, 10)) ?> · <span class="share-views" title="Times your vet opened this link" aria-label="Opened <?= (int) $l['view_count'] ?> times"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><b><?= (int) $l['view_count'] ?></b></span> · until <?= rrp_h(substr((string) $l['expires_at'], 0, 10)) ?></span>
         <button class="link" type="submit">Turn off</button>
       </form>
     <?php endforeach; ?>
