@@ -22,6 +22,7 @@ const RRP_CHOICE_TOPICS = [
     'sex' => '/\b(boy or (a )?girl|girl or (a )?boy|male or female|female or male|sex\b|gender)\b/i',
     'neutered' => '/\b(neuter|neutered|spay|spayed|fixed)\b/i',
     'name' => '/\b(name)\b/i',
+    'walk' => '/\bwalk goal\b|\bminutes\b.*\bwalk|\bwalk\b.*\bminutes\b/i',
     'weight' => '/\b(weigh|weight|how heavy|kilo|kg|pounds?|lbs?)\b/i',
     'birthday' => '/\b(birthday|born|how old|age\b|birth ?date|date of birth)\b/i',
     'contact' => '/\b(phone|number|address|email|where do you live|city|country)\b/i',
@@ -69,7 +70,7 @@ function rrp_choice_question(string $text): string
 function rrp_choice_question_topic(string $question): ?string
 {
     // Specific topics win over loose ones ("breed" over "kind of dog").
-    foreach (['breed', 'kind', 'sex', 'neutered', 'weight', 'birthday', 'contact', 'name'] as $t) {
+    foreach (['breed', 'kind', 'sex', 'neutered', 'walk', 'weight', 'birthday', 'contact', 'name'] as $t) {
         if (preg_match(RRP_CHOICE_TOPICS[$t], $question)) {
             return $t;
         }
@@ -105,6 +106,11 @@ function rrp_sipo_guard_choices(array $reply, string $ownerBody = ''): array
     // Breed gets helpful skip buttons even when the model gave none.
     if ($topic === 'breed' && !$choices && $q !== '' && str_contains($q, '?')) {
         $choices = ['Mixed breed', 'Not sure'];
+    }
+
+    // The walk goal question always has useful buttons, even when the model forgot them.
+    if ($topic === 'walk' && !$choices && str_contains($q, '?')) {
+        $choices = ['15 min', '30 min', '45 min', '1 hour'];
     }
 
     // 4. A single button is not a choice.

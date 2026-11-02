@@ -413,3 +413,8 @@
 .set-photo .btn{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:120px;height:44px;margin:0;padding:0 18px;line-height:1;font-size:13px;text-align:center;cursor:pointer}
 .set-photo label.btn,.set-photo button.btn{font:600 14px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;padding:0 18px;margin:0;vertical-align:middle}
 .set-photo label.btn{display:inline-flex;align-items:center;justify-content:center}
+
+/* Link buttons under a reply: `.sipo-msg a` made them blue on blue (empty-looking button) */
+.sipo-msg a.sipo-link-btn,.sipo-msg a.sipo-link-btn:visited{color:#fff}
+.chat-coin-wrap{display:inline-block;vertical-align:-3px;margin:0 1px}
+.chat-coin-wrap .chat-coin{display:block}
