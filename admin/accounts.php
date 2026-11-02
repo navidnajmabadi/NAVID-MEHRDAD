@@ -22,72 +22,107 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $q = trim((string) ($_GET['q'] ?? ''));
-$owners = rrp_admin_search_owners($q, 80);
+$status = in_array(($_GET['status'] ?? ''), ['active', 'suspended'], true) ? (string) $_GET['status'] : '';
+$sort = in_array(($_GET['sort'] ?? ''), ['joined', 'tokens', 'msgs', 'last'], true) ? (string) $_GET['sort'] : 'joined';
+$owners = rrp_admin_search_owners($q, 200);
+if ($status !== '') {
+    $owners = array_values(array_filter($owners, static fn($o) => $o['status'] === $status));
+}
 $usage = rrp_admin_usage_map(array_map(static fn($o) => (int) $o['id'], $owners));
-$sum = ['msgs' => 0, 'tokens' => 0];
-foreach ($usage as $u) {
+$val = static function (array $o) use ($usage, $sort) {
+    $u = $usage[(int) $o['id']] ?? [];
+    return match ($sort) {
+        'tokens' => (int) ($u['tokens_7d'] ?? 0),
+        'msgs' => (int) ($u['msgs_7d'] ?? 0),
+        'last' => (string) ($u['last_chat'] ?? ''),
+        default => (string) $o['created_at'],
+    };
+};
+usort($owners, static fn($a, $b) => $val($b) <=> $val($a));
+$sum = ['msgs' => 0, 'tokens' => 0, 'active' => 0];
+foreach ($owners as $o) {
+    $u = $usage[(int) $o['id']] ?? ['msgs_7d' => 0, 'tokens_7d' => 0];
     $sum['msgs'] += $u['msgs_7d'];
     $sum['tokens'] += $u['tokens_7d'];
+    $sum['active'] += $o['status'] === 'active' ? 1 : 0;
 }
+$perMsg = $sum['msgs'] ? (int) round($sum['tokens'] / $sum['msgs']) : 0;
+$maxTok = max(1, max(array_map(static fn($o) => (int) ($usage[(int) $o['id']]['tokens_7d'] ?? 0), $owners ?: [[ 'id' => 0 ]])));
+$qs = static fn(array $over) => 'accounts.php?' . http_build_query(array_filter(array_merge(['q' => $q, 'status' => $status, 'sort' => $sort], $over), static fn($v) => $v !== ''));
+$th = static function (string $label, string $key, bool $num = false) use ($sort, $qs): string {
+    $on = $sort === $key;
+    return '<th' . ($num ? ' class="num"' : '') . ($on ? ' aria-sort="descending"' : '') . '><a href="' . rrp_h($qs(['sort' => $key])) . '"' . ($on ? ' aria-sort="descending"' : '') . '>' . rrp_h($label) . ($on ? ' ↓' : '') . '</a></th>';
+};
 
 rrp_admin_shell_start('Accounts', 'accounts');
 ?>
   <h1>Accounts</h1>
-  <p class="lede">Search owner accounts, see how much each one uses SIPO, and suspend if needed.</p>
+  <p class="lede">Find an owner, see how much SIPO they use, and manage their account. Names and emails are masked.</p>
   <?php rrp_render_flash(); ?>
 
-  <div class="panel panel-soft" style="margin-bottom:10px">
-    <strong>Last 7 days, accounts shown:</strong>
-    <?= number_format($sum['msgs']) ?> messages to SIPO · <?= number_format($sum['tokens']) ?> tokens
+  <div class="ad-kpis">
+    <div class="ad-kpi"><b><?= count($owners) ?></b><span>Accounts shown (<?= (int) $sum['active'] ?> active)</span></div>
+    <div class="ad-kpi"><b><?= number_format($sum['msgs']) ?></b><span>Messages to SIPO, 7 days</span></div>
+    <div class="ad-kpi"><b><?= number_format($sum['tokens']) ?></b><span>Tokens, 7 days</span></div>
+    <div class="ad-kpi <?= $perMsg > 12000 ? 'is-bad' : ($perMsg > 7000 ? 'is-warn' : 'is-good') ?>"><b><?= number_format($perMsg) ?></b><span>Tokens per message (aim under 7,000)</span></div>
   </div>
 
-  <form method="get" class="panel row" style="align-items:flex-end">
-    <div style="flex:2">
-      <label for="q">Search</label>
-      <input id="q" name="q" value="<?= rrp_h($q) ?>" placeholder="Email, city, or owner #…" />
-    </div>
-    <button type="submit" class="btn btn-secondary">Search</button>
+  <form method="get" class="ad-toolbar" role="search">
+    <label class="ad-field" style="flex:2 1 260px">Search<input id="q" name="q" value="<?= rrp_h($q) ?>" placeholder="Email, city or owner number" /></label>
+    <label class="ad-field">Status<select name="status"><option value="">All</option><option value="active" <?= $status === 'active' ? 'selected' : '' ?>>Active</option><option value="suspended" <?= $status === 'suspended' ? 'selected' : '' ?>>Suspended</option></select></label>
+    <label class="ad-field">Sort by<select name="sort"><?php foreach (['joined' => 'Newest', 'tokens' => 'Most tokens', 'msgs' => 'Most messages', 'last' => 'Last chat'] as $k => $l): ?><option value="<?= $k ?>" <?= $sort === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></label>
+    <button type="submit" class="ad-btn is-primary">Apply</button>
   </form>
 
-  <?php foreach ($owners as $o): ?>
-    <div class="panel panel-soft" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div>
-          <strong><?= rrp_h(rrp_admin_mask_name((string) $o['name'], (int) $o['id'])) ?></strong>
-          <span class="pill <?= $o['status'] === 'active' ? 'pill-unread' : 'pill-ended' ?>"><?= rrp_h($o['status']) ?></span>
-          <div class="meta">
-            <?= rrp_h(rrp_admin_mask_email((string) $o['email'])) ?><?= !empty($o['phone']) ? ' · phone on file' : '' ?><br />
-            <?= rrp_h((string) ($o['city'] ?? '—')) ?>, <?= rrp_h((string) ($o['country'] ?? '—')) ?>
-          </div>
-          <div class="meta" style="margin-top:4px">
-            Joined <?= rrp_h($o['created_at']) ?> UTC
-            · sub <?= rrp_h((string) $o['subscription_status']) ?>
-            · wallet $<?= rrp_h(number_format((float) $o['wallet_balance'], 2)) ?>
-          </div>
-          <?php $u = $usage[(int) $o['id']] ?? null; if ($u): ?>
-          <div class="meta" style="margin-top:4px">
-            <b>SIPO use</b>:
-            today <?= (int) $u['msgs_today'] ?> msgs · <?= number_format($u['tokens_today']) ?> tokens;
-            7 days <?= (int) $u['msgs_7d'] ?> msgs · <?= number_format($u['tokens_7d']) ?> tokens;
-            all time <?= (int) $u['msgs_all'] ?> msgs · <?= number_format($u['tokens_all']) ?> tokens;
-            last chat <?= $u['last_chat'] ? rrp_h((string) $u['last_chat']) . ' UTC' : 'never' ?>
-          </div>
-          <?php endif; ?>
-        </div>
-        <form method="post">
-          <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
-          <input type="hidden" name="owner_id" value="<?= (int) $o['id'] ?>" />
-          <input type="hidden" name="q" value="<?= rrp_h($q) ?>" />
-          <?php if ($o['status'] === 'active'): ?>
-            <input type="hidden" name="action" value="suspend" />
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Suspend this account?');">Suspend</button>
-          <?php else: ?>
-            <input type="hidden" name="action" value="unsuspend" />
-            <button type="submit" class="btn btn-secondary">Unsuspend</button>
-          <?php endif; ?>
-        </form>
-      </div>
-    </div>
-  <?php endforeach; ?>
-  <?php if (!$owners): ?><p class="empty">No accounts match.</p><?php endif; ?>
+  <?php if (!$owners): ?>
+    <div class="ad-tablewrap"><p class="ad-empty">No accounts match. Clear the search or the status filter.</p></div>
+  <?php else: ?>
+  <div class="ad-tablewrap">
+    <table class="ad-table">
+      <thead><tr>
+        <th>Owner</th><th>Status</th><th>Where</th>
+        <?= $th('Joined', 'joined') ?>
+        <?= $th('Messages 7d', 'msgs', true) ?>
+        <?= $th('Tokens 7d', 'tokens', true) ?>
+        <th class="num">Per message</th>
+        <?= $th('Last chat', 'last') ?>
+        <th><span class="sr-only">Actions</span></th>
+      </tr></thead>
+      <tbody>
+      <?php foreach ($owners as $o): $u = $usage[(int) $o['id']] ?? ['msgs_today' => 0, 'msgs_7d' => 0, 'msgs_all' => 0, 'tokens_today' => 0, 'tokens_7d' => 0, 'tokens_all' => 0, 'last_chat' => null];
+          $pm = $u['msgs_7d'] ? (int) round($u['tokens_7d'] / $u['msgs_7d']) : 0; ?>
+        <tr>
+          <td class="ad-who" data-label="Owner"><b><?= rrp_h(rrp_admin_mask_name((string) $o['name'], (int) $o['id'])) ?></b><small><?= rrp_h(rrp_admin_mask_email((string) $o['email'])) ?><?= !empty($o['phone']) ? ' · phone on file' : '' ?></small></td>
+          <td data-label="Status"><span class="ad-chip <?= $o['status'] === 'active' ? 'is-good' : 'is-bad' ?>"><?= rrp_h($o['status']) ?></span></td>
+          <td data-label="Where"><?= rrp_h(trim((string) ($o['city'] ?? '') . ((!empty($o['city']) && !empty($o['country'])) ? ', ' : '') . (string) ($o['country'] ?? '')) ?: '—') ?></td>
+          <td data-label="Joined"><?= rrp_h(substr((string) $o['created_at'], 0, 10)) ?></td>
+          <td class="num" data-label="Messages 7d"><?= (int) $u['msgs_7d'] ?><small class="meta"> · all <?= (int) $u['msgs_all'] ?></small></td>
+          <td class="num" data-label="Tokens 7d"><?= number_format($u['tokens_7d']) ?><span class="ad-bar <?= $pm > 12000 ? 'is-heavy' : '' ?>" aria-hidden="true"><i style="width:<?= max(2, (int) round(100 * $u['tokens_7d'] / $maxTok)) ?>%"></i></span></td>
+          <td class="num" data-label="Per message"><?= $pm ? number_format($pm) : '—' ?></td>
+          <td data-label="Last chat" style="white-space:nowrap"><?= $u['last_chat'] ? rrp_h(substr((string) $u['last_chat'], 0, 16)) . ' UTC' : 'never' ?></td>
+          <td>
+            <details class="ad-menu">
+              <summary aria-label="Actions for <?= rrp_h(rrp_admin_mask_name((string) $o['name'], (int) $o['id'])) ?>"><?= rrp_admin_icon('dots') ?></summary>
+              <div class="ad-menu-pop">
+                <form method="post">
+                  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+                  <input type="hidden" name="owner_id" value="<?= (int) $o['id'] ?>" />
+                  <input type="hidden" name="q" value="<?= rrp_h($q) ?>" />
+                  <?php if ($o['status'] === 'active'): ?>
+                    <input type="hidden" name="action" value="suspend" />
+                    <button type="submit" class="is-danger" onclick="return confirm('Suspend this account? The owner will not be able to use SIPAW until you reactivate it.');">Suspend account</button>
+                  <?php else: ?>
+                    <input type="hidden" name="action" value="unsuspend" />
+                    <button type="submit">Reactivate account</button>
+                  <?php endif; ?>
+                </form>
+              </div>
+            </details>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+  <?php endif; ?>
 <?php rrp_admin_shell_end(); ?>

@@ -7,8 +7,8 @@ declare(strict_types=1);
  * Older messages fold into the summary so token cost stays flat as a chat grows.
  */
 
-const RRP_SIPO_RECENT_TURNS = 24;
-const RRP_SIPO_SUMMARY_TRIGGER = 60; // unsummarised messages before folding
+const RRP_SIPO_RECENT_TURNS = 14;
+const RRP_SIPO_SUMMARY_TRIGGER = 36; // unsummarised messages before folding
 
 /** @return list<array{fact_key:string,fact_value:string,category:string}> */
 function rrp_sipo_facts(int $petId): array
