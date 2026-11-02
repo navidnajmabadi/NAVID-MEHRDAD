@@ -81,7 +81,7 @@ if (!$active && $pets) {
 usort($pets, static fn($a, $b) => ((int) $b['id'] === $activeId) <=> ((int) $a['id'] === $activeId));
 
 $hour = (int) rrp_sipo_local_now($owner)->format('G');
-$greet = $hour < 5 ? 'Good night' : ($hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening'));
+$greet = $hour < 5 ? 'Hi' : ($hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening'));
 $name = strtok(trim(rrp_sipo_owner_nickname($owner)), ' ') ?: 'there'; // first name only
 
 $status = null;

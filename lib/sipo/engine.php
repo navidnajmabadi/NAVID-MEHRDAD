@@ -327,7 +327,7 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
         if (!$calls) {
             rrp_sipo_track_tokens((int) $owner['id'], $tokens);
             rrp_si_bump_usage((int) $owner['id'], 0, $tokens);
-            $text = trim((string) $res['content']);
+            $text = rrp_sipo_fix_greeting(trim((string) $res['content']), (int) rrp_sipo_local_now($owner)->format('G'));
             $adminNote = null;
             if (rrp_is_super_owner($owner)) {
                 // Admins see why an action did not happen, as a separate note under the bubble.
@@ -536,7 +536,7 @@ function rrp_sipo_proactive(array $owner, array $thread, string $kind): ?array
         'emergency' => false,
         'events' => [],
     ];
-    $instruction = rrp_sipo_proactive_instruction($kind, $pet !== null);
+    $instruction = rrp_sipo_proactive_instruction($kind, $pet !== null, $owner);
     $reply = rrp_sipo_guard_choices(rrp_sipo_generate($ctx, $instruction));
     if (trim($reply['text']) === '') {
         return null;
@@ -550,8 +550,21 @@ function rrp_sipo_proactive(array $owner, array $thread, string $kind): ?array
     );
 }
 
-function rrp_sipo_proactive_instruction(string $kind, bool $hasPet): string
+function rrp_sipo_proactive_instruction(string $kind, bool $hasPet, ?array $owner = null): string
 {
+    $when = '';
+    if ($owner) {
+        $now = rrp_sipo_local_now($owner);
+        $h = (int) $now->format('G');
+        $part = rrp_sipo_day_part($h);
+        $when = 'The owner\'s local time is ' . $now->format('H:i') . ' (' . $part . '). Greet to match EXACTLY this time: '
+            . match (true) {
+                $h < 5 => 'it is late at night, so never say good morning, afternoon or evening; open with a quiet "Hi <name>" or ask gently if they are still up, '
+                    . 'do not plan the morning, walks or meals, keep it calm and short, and if anything is worrying you may say it can wait until morning. ',
+                $part === 'night' => 'it is night, so say good evening or just hi, nothing about starting the day. ',
+                default => 'say "Good ' . $part . '". ',
+            };
+    }
     if (!$hasPet) {
         return 'The owner just opened a new-pet chat. Greet them warmly by nickname and introduce yourself in one line. '
             . 'Then in one line: we will set things up in 4 short sections (Pet info, Routines, Health, Money), about 6 minutes, '
@@ -560,7 +573,7 @@ function rrp_sipo_proactive_instruction(string $kind, bool $hasPet): string
     }
     $base = 'You are starting the conversation (the owner has not written yet). Write ONE short message (max 45 words). '
         . 'Do not call tools. Use local time and weather naturally. ';
-    return $base . match ($kind) {
+    return $when . $base . match ($kind) {
         'greeting' => 'They just opened the app. Greet them for this part of the day and ask one caring question: '
             . 'prefer an overdue/upcoming reminder, then the most useful unknown profile item, then how the pet is.',
         'checkin' => 'This is a gentle check-in sent as a phone notification. Ask one easy question about today '

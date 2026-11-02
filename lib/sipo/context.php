@@ -35,6 +35,32 @@ function rrp_sipo_day_part(int $hour): string
     };
 }
 
+/**
+ * A greeting word that does not match the owner's local hour is replaced (live bug: "Good morning"
+ * at 00:12). The model gets the real time, but the words are checked by code too.
+ * Late night (00:00 to 04:59) gets a plain "Hi" because "Good night" is a goodbye.
+ */
+function rrp_sipo_fix_greeting(string $text, int $hour): string
+{
+    $right = match (rrp_sipo_day_part($hour)) {
+        'morning' => 'Good morning',
+        'afternoon' => 'Good afternoon',
+        'evening' => 'Good evening',
+        default => $hour >= 21 ? 'Good evening' : 'Hi',
+    };
+    return preg_replace_callback('/\bGood (morning|afternoon|evening|night)\b/i', static function ($m) use ($right) {
+        $word = 'Good ' . strtolower($m[1]);
+        if (strcasecmp($word, $right) === 0) {
+            return $m[0];
+        }
+        // "Good night" is fine as a goodbye late in the evening; leave it when it is already night-time.
+        if (strtolower($m[1]) === 'night' && $right !== 'Good morning' && $right !== 'Good afternoon') {
+            return $m[0];
+        }
+        return $right;
+    }, $text, 1) ?? $text;
+}
+
 function rrp_sipo_is_quiet_hour(int $hour): bool
 {
     return $hour >= RRP_SIPO_QUIET_START || $hour < RRP_SIPO_QUIET_END;
