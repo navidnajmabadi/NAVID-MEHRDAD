@@ -25,6 +25,7 @@ Status: **Merged** = fixed and in `PetFinder`. **In PR** = fixed, waiting for me
 | 18 | Same screen: "Yes, 09:00 / Another time / No thanks" under "send her blood test image?" | Reminder buttons under an unrelated question | Model attached a reminder offer to the wrong message | Reminder-offer buttons only survive when the text mentions a reminder | 69 | Merged |
 | 20 | Chat header "Looking after Violet" and menu "Violet / Showing now" after the rename | Old name kept on screen | Names were drawn once when the page loaded | Every name on the page is tied to the pet record; every reply and the 20 s poll bring the database name and update header, menu, input hint | 70 | In PR |
 | 21 | Dashboard "Latest" list ("Your post was removed" x3, "Support: Test") | Unwanted section; leftovers from the hidden Pack board and tests | It was a copy of the notification list, now covered by the bell popup | Section and its query removed from the dashboard | 70 | In PR |
+| 22 | `sipaw.nakilab.com/finance.php`: black "Something went wrong" | Expenses page crashes live | Not reproduced locally (mixed currencies, one or many pets, strict SQL modes all render). Suspect: the new per-pet query on the live database | Per-pet bars can no longer take the page down; admins now see the real error on any crash page | 70 | Check live |
 | 19 | "Add help to start onboarding manual if needed" | No way to restart the welcome | Only first sign-in showed it | Settings → Help: "Start the welcome again" | 64 | Merged |
 
 ## Still to check live after deploy
