@@ -238,6 +238,8 @@
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.
       vm.thread.onboarding = false;
+      var clip = document.getElementById("sipoAttach"); // the paperclip appears once the pet exists
+      if (clip) clip.hidden = false;
       vm.thread.pet = j.pet;
       idleStatus = "Looking after " + j.pet.name;
       document.dispatchEvent(new CustomEvent("sipo:pet-created", { detail: j.pet }));

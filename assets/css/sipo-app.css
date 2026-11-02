@@ -418,3 +418,4 @@
 .sipo-msg a.sipo-link-btn,.sipo-msg a.sipo-link-btn:visited{color:#fff}
 .chat-coin-wrap{display:inline-block;vertical-align:-3px;margin:0 1px}
 .chat-coin-wrap .chat-coin{display:block}
+.sipo-attach[hidden]{display:none!important}
