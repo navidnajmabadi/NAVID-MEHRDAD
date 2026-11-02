@@ -159,8 +159,20 @@ function rrp_care_record_done(array $owner, array $pet, string $key, string $dat
     }
     $interval = $intervalDays !== null && $intervalDays >= 1 && $intervalDays <= 1200 ? $intervalDays : $item['interval_days'];
     $next = (new DateTimeImmutable($date))->modify('+' . $interval . ' days');
-    $nextUtc = rrp_sipo_local_to_utc($next->format('Y-m-d'), $owner) ?? $next->format('Y-m-d 09:00:00');
     $petId = (int) $pet['id'];
+    // The owner's chosen time of day carries over ("every day at 11:30" stays at 11:30, not 09:00).
+    $clock = '';
+    try {
+        $q = rrp_db()->prepare("SELECT due_at FROM care_reminders WHERE pet_id = ? AND kind = 'routine' AND routine_key = ? AND status IN ('scheduled','sent','snoozed','pending_approval') ORDER BY due_at ASC LIMIT 1");
+        $q->execute([$petId, $key]);
+        $prev = $q->fetchColumn();
+        if ($prev) {
+            $hm = (new DateTimeImmutable((string) $prev, new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($owner))->format('H:i');
+            $clock = $hm !== '09:00' ? ' ' . $hm : '';
+        }
+    } catch (Throwable $e) {
+    }
+    $nextUtc = rrp_sipo_local_to_utc($next->format('Y-m-d') . $clock, $owner) ?? $next->format('Y-m-d 09:00:00');
 
     try {
         $pdo = rrp_db();
