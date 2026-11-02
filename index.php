@@ -26,7 +26,7 @@ $year = (int) date('Y');
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="<?= rrp_h($canonical) ?>">
 <link rel="manifest" href="<?= rrp_h(rrp_asset('manifest.webmanifest')) ?>">
-<link rel="icon" type="image/png" href="<?= rrp_h(rrp_asset('assets/icons/icon-192.png')) ?>">
+<link rel="icon" type="image/png" href="<?= rrp_h(rrp_asset('assets/icons/sipaw-tile-192.png')) ?>">
 <link rel="apple-touch-icon" href="<?= rrp_h(rrp_asset('assets/icons/apple-touch-icon.png')) ?>">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

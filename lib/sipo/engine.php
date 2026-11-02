@@ -227,6 +227,7 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
         'thread' => $thread,
         'pet' => $pet,
         'user_message_id' => $userMsg['id'] ?? null,
+        'user_body' => $body,
         'emergency' => !empty($gate['emergency']),
         'events' => [],
     ];

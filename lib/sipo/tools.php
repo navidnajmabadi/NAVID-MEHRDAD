@@ -284,6 +284,12 @@ function rrp_sipo_run_tool_on_pet(string $name, array $args, array &$ctx): array
             if ($pet === null) {
                 return ['ok' => false, 'error' => 'The pet profile is not created yet: get the name and kind first, then set the reminder.'];
             }
+            // Live bug: "Remind me for TM to tooth brush" had no time, and SIPO invented 04:32. A reminder
+            // needs a time the owner said (or a time SIPO proposed and the owner accepted).
+            if (!rrp_sipo_reminder_time_given($ctx)) {
+                return ['ok' => false, 'needs_time' => true,
+                    'error' => 'The owner did not give a time. Do NOT set it and do NOT guess. Ask ONE short question: what time (and which day if unclear)? Offer 2 or 3 sensible times as ask_choices.'];
+            }
             $due = rrp_sipo_local_to_utc((string) ($args['due'] ?? ''), $owner);
             if ($due === null) {
                 return ['ok' => false, 'error' => 'Use YYYY-MM-DD or YYYY-MM-DD HH:MM.'];
@@ -427,6 +433,35 @@ function rrp_sipo_run_care_tool(string $name, array $a, array $owner, array $pet
  * @return array|null error for the model (nothing saved), or null when it may go ahead
  */
 /** True when the owner's latest message is a plain yes and SIPO's previous message asked about exactly these new values. */
+/**
+ * True when the owner's latest message names a time ("at 5", "17:00", "in 10 minutes", "tonight", "5pm"),
+ * or is a plain yes to a message of ours that proposed a clock time.
+ */
+function rrp_sipo_reminder_time_given(array $ctx): bool
+{
+    $said = trim((string) ($ctx['user_body'] ?? ''));
+    if ($said === '') {
+        return true; // not a chat turn (cron or tool test): nothing to check
+    }
+    $cue = '/\b\d{1,2}[:.h]\d{2}\b|\b\d{1,2}\s?(am|pm|a\.m\.|p\.m\.)\b|\bat\s+\d{1,2}\b|\b(in|after)\s+(an?|\d+|half an?|one|two|three|four|five|ten|fifteen|twenty|thirty)\s*(min|minute|minutes|hour|hours|hr|hrs|day|days|week|weeks)\b|\b(noon|midnight|morning|afternoon|evening|tonight|night|breakfast|lunch|dinner|bedtime)\b|\b\d{1,2}\s?(o\'?clock)\b/i';
+    if (preg_match($cue, $said)) {
+        return true;
+    }
+    // "yes" to a time SIPO proposed ("Want me to remind you tomorrow at 09:00?").
+    if (mb_strlen($said) <= 40 && preg_match('/^(yes|yeah|yep|yup|sure|ok|okay|please|do it|go ahead|yes please)\b/i', $said)) {
+        $threadId = (int) ($ctx['thread']['id'] ?? 0);
+        $msgId = (int) ($ctx['user_message_id'] ?? 0);
+        if ($threadId > 0 && $msgId > 0) {
+            foreach (array_reverse(rrp_sipo_messages($threadId, 4, $msgId)) as $m) {
+                if (($m['role'] ?? '') === 'assistant') {
+                    return (bool) preg_match('/\b\d{1,2}[:.h]\d{2}\b|\b\d{1,2}\s?(am|pm)\b/i', (string) ($m['body'] ?? ''));
+                }
+            }
+        }
+    }
+    return false;
+}
+
 function rrp_sipo_yes_to_previous_question(array $ctx, array $newValues): bool
 {
     $threadId = (int) ($ctx['thread']['id'] ?? 0);
