@@ -426,6 +426,46 @@ function rrp_sipo_run_care_tool(string $name, array $a, array $owner, array $pet
  * QA B01/B29: changing an already-saved value, or saving an odd one, needs the owner's yes.
  * @return array|null error for the model (nothing saved), or null when it may go ahead
  */
+/** True when the owner's latest message is a plain yes and SIPO's previous message asked about exactly these new values. */
+function rrp_sipo_yes_to_previous_question(array $ctx, array $newValues): bool
+{
+    $threadId = (int) ($ctx['thread']['id'] ?? 0);
+    $msgId = (int) ($ctx['user_message_id'] ?? 0);
+    if ($threadId <= 0 || $msgId <= 0 || !$newValues) {
+        return false;
+    }
+    $recent = rrp_sipo_messages($threadId, 6, $msgId + 1);
+    $user = null;
+    $assistant = null;
+    foreach (array_reverse($recent) as $m) {
+        if ($user === null && (int) ($m['id'] ?? 0) === $msgId) {
+            $user = $m;
+            continue;
+        }
+        if ($user !== null && ($m['role'] ?? $m['sender_role'] ?? '') === 'assistant') {
+            $assistant = $m;
+            break;
+        }
+    }
+    if (!$user || !$assistant) {
+        return false;
+    }
+    $said = trim((string) ($user['body'] ?? ''));
+    if (mb_strlen($said) > 40 || !preg_match('/^(yes|yeah|yep|yup|sure|ok|okay|please|do it|go ahead|correct|right|that\'?s right|yes please)\b/i', $said)) {
+        return false;
+    }
+    $asked = (string) ($assistant['body'] ?? '');
+    if (!str_contains($asked, '?')) {
+        return false;
+    }
+    foreach ($newValues as $v) {
+        if (mb_stripos($asked, trim((string) $v)) === false) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function rrp_sipo_profile_change_check(array $pet, array $args, array $ctx = []): ?array
 {
     // QA v3 B01: the model set confirmed=true by itself in the same reply. A yes only counts when the
@@ -439,6 +479,12 @@ function rrp_sipo_profile_change_check(array $pet, array $args, array $ctx = [])
     $sig = md5(json_encode(array_map(static fn($v) => is_numeric($v) ? round((float) $v, 2) : mb_strtolower(trim((string) $v)), $sigArgs)));
     $confirmed = ($args['confirmed'] ?? false) === true
         && is_array($pending) && $msgId > 0 && (int) ($pending['msg'] ?? 0) < $msgId && ($pending['sig'] ?? '') === $sig;
+    // Live bug: the owner said "yeah" to "Violet → Violete. Shall I update her name?" but the model had only
+    // asked in words (no tool call yet, so nothing was pending); the change was refused and never saved
+    // while the reply said "Done". A clear yes to a question that named exactly this new value counts.
+    if (!$confirmed && ($args['confirmed'] ?? false) === true && rrp_sipo_yes_to_previous_question($ctx, $sigArgs)) {
+        $confirmed = true;
+    }
     $odd = static fn(string $v) => (bool) preg_match('/\d/', $v)
         || (mb_strlen($v) >= 6 && !preg_match('/[aeiouy]/i', $v))
         || preg_match('/(asdf|qwer|zxcv|hjkl|jkl;)/i', $v);

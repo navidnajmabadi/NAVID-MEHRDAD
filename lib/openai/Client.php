@@ -233,6 +233,9 @@ final class RrpOpenAiClient
         $errno = curl_errno($ch);
         $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $latency = (int) floor(microtime(true) * 1000) - $t0;
+        if ($latency > 5000 && function_exists('rrp_db_keepalive')) {
+            rrp_db_keepalive(); // the database may have timed out while we waited
+        }
 
         if ($errno || $raw === false) {
             return ['ok' => false, 'status' => 0, 'error' => 'OpenAI request failed (network: ' . curl_strerror($errno) . ').', 'latency_ms' => $latency];

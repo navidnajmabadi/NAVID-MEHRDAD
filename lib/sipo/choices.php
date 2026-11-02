@@ -95,6 +95,15 @@ function rrp_sipo_guard_choices(array $reply, string $ownerBody = ''): array
     $topic = rrp_choice_question_topic($q);
     $setTopic = $choices ? rrp_choice_set_topic($choices) : null;
 
+    // A reminder offer ("Yes, 09:00" / "Another time" / "No thanks") only fits a question about reminding
+    // (live bug: those buttons sat under "send her blood test image?").
+    if ($choices && !preg_match('/\bremind/i', (string) ($reply['text'] ?? ''))) {
+        $isReminderSet = (bool) array_filter($choices, static fn($c) => preg_match('/^(yes, .*\d|another time|remind me)/i', trim((string) $c)));
+        if ($isReminderSet) {
+            $choices = [];
+        }
+    }
+
     // 3. A set from another topic is wrong here.
     if ($choices && $setTopic !== null && $setTopic !== $topic) {
         $choices = [];
