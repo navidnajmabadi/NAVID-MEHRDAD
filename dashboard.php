@@ -62,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pets = rrp_pets_by_owner((int) $owner['id']);
-$notes = rrp_notifications_for_owner((int) $owner['id'], 4);
 $nearbyLost = rrp_lost_inbox_for_owner((int) $owner['id']);
 $nav = rrp_owner_nav_context((int) $owner['id']);
 
@@ -191,17 +190,6 @@ rrp_app_start(['nav' => 'settings']);
         <?php if ($food): ?>
           <li><span class="rt-when data"><?= (int) $food['eaten_kcal'] ?> kcal</span><b class="rt-title">🍽️ Food<?= $food['percent'] !== null ? ' · ' . (int) $food['percent'] . '% of the day' : '' ?></b><a class="link" href="care.php#sec-food">Details</a></li>
         <?php endif; ?>
-      </ul>
-    </section>
-  <?php endif; ?>
-
-  <?php if ($notes): ?>
-    <section class="care-card">
-      <h3 class="label">Latest</h3>
-      <ul class="rt-list">
-        <?php foreach ($notes as $n): if (($n['type'] ?? '') === 'scan') continue; ?>
-          <li><span class="rt-when data"><?= rrp_h(substr((string) $n['created_at'], 5, 5)) ?></span><b class="rt-title"><?= rrp_h((string) $n['title']) ?></b></li>
-        <?php endforeach; ?>
       </ul>
     </section>
   <?php endif; ?>

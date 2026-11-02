@@ -15,9 +15,11 @@ if (!$thread) {
     rrp_json(['ok' => false, 'error' => 'Chat not found'], 404);
 }
 
+$threadPet = !empty($thread['pet_id']) ? rrp_pet_by_id((int) $thread['pet_id'], $ownerId) : null;
 rrp_json([
     'ok' => true,
     'thread_id' => (int) $thread['id'],
+    'pet' => $threadPet ? rrp_sipo_pet_brief($threadPet) : null, // the database's current name, so open pages follow a rename
     'messages' => rrp_sipo_messages(
         (int) $thread['id'],
         (int) ($_GET['limit'] ?? 60),

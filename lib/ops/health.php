@@ -56,7 +56,16 @@ function rrp_ops_install_handlers(): void
         if (!headers_sent()) {
             http_response_code(500);
         }
-        echo PHP_SAPI === 'cli' ? "Error\n" : '<!doctype html><meta charset="utf-8"><title>SIPAW</title><body style="font-family:system-ui;background:#000;color:#fff;padding:40px"><h1>Something went wrong</h1><p>We have been told. Please try again in a moment.</p>';
+        // A signed-in super owner sees the real cause (nobody else does), so a live crash can be read at once.
+        $detail = '';
+        try {
+            $me = function_exists('rrp_current_owner') ? rrp_current_owner() : null;
+            if ($me && function_exists('rrp_is_super_owner') && rrp_is_super_owner($me)) {
+                $detail = '<pre style="white-space:pre-wrap;color:#9ad;margin-top:24px;font-size:13px">[admin only] ' . htmlspecialchars(get_class($e) . ': ' . $e->getMessage() . "\n" . basename($e->getFile()) . ':' . $e->getLine(), ENT_QUOTES) . '</pre>';
+            }
+        } catch (Throwable $ignored) {
+        }
+        echo PHP_SAPI === 'cli' ? "Error\n" : '<!doctype html><meta charset="utf-8"><title>SIPAW</title><body style="font-family:system-ui;background:#000;color:#fff;padding:40px"><h1>Something went wrong</h1><p>We have been told. Please try again in a moment.</p>' . $detail;
     });
     register_shutdown_function(static function (): void {
         $err = error_get_last();

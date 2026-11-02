@@ -233,13 +233,13 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
       <?php if ($curPet): ?>
         <details class="side-pet-drop">
           <summary class="side-pet" aria-current="true">
-            <?php rrp_pet_avatar($curPet); ?><span><b><?= rrp_h($curPet['name']) ?></b><small>Showing now · tap to change</small></span>
+            <?php rrp_pet_avatar($curPet); ?><span><b data-pet-name="<?= (int) $curPet['id'] ?>"><?= rrp_h($curPet['name']) ?></b><small>Showing now · tap to change</small></span>
             <svg class="side-pet-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
           </summary>
           <div class="side-pet-list">
             <?php foreach ($others as $p): ?>
               <button type="button" class="side-pet" data-menu-pet="<?= (int) $p['id'] ?>">
-                <?php rrp_pet_avatar($p); ?><span><b><?= rrp_h($p['name']) ?></b><small><?= rrp_h($p['kind']) ?></small></span>
+                <?php rrp_pet_avatar($p); ?><span><b data-pet-name="<?= (int) $p['id'] ?>"><?= rrp_h($p['name']) ?></b><small><?= rrp_h($p['kind']) ?></small></span>
               </button>
             <?php endforeach; ?>
             <?php if ($sw['can_add']): ?>

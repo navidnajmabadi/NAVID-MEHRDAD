@@ -86,6 +86,7 @@ function rrp_expense_summary(array $owner, ?array $pet = null, int $months = 6):
 
     // Per pet, over the same window: shown on the "All pets" view next to the combined total.
     $byPet = [];
+    try {
     $st = rrp_db()->prepare(
         "SELECT p.id, p.name, SUM(e.amount) AS t, SUM(CASE WHEN DATE_FORMAT(e.spent_on, '%Y-%m') = ? THEN e.amount ELSE 0 END) AS tm
          FROM pet_expenses e JOIN pets p ON p.id = e.pet_id
@@ -94,6 +95,10 @@ function rrp_expense_summary(array $owner, ?array $pet = null, int $months = 6):
     $st->execute([$now->format('Y-m'), (int) $owner['id'], $cur, $from]);
     foreach ($st->fetchAll() as $r) {
         $byPet[] = ['id' => (int) $r['id'], 'name' => (string) $r['name'], 'total' => (float) $r['t'], 'this_month' => (float) $r['tm']];
+    }
+    } catch (Throwable $e) {
+        error_log('rrp_expense_summary by_pet: ' . $e->getMessage()); // the per-pet bars are optional
+        $byPet = [];
     }
 
     $st = rrp_db()->prepare(

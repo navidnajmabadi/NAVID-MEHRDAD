@@ -42,7 +42,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
         <div>
           <h1 class="sipo-title">SIPO</h1>
           <p class="sipo-status" id="sipoStatus" aria-live="polite">
-            <?= $petName ? 'Looking after ' . rrp_h($petName) : 'Let’s meet your pet' ?>
+            <?= $petName ? 'Looking after <span data-pet-name="' . (int) $vm['thread']['pet']['id'] . '">' . rrp_h($petName) . '</span>' : 'Let’s meet your pet' ?>
           </p>
           <?php $pg = $vm['thread']['progress']; ?>
           <div class="sipo-progress" id="sipoProgress" tabindex="0" title="See what's left" <?= $pg && $pg['done'] < $pg['total'] ? '' : 'hidden' ?>
@@ -67,7 +67,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
     }
     ?>
     <?php if ($openLost): ?>
-      <a class="lost-banner" href="lost.php?pet=<?= (int) $vm['thread']['pet']['id'] ?>">🔴 <?= rrp_h($petName) ?> is in Lost mode. Home? Tap Found <span aria-hidden="true">›</span></a>
+      <a class="lost-banner" href="lost.php?pet=<?= (int) $vm['thread']['pet']['id'] ?>">🔴 <span data-pet-name="<?= (int) $vm['thread']['pet']['id'] ?>"><?= rrp_h($petName) ?></span> is in Lost mode. Home? Tap Found <span aria-hidden="true">›</span></a>
     <?php endif; ?>
     <?php if ($vm['note']): ?><div class="sipo-note" role="status"><?= rrp_h($vm['note']) ?></div><?php endif; ?>
 
@@ -91,7 +91,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
   <aside class="sipo-panel" aria-label="<?= rrp_h($petName) ?> at a glance">
     <div class="sipo-panel-card">
       <?php rrp_pet_avatar($vm['thread']['pet']); ?>
-      <div><b><?= rrp_h($petName) ?></b><small><?= rrp_h($vm['thread']['pet']['kind']) ?></small></div>
+      <div><b data-pet-name="<?= (int) $vm['thread']['pet']['id'] ?>"><?= rrp_h($petName) ?></b><small><?= rrp_h($vm['thread']['pet']['kind']) ?></small></div>
     </div>
     <dl class="sipo-panel-facts">
       <?php foreach ($vm['panel']['profile'] as $row): ?>

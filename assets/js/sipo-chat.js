@@ -235,6 +235,7 @@
       });
     }
     if (j.reminders && j.reminders.length) j.reminders.forEach(armReminder);
+    if (j.pet && !vm.thread.onboarding) syncPetName(j.pet);
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.
       vm.thread.onboarding = false;
@@ -245,6 +246,24 @@
       document.dispatchEvent(new CustomEvent("sipo:pet-created", { detail: j.pet }));
       try { history.replaceState(null, "", "si-chat.php"); } catch (e) {}
       input.placeholder = "Tell SIPO about " + j.pet.name + "…";
+    }
+  }
+
+  // One source of truth: every reply carries the pet as saved in the database. If the name there differs
+  // from what this page shows (SIPO just renamed the pet), every place that shows it is updated at once.
+  function syncPetName(pet) {
+    if (!pet || !pet.id || !pet.name) return;
+    var changed = false;
+    document.querySelectorAll('[data-pet-name="' + pet.id + '"]').forEach(function (el) {
+      if (el.textContent !== pet.name) { el.textContent = pet.name; changed = true; }
+    });
+    if (vm.thread.pet && vm.thread.pet.name !== pet.name) { vm.thread.pet.name = pet.name; changed = true; }
+    if (changed) {
+      idleStatus = "Looking after " + pet.name;
+      if (!busy) status.innerHTML = 'Looking after <span data-pet-name="' + pet.id + '"></span>';
+      var tag = status.querySelector("[data-pet-name]");
+      if (tag) tag.textContent = pet.name;
+      input.placeholder = "Tell SIPO about " + pet.name + "…";
     }
   }
 
@@ -436,6 +455,7 @@
       .then(function (j) {
         if (!j.ok) return;
         (j.messages || []).forEach(function (m) { bubble(m); });
+        if (j.pet && !vm.thread.onboarding) syncPetName(j.pet);
       })
       .catch(function () {});
   }
