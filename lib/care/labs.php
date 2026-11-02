@@ -127,6 +127,7 @@ function rrp_lab_flag(?float $v, ?float $lo, ?float $hi): string
  */
 function rrp_labs_save(array $owner, array $pet, array $lab, string $source = 'upload'): array
 {
+    rrp_db_keepalive(); // the connection may have idled while the file was being read
     $results = array_values(array_filter((array) ($lab['results'] ?? []), 'is_array'));
     if (!$results) {
         return ['ok' => false, 'error' => 'No results found in the report.'];
