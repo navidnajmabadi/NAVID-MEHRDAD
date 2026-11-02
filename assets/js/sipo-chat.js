@@ -466,11 +466,13 @@
 
   // Attach: photo or PDF → SIPO reads it, saves the data, deletes the file, replies.
   var fileInput = document.getElementById("sipoFile");
-  if (fileInput) {
-    fileInput.addEventListener("change", function () {
-      var files = [].slice.call(fileInput.files || []).slice(0, 10);
-      fileInput.value = "";
+  function sendFiles(files) {
+      files = files.slice(0, 10);
       if (!files.length || busy) return;
+      if (vm.thread.onboarding) {
+        bubble({ role: "assistant", body: "Tell me your pet's name first, then you can send photos and files.", created_at: new Date().toISOString() });
+        return;
+      }
       var bad = files.filter(function (f) { return !/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.type); });
       var big = files.filter(function (f) { return f.size > 10 * 1024 * 1024; });
       if (bad.length) {
@@ -532,8 +534,50 @@
           sendBtn.disabled = false;
           setStatus();
         });
+  }
+  if (fileInput) {
+    fileInput.addEventListener("change", function () {
+      var picked = [].slice.call(fileInput.files || []);
+      fileInput.value = "";
+      sendFiles(picked);
     });
   }
+
+  // Paste a screenshot or copied image/PDF straight into the message box.
+  function filesFrom(dt) {
+    if (!dt) return [];
+    var out = [].slice.call(dt.files || []);
+    if (!out.length && dt.items) {
+      [].forEach.call(dt.items, function (it) { if (it.kind === "file") { var f = it.getAsFile(); if (f) out.push(f); } });
+    }
+    return out.map(function (f, i) {
+      // Screenshots arrive as "image.png" with no real name.
+      return f.name && f.name !== "image.png" ? f : new File([f], "screenshot-" + (i + 1) + ".png", { type: f.type || "image/png" });
+    });
+  }
+  input.addEventListener("paste", function (e) {
+    var files = filesFrom(e.clipboardData);
+    if (!files.length) return; // plain text paste: leave it alone
+    e.preventDefault();
+    sendFiles(files);
+  });
+
+  // Drag files onto the chat and drop them to send.
+  var dropZone = document.querySelector(".sipo-chat") || form.parentNode;
+  var dragDepth = 0;
+  function hasFiles(e) { return e.dataTransfer && [].indexOf.call(e.dataTransfer.types || [], "Files") !== -1; }
+  dropZone.addEventListener("dragenter", function (e) { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; dropZone.classList.add("is-drop"); });
+  dropZone.addEventListener("dragover", function (e) { if (!hasFiles(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = "copy"; });
+  dropZone.addEventListener("dragleave", function (e) { if (!hasFiles(e)) return; dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) dropZone.classList.remove("is-drop"); });
+  dropZone.addEventListener("drop", function (e) {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    dropZone.classList.remove("is-drop");
+    sendFiles(filesFrom(e.dataTransfer));
+  });
+  // A file dropped outside the chat must not make the browser leave the page.
+  ["dragover", "drop"].forEach(function (t) { window.addEventListener(t, function (e) { if (hasFiles(e)) e.preventDefault(); }); });
 
   // Initial render
   (vm.messages || []).forEach(bubble);
