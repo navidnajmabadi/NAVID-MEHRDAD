@@ -333,6 +333,7 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             rrp_sipo_track_tokens((int) $owner['id'], $tokens);
             rrp_si_bump_usage((int) $owner['id'], 0, $tokens);
             $text = rrp_sipo_fix_greeting(trim((string) $res['content']), (int) rrp_sipo_local_now($owner)->format('G'));
+            $text = rrp_sipo_fix_false_done($text, $ctx);
             $adminNote = null;
             if (rrp_is_super_owner($owner)) {
                 // Admins see why an action did not happen, as a separate note under the bubble.
@@ -360,6 +361,9 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             $used[] = $name;
             if (!empty($result['needs_confirm'])) {
                 $ctx['events'][] = 'needs_confirm';
+                $ctx['unsaved'][$name] = is_array($args) ? $args : [];
+            } elseif (!empty($result['ok'])) {
+                unset($ctx['unsaved'][$name]);
             }
             if (empty($result['ok']) && empty($result['needs_confirm'])) {
                 // QA v3 B46: a "please confirm" pause is normal flow, not an error to show anyone.
@@ -553,6 +557,29 @@ function rrp_sipo_proactive(array $owner, array $thread, string $kind): ?array
         $reply['tokens'],
         ['mascot' => $reply['mascot'] === 'idle' ? 'happy' : $reply['mascot'], 'proactive' => $kind, 'model' => $reply['model'], 'choices' => $reply['choices'] ?? null]
     );
+}
+
+/**
+ * The model must not say "Done" for a change that was refused (live bug: "Violet's name is now Violete"
+ * while nothing was saved). If an update is still waiting for the owner's yes and the text claims it
+ * is done, say what is actually true and ask again.
+ */
+function rrp_sipo_fix_false_done(string $text, array $ctx): string
+{
+    $un = $ctx['unsaved']['update_pet_profile'] ?? null;
+    if (!$un || !preg_match('/\b(done|updated|saved|changed|is now|has been)\b/i', $text)) {
+        return $text;
+    }
+    $parts = [];
+    foreach (['name' => 'name', 'breed' => 'breed', 'sex' => 'sex', 'birth_date' => 'birthday', 'weight_kg' => 'weight'] as $k => $label) {
+        if (isset($un[$k]) && $un[$k] !== '') {
+            $parts[] = $label . ' to ' . (string) $un[$k];
+        }
+    }
+    if (!$parts) {
+        return $text;
+    }
+    return 'I have not saved that yet. Shall I change ' . implode(' and ', $parts) . '? Please answer yes or no.';
 }
 
 function rrp_sipo_proactive_instruction(string $kind, bool $hasPet, ?array $owner = null): string

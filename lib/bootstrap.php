@@ -76,9 +76,33 @@ function rrp_load_config(): array
     exit;
 }
 
-function rrp_db(): PDO
+/**
+ * A long outside call (reading a lab PDF takes a minute) leaves the connection idle and MySQL closes it
+ * ("MySQL server has gone away", live bug on a Probavet PDF). Call this after such a call: it checks the
+ * connection and opens a new one if it was dropped.
+ */
+function rrp_db_keepalive(): void
+{
+    try {
+        rrp_db()->query('SELECT 1');
+    } catch (Throwable $e) {
+        try {
+            rrp_db(true);
+        } catch (Throwable $e2) {
+            error_log('rrp_db_keepalive: ' . $e2->getMessage());
+        }
+    }
+}
+
+/**
+ * Shared database connection. rrp_db(true) drops it and connects again.
+ */
+function rrp_db(bool $reset = false): PDO
 {
     static $pdo = null;
+    if ($reset) {
+        $pdo = null;
+    }
     if ($pdo instanceof PDO) {
         return $pdo;
     }
