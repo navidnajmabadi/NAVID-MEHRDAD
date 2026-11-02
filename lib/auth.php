@@ -8,26 +8,28 @@ function rrp_current_owner(): ?array
         return null;
     }
     try {
-        // Prefer v1 columns (006+); fall back if not imported yet.
-        try {
-            $stmt = rrp_db()->prepare(
-                'SELECT id, name, email, phone, address, status, created_at,
-                        plan, plan_expires_at, locale, lat, lng, city, country,
-                        home_lat, home_lng, home_radius_km, home_area_label,
-                        first100_promo, first100_promo_ends_at, sip_balance,
-                        nickname, timezone, sipo_cooldown_until, current_pet_id, is_super
-                 FROM owners WHERE id = ? LIMIT 1'
-            );
-            $stmt->execute([(int) $_SESSION['owner_id']]);
-            $owner = $stmt->fetch();
-        } catch (Throwable $inner) {
-            $stmt = rrp_db()->prepare('SELECT id, name, email, phone, address, status, created_at, lat, lng, city, country FROM owners WHERE id = ? LIMIT 1');
-            $stmt->execute([(int) $_SESSION['owner_id']]);
-            $owner = $stmt->fetch();
-            if ($owner) {
-                $owner['plan'] = $owner['plan'] ?? 'free';
-                $owner['locale'] = $owner['locale'] ?? 'en';
+        // Newest columns first (019/020: report_weekly, onboarded_at), then the v1 set (006+), then the
+        // oldest, so a deploy that lands before its migration never locks anyone out.
+        $v1 = 'id, name, email, phone, address, status, created_at, plan, plan_expires_at, locale, lat, lng, city, country,
+               home_lat, home_lng, home_radius_km, home_area_label, first100_promo, first100_promo_ends_at, sip_balance,
+               nickname, timezone, sipo_cooldown_until, current_pet_id, is_super';
+        $sets = [$v1 . ', report_weekly, onboarded_at', $v1, 'id, name, email, phone, address, status, created_at, lat, lng, city, country'];
+        $owner = null;
+        foreach ($sets as $i => $cols) {
+            try {
+                $stmt = rrp_db()->prepare('SELECT ' . $cols . ' FROM owners WHERE id = ? LIMIT 1');
+                $stmt->execute([(int) $_SESSION['owner_id']]);
+                $owner = $stmt->fetch();
+                break;
+            } catch (Throwable $inner) {
+                if ($i === count($sets) - 1) {
+                    throw $inner;
+                }
             }
+        }
+        if ($owner) {
+            $owner['plan'] = $owner['plan'] ?? 'free';
+            $owner['locale'] = $owner['locale'] ?? 'en';
         }
     } catch (Throwable $e) {
         error_log('rrp_current_owner: ' . $e->getMessage());
@@ -47,7 +49,26 @@ function rrp_require_owner(): array
     if (!$owner) {
         rrp_redirect('login.php?next=' . rawurlencode($_SERVER['REQUEST_URI'] ?? 'dashboard.php'));
     }
+    rrp_onboarding_gate($owner);
     return $owner;
+}
+
+/**
+ * New accounts see the welcome screen once, before anything else. Only for page loads (never
+ * API calls or form posts), and only when the column exists, so a deploy that runs before the
+ * migration cannot trap existing owners.
+ */
+function rrp_onboarding_gate(array $owner): void
+{
+    if (!array_key_exists('onboarded_at', $owner) || !empty($owner['onboarded_at'])) {
+        return;
+    }
+    $script = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET' || str_contains($script, '/api/') || str_contains($script, '/cron/')
+        || in_array(basename($script), ['welcome.php', 'logout.php', 'legal.php', 'account-delete.php'], true)) {
+        return;
+    }
+    rrp_redirect('welcome.php');
 }
 
 function rrp_login(string $email, string $password, bool $remember = true): array

@@ -234,7 +234,9 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
     // the owner's words ourselves, so nothing depends on the model remembering to call a tool.
     rrp_sipo_extract_profile($ctx);
 
-    $reply = rrp_sipo_generate($ctx, null);
+    // Our own buttons (photo and profile offers) are answered by code, in a fixed order.
+    $reply = rrp_onb_intercept($ctx, $body) ?? rrp_sipo_generate($ctx, null);
+    $reply = rrp_onb_after_reply($ctx, $reply);
 
     $assistant = rrp_sipo_insert_message(
         (int) $ctx['thread']['id'],

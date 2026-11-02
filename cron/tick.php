@@ -43,6 +43,7 @@ $run('health', static fn() => rrp_health_cron_tick(50));
 $run('followups', static fn() => rrp_care_followup_tick(60));
 $run('meals', static fn() => rrp_food_meal_tick());
 $run('supply', static fn() => rrp_food_supply_tick());
+$run('onboarding_nudge', static fn() => rrp_onb_nudge_tick());
 rrp_ops_heartbeat('cron_health');
 
 $quarter = ((int) gmdate('i')) % 15 < 5 || isset($_GET['all']);

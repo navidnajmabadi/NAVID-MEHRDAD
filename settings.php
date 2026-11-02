@@ -32,6 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         rrp_ui_set_skin((string) ($_POST['skin'] ?? 'studio'));
         rrp_flash_set('ok', 'Look changed ✨');
         rrp_redirect('settings.php#appearance');
+    } elseif ($act === 'profile') {
+        $r = rrp_onb_save_profile($owner, $_POST, false);
+        rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Profile saved 💙' : ($r['error'] ?? 'Could not save.'));
+        rrp_redirect('settings.php#profile');
     } elseif ($act === 'report_pref') {
         $on = !empty($_POST['report_weekly']) ? 1 : 0;
         rrp_db()->prepare('UPDATE owners SET report_weekly = ? WHERE id = ?')->execute([$on, (int) $owner['id']]);
@@ -123,6 +127,21 @@ rrp_app_start(['nav' => 'settings']);
       </select></label>
       <label style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input type="checkbox" name="auto" value="1"<?= $tzAuto ? ' checked' : '' ?> style="min-height:0" /> Follow my phone's time zone automatically</label>
       <button class="btn primary" type="submit" style="grid-column:1/-1">Save time zone</button>
+    </form>
+  </section>
+
+  <section class="care-card" id="profile">
+    <h3 class="label">Your profile</h3>
+    <form method="post" class="auth-form" style="padding:0">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="profile" />
+      <div class="field"><label for="pfName">Name</label><div class="in"><input id="pfName" name="name" required maxlength="80" value="<?= rrp_h(trim((string) ($owner['nickname'] ?? '')) ?: (string) ($owner['name'] ?? '')) ?>" /></div></div>
+      <?php $pfCode = rrp_onb_country_code((string) ($owner['country'] ?? '')); ?>
+      <div class="field"><label for="pfCountry">Country</label><div class="in"><select id="pfCountry" name="country">
+        <option value="">Not set</option>
+        <?php foreach (rrp_onb_countries() as $code => $cname): ?><option value="<?= rrp_h($code) ?>" <?= $pfCode === $code ? 'selected' : '' ?>><?= rrp_h($cname) ?></option><?php endforeach; ?>
+      </select></div></div>
+      <div class="field"><label for="pfCity">City</label><div class="in"><input id="pfCity" name="city" maxlength="80" value="<?= rrp_h((string) ($owner['city'] ?? '')) ?>" /></div></div>
+      <button class="btn secondary" type="submit">Save profile</button>
     </form>
   </section>
 

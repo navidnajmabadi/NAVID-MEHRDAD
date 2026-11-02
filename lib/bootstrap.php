@@ -303,6 +303,7 @@ require_once __DIR__ . '/scans.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/email.php';
 require_once __DIR__ . '/report.php';
+require_once __DIR__ . '/onboarding.php';
 require_once __DIR__ . '/password_reset.php';
 require_once __DIR__ . '/webpush.php';
 require_once __DIR__ . '/notify.php';
