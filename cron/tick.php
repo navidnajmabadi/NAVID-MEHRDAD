@@ -48,6 +48,7 @@ rrp_ops_heartbeat('cron_health');
 
 $quarter = ((int) gmdate('i')) % 15 < 5 || isset($_GET['all']);
 if ($quarter) {
+    $run('watch', static fn() => rrp_watch_tick(40));
     $run('learn', static fn() => rrp_learn_tick(40));
     $run('sipo_nudges', static fn() => rrp_sipo_nudge_tick(40));
     $run('rewards', static fn() => rrp_rewards_tick());

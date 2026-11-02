@@ -219,6 +219,10 @@ function rrp_learn_next(array $owner, array $pet): ?array
                 'text' => "A little question to learn {$poss} day: when did {$name} last {$verb}? It helps me notice if something changes."];
         }
     }
+    // 3b. The toothpaste tube, once brushing is a habit.
+    if ($sq = rrp_watch_supply_question($owner, $pet)) {
+        return ['type' => 'supply', 'topic' => 'toothpaste', 'mascot' => 'happy', 'choices' => $sq['choices'], 'text' => $sq['text']];
+    }
     // 4. Default care reminders: guess first, owner confirms.
     foreach (RRP_REM_TOPICS as $topic => [$suffix, $phrase]) {
         if ($topic === 'bath' && ($pet['type'] ?? '') !== 'dog') {
@@ -294,6 +298,16 @@ function rrp_learn_intercept(array &$ctx, string $body): ?array
         }
         return $reply("Thank you for telling me. If {$name} seems in pain, is struggling, or it has been more than a day, please call your vet. Tell me what you noticed and I will help you note it down.", 'concerned');
     }
+    if ($pend['type'] === 'supply' && in_array($b, [RRP_SUPPLY_WEEK, RRP_SUPPLY_MONTH, RRP_SUPPLY_OLD, RRP_SUPPLY_NONE], true)) {
+        rrp_learn_clear($oid, $pid);
+        if ($b === RRP_SUPPLY_NONE) {
+            rrp_learn_set($oid, $pid, 'supply_toothpaste', 'none');
+            return $reply('Good to know. Use a pet toothpaste (never human toothpaste, it is not safe for pets). Tell me when you open one and I will keep track.');
+        }
+        $ago = [RRP_SUPPLY_WEEK => 3, RRP_SUPPLY_MONTH => 20, RRP_SUPPLY_OLD => 45][$b];
+        rrp_sipo_save_fact($oid, $pid, 'supply_toothpaste', 'opened@' . (time() - $ago * 86400), 'routine');
+        return $reply("Thank you 💙 A tube usually lasts about two months, so I will tell you when it is time for a new one.");
+    }
     if ($pend['type'] === 'rem' && isset(RRP_REM_TOPICS[$kind]) && in_array($b, [RRP_REM_YES, RRP_REM_LESS, RRP_REM_MORE, RRP_REM_NO], true)) {
         rrp_learn_clear($oid, $pid);
         if ($b === RRP_REM_NO) {
@@ -349,18 +363,18 @@ function rrp_learn_tick(int $max = 40): array
             if ($pend['at'] > time() - 86400) {
                 continue; // still waiting for an answer: do not pile up
             }
-            rrp_learn_set((int) $owner['id'], $pid, ($pend['type'] === 'slip' ? 'slip_' : ($pend['type'] === 'rem' ? 'rem_' : ($pend['type'] === 'verify' ? 'verify_' : 'learn_'))) . $pend['topic'], 'skipped');
+            rrp_learn_set((int) $owner['id'], $pid, ($pend['type'] === 'slip' ? 'slip_' : ($pend['type'] === 'rem' ? 'rem_' : ($pend['type'] === 'verify' ? 'verify_' : ($pend['type'] === 'supply' ? 'ask_' : 'learn_')))) . $pend['topic'], 'skipped');
             rrp_learn_clear((int) $owner['id'], $pid);
         }
         $q = rrp_learn_next($owner, $pet);
         if (!$q) {
             continue;
         }
-        $prefix = ['slip' => 'slip_', 'rem' => 'rem_', 'verify' => 'verify_', 'learn' => 'learn_'][$q['type']];
+        $prefix = ['slip' => 'slip_', 'rem' => 'rem_', 'verify' => 'verify_', 'learn' => 'learn_', 'supply' => 'ask_'][$q['type']];
         rrp_learn_set((int) $owner['id'], $pid, $prefix . $q['topic'], 'asked');
         rrp_learn_set((int) $owner['id'], $pid, 'learn_pending', $q['type'] . ':' . $q['topic']);
         $msg = rrp_sipo_insert_message((int) $pick['thread']['id'], 'assistant', $q['text'], 0, ['mascot' => $q['mascot'], 'proactive' => 'learn', 'choices' => $q['choices']]);
-        rrp_try_web_push((int) $owner['id'], 'SIPO · ' . $pet['name'], mb_substr($q['text'], 0, 140), rrp_app_url('si-chat.php?pet=' . $pid));
+        rrp_sipo_push((int) $owner['id'], 'SIPO · ' . $pet['name'], mb_substr($q['text'], 0, 140), rrp_app_url('si-chat.php?pet=' . $pid));
         rrp_sipo_log_nudge($owner, $pid, (int) $pick['thread']['id'], (int) ($msg['id'] ?? 0), 'learn', true);
         $out['sent']++;
     }

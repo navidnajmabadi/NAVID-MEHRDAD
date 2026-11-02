@@ -268,7 +268,7 @@ function rrp_onb_nudge_tick(int $max = 30): array
         // The photo question is asked again only through this one nudge; mark it so it cannot repeat.
         rrp_onb_set_state($ownerId, (int) $pet['id'], $stage === 'waiting' ? 'nudged' : 'asked_again');
         rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, $meta);
-        rrp_try_web_push($ownerId, 'SIPO · ' . $name, $text, rrp_app_url('si-chat.php?pet=' . (int) $pet['id']));
+        rrp_sipo_push($ownerId, 'SIPO · ' . $name, $text, rrp_app_url('si-chat.php?pet=' . (int) $pet['id']));
         $out['nudged']++;
     }
     return $out;

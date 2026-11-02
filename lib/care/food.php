@@ -375,7 +375,7 @@ function rrp_food_supply_tick(): array
         if ($thread) {
             rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'concerned', 'proactive' => 'supply']);
         }
-        rrp_try_web_push((int) $owner['id'], 'SIPO · ' . $row['pet_name'], $text, rrp_app_url('si-chat.php?pet=' . (int) $row['pet_id']));
+        rrp_sipo_push((int) $owner['id'], 'SIPO · ' . $row['pet_name'], $text, rrp_app_url('si-chat.php?pet=' . (int) $row['pet_id']));
         rrp_db()->prepare('UPDATE pet_foods SET supply_warned_for = ? WHERE id = ?')->execute([$f['runs_out_on'], (int) $f['id']]);
         $stats['warned']++;
     }
@@ -445,7 +445,7 @@ function rrp_food_meal_tick(): array
         if ((int) $logged->fetchColumn() === 0) {
             $text = "How did {$s['pet_name']}'s " . strtolower((string) $s['label']) . " go? What did they eat, roughly how much, and did they like it?";
             $msg = rrp_sipo_insert_message((int) $thread['id'], 'assistant', $text, 0, ['mascot' => 'listening', 'proactive' => 'meal']);
-            rrp_try_web_push((int) $owner['id'], 'SIPO · ' . $s['pet_name'], $text, rrp_app_url('si-chat.php?pet=' . (int) $s['pet_id']));
+            rrp_sipo_push((int) $owner['id'], 'SIPO · ' . $s['pet_name'], $text, rrp_app_url('si-chat.php?pet=' . (int) $s['pet_id']));
             $stats['asked']++;
         }
         rrp_sipo_log_nudge($owner, (int) $s['pet_id'], (int) $thread['id'], (int) ($msg['id'] ?? 0), $kind, true);

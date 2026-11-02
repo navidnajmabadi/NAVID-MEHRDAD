@@ -186,6 +186,18 @@ rrp_app_start(['nav' => 'settings']);
     </form>
   </section>
 
+  <section class="care-card" id="notifications">
+    <h3 class="label">Phone notifications</h3>
+    <p class="sub" id="pnHint">Checking this device…</p>
+    <div class="set-photo" style="margin:10px 0 0">
+      <div>
+        <button type="button" class="btn primary" id="pnEnable" hidden>Turn on</button>
+        <button type="button" class="btn outline" id="pnTest">Send me a test</button>
+      </div>
+    </div>
+    <p class="meta" id="pnResult" aria-live="polite"></p>
+  </section>
+
   <section class="care-card" id="reports">
     <h3 class="label">Health report by email</h3>
     <p class="meta" style="margin:0 0 10px">Every Sunday SIPO emails you how each pet did: walks, potty, weight trend, vaccines and lab flags, plus a caring note.</p>
@@ -225,5 +237,32 @@ rrp_app_start(['nav' => 'settings']);
   </section>
   <p class="meta" style="text-align:center"><a class="link" href="legal.php">Terms and privacy</a></p>
 </div>
+<?php
+?>
+<script>
+(function () {
+  var hint = document.getElementById('pnHint'), en = document.getElementById('pnEnable'), test = document.getElementById('pnTest'), out = document.getElementById('pnResult');
+  function refresh() {
+    if (!window.RRPPush) { setTimeout(refresh, 300); return; }
+    window.RRPPush.status().then(function (s) {
+      hint.textContent = s.subscribed ? 'On for this device. Reminders and SIPO reach you even when the app is closed.' : (s.hint || 'Off on this device.');
+      en.hidden = !(s.supported && s.configured && !s.subscribed && s.permission !== 'denied' && !(s.ios && !s.standalone));
+    });
+  }
+  refresh();
+  en.addEventListener('click', function () {
+    window.RRPPush.enable().then(function (r) { out.textContent = r && r.ok ? 'Turned on 💙' : 'Could not turn it on (' + ((r && r.error) || 'unknown') + ').'; refresh(); });
+  });
+  test.addEventListener('click', function () {
+    out.textContent = 'Sending…';
+    var fd = new FormData(); fd.append('csrf', <?= json_encode($csrf) ?>);
+    fetch('api/push-test.php', { method: 'POST', credentials: 'same-origin', body: fd }).then(function (r) { return r.json(); }).then(function (j) {
+      if (!j.devices) { out.textContent = j.error || 'Could not send.'; return; }
+      out.textContent = (j.ok ? 'Sent. It should pop up now. ' : 'It did not go through. ') +
+        j.devices.map(function (d) { return d.service + ': ' + (d.ok ? 'delivered to the push service (' + d.status + ')' : 'failed (' + (d.error || d.status) + ')'); }).join(' · ');
+    }).catch(function () { out.textContent = 'Could not reach the server.'; });
+  });
+})();
+</script>
 <?php
 rrp_app_end(['nav' => 'settings', 'unread' => $nav['unread'], 'lost_active' => $nav['lost_active']]);

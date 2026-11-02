@@ -197,7 +197,7 @@ function rrp_webpush_encrypt(string $payload, string $p256dhB64, string $authB64
         . str_pad($details['ec']['y'], 32, "\x00", STR_PAD_LEFT);
 
     $uaKey = rrp_ec_public_from_raw($uaPublic);
-    $shared = openssl_pkey_derive($uaKey, $asKey, 32);
+    $shared = openssl_pkey_derive($uaKey, $asKey);
     if ($shared === false || strlen($shared) !== 32) {
         // Some OpenSSL builds return shorter; left-pad
         if (is_string($shared) && $shared !== '') {

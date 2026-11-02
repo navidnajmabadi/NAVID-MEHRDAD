@@ -172,7 +172,6 @@ rrp_app_start(['nav' => 'settings']);
           <li><span class="rt-when data"><?= rrp_h(substr((string) $n['created_at'], 5, 5)) ?></span><b class="rt-title"><?= rrp_h((string) $n['title']) ?></b></li>
         <?php endforeach; ?>
       </ul>
-      <a class="link" href="alerts.php">All notifications</a>
     </section>
   <?php endif; ?>
 </div>

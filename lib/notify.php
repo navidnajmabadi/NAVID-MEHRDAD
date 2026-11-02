@@ -34,6 +34,77 @@ function rrp_notify_scan(array $pet, array $owner, int $scanId, string $mode = '
     rrp_mark_scan_notified($scanId);
 }
 
+/** True while the owner is talking to SIPO right now (a message from them in the last 3 minutes). */
+function rrp_owner_in_chat(int $ownerId): bool
+{
+    try {
+        $q = rrp_db()->prepare(
+            "SELECT 1 FROM chat_messages m JOIN chat_threads t ON t.id = m.thread_id
+             WHERE t.owner_id = ? AND t.thread_kind = 'si' AND m.sender_role = 'user' AND m.created_at > (UTC_TIMESTAMP() - INTERVAL 3 MINUTE) LIMIT 1"
+        );
+        $q->execute([$ownerId]);
+        return (bool) $q->fetchColumn();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/**
+ * SIPO's own messages: always in the chat and the bell; the phone push is skipped while the owner
+ * is already in the chat reading them. Reminders the owner set themselves always push.
+ */
+function rrp_sipo_push(int $ownerId, string $title, string $body, ?string $url = null): void
+{
+    if (rrp_owner_in_chat($ownerId)) {
+        rrp_notify_record($ownerId, $title, function_exists('rrp_sipo_clean_text') ? rrp_sipo_clean_text($body) : $body, $url);
+        return;
+    }
+    rrp_try_web_push($ownerId, $title, $body, $url);
+}
+
+/** What kind of notification a link points at (drives the icon and the filter). */
+function rrp_notify_type_for_url(?string $url): string
+{
+    $u = (string) $url;
+    return match (true) {
+        str_contains($u, 'lost') => 'lost',
+        str_contains($u, 'health') || str_contains($u, 'care.php') || str_contains($u, 'routines') => 'health',
+        str_contains($u, 'si-chat') => 'sipo',
+        str_contains($u, 'chat.php') => 'chat',
+        str_contains($u, 'plus') || str_contains($u, 'rewards') => 'account',
+        default => 'other',
+    };
+}
+
+/**
+ * Every notification that goes out as a push also lands in the in-app list (the bell), once:
+ * the same title and text within two minutes is not written twice (Lost mode writes its own row).
+ */
+function rrp_notify_record(int $ownerId, string $title, string $body, ?string $url = null): void
+{
+    try {
+        $dup = rrp_db()->prepare('SELECT 1 FROM notifications WHERE owner_id = ? AND title = ? AND LEFT(body, 190) = ? AND created_at > (UTC_TIMESTAMP() - INTERVAL 2 MINUTE) LIMIT 1');
+        $dup->execute([$ownerId, mb_substr($title, 0, 200), mb_substr($body, 0, 190)]);
+        if ($dup->fetchColumn()) {
+            return;
+        }
+        $path = $url ? (string) (parse_url($url, PHP_URL_PATH) ?: '') : '';
+        $q = $url ? (string) parse_url($url, PHP_URL_QUERY) : '';
+        $link = $path !== '' ? ltrim(substr($path, (int) strrpos($path, '/')), '/') . ($q !== '' ? '?' . $q : '') : null;
+        $type = rrp_notify_type_for_url($url);
+        try {
+            rrp_db()->prepare("INSERT INTO notifications (owner_id, type, title, body, channel, link, created_at) VALUES (?, ?, ?, ?, 'push', ?, UTC_TIMESTAMP())")
+                ->execute([$ownerId, $type, mb_substr($title, 0, 200), $body, $link ? mb_substr($link, 0, 255) : null]);
+        } catch (Throwable $e) {
+            // Deployed before migration 023: still keep the row, just without the link.
+            rrp_db()->prepare("INSERT INTO notifications (owner_id, type, title, body, channel, created_at) VALUES (?, ?, ?, ?, 'push', UTC_TIMESTAMP())")
+                ->execute([$ownerId, $type, mb_substr($title, 0, 200), $body]);
+        }
+    } catch (Throwable $e) {
+        error_log('rrp_notify_record: ' . $e->getMessage());
+    }
+}
+
 function rrp_notifications_for_owner(int $ownerId, int $limit = 30): array
 {
     $stmt = rrp_db()->prepare(
@@ -122,6 +193,7 @@ function rrp_try_web_push(int $ownerId, string $title, string $body, ?string $ur
     if (function_exists('rrp_sipo_clean_text')) {
         $body = rrp_sipo_clean_text($body);
     }
+    rrp_notify_record($ownerId, $title, $body, $url);
     if (!rrp_vapid_configured()) {
         return;
     }
