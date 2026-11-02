@@ -81,7 +81,7 @@ if (!$active && $pets) {
 usort($pets, static fn($a, $b) => ((int) $b['id'] === $activeId) <=> ((int) $a['id'] === $activeId));
 
 $hour = (int) rrp_sipo_local_now($owner)->format('G');
-$greet = $hour < 5 ? 'Good night' : ($hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening'));
+$greet = $hour < 5 ? 'Hi' : ($hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening'));
 $name = strtok(trim(rrp_sipo_owner_nickname($owner)), ' ') ?: 'there'; // first name only
 
 $status = null;
@@ -164,8 +164,8 @@ rrp_app_start(['nav' => 'settings']);
         <form method="post" enctype="multipart/form-data" class="home2-photo-form">
           <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="action" value="pet_photo" /><input type="hidden" name="pet_id" value="<?= (int) $activeId ?>" />
           <label class="btn outline" for="petPhoto"><?= !empty($active['image_path']) ? 'Change photo' : 'Add photo' ?></label>
-          <input id="petPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()" />
-          <?php if (!empty($active['image_path'])): ?><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
+          <input id="petPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" data-crop hidden />
+          <?php if (!empty($active['image_path'])): ?><button class="btn outline" type="button" data-crop-adjust="petPhoto" data-src="<?= rrp_h($active['image_path']) ?>">Adjust</button><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
         </form>
       </div>
     </section>
