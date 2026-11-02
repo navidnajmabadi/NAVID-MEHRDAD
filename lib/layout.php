@@ -49,8 +49,8 @@ function rrp_layout_head(string $title, array $opts = []): void
 <meta name="apple-mobile-web-app-title" content="SIPAW" />
 <link rel="canonical" href="<?= rrp_h($canonical) ?>" />
 <link rel="manifest" href="<?= rrp_h(rrp_asset('manifest.webmanifest')) ?>" />
-<link rel="icon" type="image/png" href="<?= rrp_h(rrp_asset('assets/icons/icon-192.png')) ?>" />
-<link rel="apple-touch-icon" href="<?= rrp_h(rrp_asset('assets/icons/apple-touch-icon.png')) ?>" />
+<link rel="icon" type="image/png" href="<?= rrp_h(rrp_asset('assets/icons/icon-192.png', true)) ?>" />
+<link rel="apple-touch-icon" href="<?= rrp_h(rrp_asset('assets/icons/apple-touch-icon.png', true)) ?>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <?php if ($skin === 'studio'): ?><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'" /><?php endif; ?>
@@ -146,7 +146,7 @@ function rrp_install_sheet(): void
 {
     ?>
 <div class="a2hs" id="a2hs" role="dialog" aria-labelledby="a2hsText" hidden>
-  <img src="<?= rrp_h(rrp_asset('assets/icons/icon-192.png')) ?>" alt="" width="44" height="44" />
+  <img src="<?= rrp_h(rrp_asset('assets/icons/icon-192.png', true)) ?>" alt="" width="44" height="44" />
   <div>
     <p id="a2hsText">Add SIPAW to your Home Screen so SIPO can reach you.</p>
     <p class="a2hs-steps" hidden>Tap <svg class="a2hs-share" viewBox="0 0 24 24" aria-label="Share"><path d="M12 3v12M7 8l5-5 5 5M5 12v8h14v-8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg> Share, then <b>Add to Home Screen</b>.</p>

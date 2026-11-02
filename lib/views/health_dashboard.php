@@ -151,12 +151,12 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
   <ul class="care-routines" role="list">
     <?php foreach ($vm['routines'] as $r): $ex = rrp_care_explain((string) ($r['key'] ?? ''), (string) $r['state']); ?>
       <li class="is-<?= rrp_h($r['state']) ?>">
-        <details class="care-rt" open>
+        <details class="care-rt">
           <summary>
             <span class="dot" aria-hidden="true"></span>
             <span class="care-rt-main"><b><?= rrp_h($r['title']) ?></b>
               <small><?= $r['last_done'] ? 'Last ' . rrp_h($r['last_done']) . ' · ' : '' ?><?= $r['next_due'] ? 'Next ' . rrp_h($r['next_due']) : ($r['state'] === 'unknown' ? 'Not known yet' : '') ?></small></span>
-            <span class="chip-s"><?= rrp_h(['ok' => 'On track', 'due_soon' => 'Due soon', 'overdue' => 'Overdue', 'unknown' => 'Unknown'][$r['state']]) ?></span>
+            <span class="care-rt-end"><span class="chip-s"><?= rrp_h(['ok' => 'On track', 'due_soon' => 'Due soon', 'overdue' => 'Overdue', 'unknown' => 'Unknown'][$r['state']]) ?></span><svg class="care-rt-chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></span>
           </summary>
           <p class="care-rt-line"><span>What it is</span><?= rrp_h($ex['what']) ?></p>
           <p class="care-rt-line is-todo"><span>What to do</span><?= rrp_h($ex['todo']) ?></p>

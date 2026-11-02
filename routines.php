@@ -76,6 +76,7 @@ if ($pet && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csr
 }
 
 $groups = ['overdue' => [], 'today' => [], 'week' => [], 'later' => []];
+$dailyRoutines = [];
 $meds = [];
 $meals = [];
 $walk = null;
@@ -86,7 +87,20 @@ if ($pet) {
     $today = $now->format('Y-m-d');
     $weekEnd = $now->modify('+7 days')->format('Y-m-d');
     $seenTwins = [];
+    // Routines the owner set to repeat every day (teeth, ...) live in "Every day", not in Health.
+    $dailyKeys = [];
+    foreach (rrp_setup_facts($petId) as $fk => $fv) {
+        if (str_starts_with((string) $fk, 'interval_') && (int) $fv === 1) {
+            $dailyKeys[substr((string) $fk, 9)] = true;
+        }
+    }
     foreach (rrp_care_open_reminders($petId, 50) as $r) {
+        if (($r['kind'] ?? '') === 'routine' && !empty($r['routine_key']) && isset($dailyKeys[$r['routine_key']])) {
+            $localD = (new DateTimeImmutable((string) $r['due_at'], new DateTimeZone('UTC')))->setTimezone($tz);
+            $dailyRoutines[] = ['id' => (int) $r['id'], 'time' => $localD->format('H:i'), 'title' => (string) $r['title'],
+                'due_today' => $localD->format('Y-m-d') <= $today];
+            continue;
+        }
         $local = (new DateTimeImmutable((string) $r['due_at'], new DateTimeZone('UTC')))->setTimezone($tz);
         $day = $local->format('Y-m-d');
         $r['when'] = $day === $today ? $local->format('H:i') : $local->format('D j M');
@@ -126,6 +140,9 @@ foreach ($meds as $m) {
 }
 foreach ($meals as $f) {
     $daily[] = ['time' => substr((string) $f['feed_time'], 0, 5), 'title' => '🍽️ ' . ($f['label'] ?: 'Meal'), 'note' => (string) ($f['portion_note'] ?? '')];
+}
+foreach ($dailyRoutines as $dr) {
+    $daily[] = ['time' => $dr['time'], 'title' => rrp_routine_icon($dr['title']) . ' ' . $dr['title'], 'note' => '', 'rid' => $dr['id'], 'due_today' => $dr['due_today']];
 }
 usort($daily, static fn($a, $b) => strcmp($a['time'], $b['time']));
 $labels = ['overdue' => '⏰ Overdue', 'today' => '☀️ Today', 'week' => '📅 This week', 'later' => '🗓️ Later'];
@@ -176,7 +193,13 @@ rrp_app_start(['nav' => 'routines']);
       <?php if ($daily || ($walk && $walk['goal'])): ?>
         <ul class="rt-list">
           <?php if ($walk && $walk['goal']): ?><li><span class="rt-when data"><?= (int) $walk['today_minutes'] ?>/<?= (int) $walk['goal'] ?>m</span><b class="rt-title">🦮 Walk goal</b><a class="link" href="walk.php">Start a walk</a></li><?php endif; ?>
-          <?php foreach ($daily as $d): ?><li><span class="rt-when data"><?= rrp_h($d['time']) ?></span><b class="rt-title"><?= rrp_h($d['title']) ?></b><small class="meta"><?= rrp_h($d['note']) ?></small></li><?php endforeach; ?>
+          <?php foreach ($daily as $d): ?><li><span class="rt-when data"><?= rrp_h($d['time']) ?></span><b class="rt-title"><?= rrp_h($d['title']) ?></b><small class="meta"><?= rrp_h($d['note']) ?></small>
+            <?php if (!empty($d['rid'])): ?>
+              <?php if ($d['due_today']): ?>
+                <form method="post" class="rt-acts"><input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="reminder_id" value="<?= (int) $d['rid'] ?>" />
+                  <button class="btn primary" name="act" value="done" type="submit">Done</button></form>
+              <?php else: ?><span class="meta">Done today ✓</span><?php endif; ?>
+            <?php endif; ?></li><?php endforeach; ?>
         </ul>
       <?php endif; ?>
     </section>

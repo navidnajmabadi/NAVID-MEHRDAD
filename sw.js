@@ -3,7 +3,7 @@
  * and a cached copy showed owners stale chats and broke login ("Session expired").
  * Only static files are cached (stale-while-revalidate). Offline → offline.html.
  */
-const CACHE = "sipaw-static-v4";
+const CACHE = "sipaw-static-v5";
 const OFFLINE = "./offline.html";
 const PRECACHE = [
   OFFLINE,
