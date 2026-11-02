@@ -135,11 +135,17 @@ rrp_app_start(['nav' => 'settings']);
         <?php endif; ?>
       </div>
       <div class="home2-actions">
-        <a class="btn primary" href="care.php">Health</a>
-        <a class="btn outline" href="routines.php">Routines</a>
         <a class="btn outline" href="pet-profile.php?id=<?= (int) $activeId ?>">Profile</a>
       </div>
     </section>
+
+
+    <nav class="home2-tiles" aria-label="Sections">
+      <a href="care.php"><svg aria-hidden="true"><use href="#i-heart"/></svg><b>Health</b><small>Vaccines, labs, weight</small></a>
+      <a href="routines.php"><svg aria-hidden="true"><use href="#i-routine"/></svg><b>Routines</b><small>What is due</small></a>
+      <a href="finance.php"><svg aria-hidden="true"><use href="#i-doc"/></svg><b>Expenses</b><small>What you spend</small></a>
+      <a href="lost.php" class="<?= $lostOpen ? 'is-lost' : '' ?>"><svg aria-hidden="true"><use href="#i-lost"/></svg><b>Lost pet</b><small><?= $lostOpen ? 'Lost mode is on' : 'One tap to start' ?></small></a>
+    </nav>
 
     <section class="care-card">
       <h3 class="label">Today</h3>

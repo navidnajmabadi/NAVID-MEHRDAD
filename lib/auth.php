@@ -13,7 +13,7 @@ function rrp_current_owner(): ?array
         $v1 = 'id, name, email, phone, address, status, created_at, plan, plan_expires_at, locale, lat, lng, city, country,
                home_lat, home_lng, home_radius_km, home_area_label, first100_promo, first100_promo_ends_at, sip_balance,
                nickname, timezone, sipo_cooldown_until, current_pet_id, is_super';
-        $sets = [$v1 . ', report_weekly, onboarded_at', $v1, 'id, name, email, phone, address, status, created_at, lat, lng, city, country'];
+        $sets = [$v1 . ', report_weekly, onboarded_at, avatar_path', $v1 . ', report_weekly, onboarded_at', $v1, 'id, name, email, phone, address, status, created_at, lat, lng, city, country'];
         $owner = null;
         foreach ($sets as $i => $cols) {
             try {

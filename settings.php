@@ -36,6 +36,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         $r = rrp_onb_save_profile($owner, $_POST, false);
         rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Profile saved 💙' : ($r['error'] ?? 'Could not save.'));
         rrp_redirect('settings.php#profile');
+    } elseif ($act === 'photo') {
+        try {
+            if (!empty($_POST['remove'])) {
+                $path = rrp_save_pet_image(null, null, 'owners');
+                rrp_db()->prepare('UPDATE owners SET avatar_path = NULL WHERE id = ?')->execute([(int) $owner['id']]);
+                rrp_flash_set('ok', 'Photo removed.');
+            } else {
+                $path = rrp_save_pet_image($_FILES['photo'] ?? null, $owner['avatar_path'] ?? null, 'owners');
+                if ($path) {
+                    rrp_db()->prepare('UPDATE owners SET avatar_path = ? WHERE id = ?')->execute([$path, (int) $owner['id']]);
+                    rrp_flash_set('ok', 'Photo saved 💙');
+                } else {
+                    rrp_flash_set('error', 'Choose a photo first.');
+                }
+            }
+        } catch (Throwable $e) {
+            rrp_flash_set('error', $e->getMessage());
+        }
+        rrp_redirect('settings.php#profile');
     } elseif ($act === 'report_pref') {
         $on = !empty($_POST['report_weekly']) ? 1 : 0;
         rrp_db()->prepare('UPDATE owners SET report_weekly = ? WHERE id = ?')->execute([$on, (int) $owner['id']]);
@@ -75,7 +94,7 @@ rrp_app_start(['nav' => 'settings']);
   <?php rrp_render_flash(); ?>
 
   <a class="care-status set-me" href="account.php">
-    <span class="avatar"><?= rrp_h($initial) ?></span>
+    <?php if (!empty($owner['avatar_path'])): ?><img class="avatar" src="<?= rrp_h($owner['avatar_path']) ?>" alt="" width="40" height="40" /><?php else: ?><span class="avatar"><?= rrp_h($initial) ?></span><?php endif; ?>
     <div>
       <h2><?= rrp_h((string) ($owner['name'] ?? 'Your profile')) ?></h2>
       <p class="sub"><?= rrp_h((string) ($owner['email'] ?? '')) ?> · Edit profile, phone and address</p>
@@ -132,6 +151,15 @@ rrp_app_start(['nav' => 'settings']);
 
   <section class="care-card" id="profile">
     <h3 class="label">Your profile</h3>
+    <form method="post" enctype="multipart/form-data" class="set-photo" id="photoForm">
+      <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="photo" />
+      <?php if (!empty($owner['avatar_path'])): ?><img class="avatar" src="<?= rrp_h($owner['avatar_path']) ?>" alt="Your photo" width="64" height="64" /><?php else: ?><span class="avatar" aria-hidden="true"><?= rrp_h($initial) ?></span><?php endif; ?>
+      <div>
+        <label class="btn outline" for="pfPhoto">Change photo</label>
+        <input id="pfPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()" />
+        <?php if (!empty($owner['avatar_path'])): ?><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
+      </div>
+    </form>
     <form method="post" class="auth-form" style="padding:0">
       <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="profile" />
       <div class="field"><label for="pfName">Name</label><div class="in"><input id="pfName" name="name" required maxlength="80" value="<?= rrp_h(trim((string) ($owner['nickname'] ?? '')) ?: (string) ($owner['name'] ?? '')) ?>" /></div></div>
