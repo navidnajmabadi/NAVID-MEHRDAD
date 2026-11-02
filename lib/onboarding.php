@@ -212,7 +212,9 @@ function rrp_onb_after_reply(array &$ctx, array $reply): array
     }
     $plan = rrp_sipo_setup_plan($fresh);
     $petSection = $plan['sections'][0] ?? null;
-    if (!$petSection || !$petSection['complete'] || !empty($reply['choices'])) {
+    if (!$petSection || !$petSection['complete'] || !empty($reply['choices']) || !empty($ctx['links']) || preg_match('/\?\s*$|\?[^\n]*$/u', trim((string) $reply['text']))) {
+        // One question per message: if this reply already asks something or offers a button,
+        // the photo question waits for the next reply.
         return $reply;
     }
     $name = (string) $fresh['name'];

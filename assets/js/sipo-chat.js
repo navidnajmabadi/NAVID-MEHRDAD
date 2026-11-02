@@ -84,6 +84,21 @@
   }
 
   // Phone numbers in SIPO replies (vet search) become tap-to-call links.
+  // Our own paw coin in place of the coin emoji (some devices draw that emoji as a grey moon).
+  var COIN_SVG = '<svg class="paw-coin chat-coin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#F5C542" stroke="#C99A1A" stroke-width="1.5"/><circle cx="12" cy="12" r="8" fill="none" stroke="#C99A1A" stroke-width="0.8" opacity=".7"/><ellipse cx="12" cy="14.6" rx="3.2" ry="2.6" fill="#7A5A0A"/><circle cx="8.4" cy="10.8" r="1.25" fill="#7A5A0A"/><circle cx="10.6" cy="8.6" r="1.25" fill="#7A5A0A"/><circle cx="13.4" cy="8.6" r="1.25" fill="#7A5A0A"/><circle cx="15.6" cy="10.8" r="1.25" fill="#7A5A0A"/></svg>';
+  function addText(el, str) {
+    var parts = str.split("\uD83E\uDE99"); // the coin emoji
+    parts.forEach(function (part, i) {
+      if (part) el.appendChild(document.createTextNode(part));
+      if (i < parts.length - 1) {
+        var c = document.createElement("span");
+        c.className = "chat-coin-wrap";
+        c.innerHTML = COIN_SVG;
+        el.appendChild(c);
+      }
+    });
+  }
+
   function renderBody(el, text) {
     var re = /(\+?\d[\d\s().-]{6,}\d)/g;
     var last = 0;
@@ -92,14 +107,14 @@
       var digits = m[1].replace(/[^\d]/g, "");
       // QA B10: dates (2026-10-21, 21.10.2026), times and short numbers are not phone numbers.
       if (/^\d{4}[-.\/]\d{1,2}[-.\/]\d{1,2}$|^\d{1,2}[-.\/]\d{1,2}[-.\/]\d{2,4}$/.test(m[1].trim()) || digits.length < 8 || digits.length > 15) continue;
-      if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      if (m.index > last) addText(el, text.slice(last, m.index));
       var a = document.createElement("a");
       a.href = "tel:" + m[1].replace(/[^\d+]/g, "");
       a.textContent = m[1];
       el.appendChild(a);
       last = m.index + m[1].length;
     }
-    if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+    if (last < text.length) addText(el, text.slice(last));
   }
 
   function bubble(msg) {
@@ -223,6 +238,8 @@
     if (j.pet && vm.thread.onboarding) {
       // SIPO just created the pet: this chat now belongs to it.
       vm.thread.onboarding = false;
+      var clip = document.getElementById("sipoAttach"); // the paperclip appears once the pet exists
+      if (clip) clip.hidden = false;
       vm.thread.pet = j.pet;
       idleStatus = "Looking after " + j.pet.name;
       document.dispatchEvent(new CustomEvent("sipo:pet-created", { detail: j.pet }));
@@ -469,6 +486,22 @@
       setFace("thinking");
       setStatus(files.length > 1 ? "Reading your " + files.length + " files…" : "Reading your file…");
       var mine = bubble({ role: "user", body: "📎 " + (files.length > 1 ? files.length + " files" : files[0].name), created_at: new Date().toISOString() });
+      // Show the photos themselves in the bubble (this device only: files are not kept on the server).
+      if (mine) {
+        var shots = files.filter(function (f) { return /^image\//.test(f.type); }).slice(0, 4);
+        if (shots.length) {
+          var strip = document.createElement("div");
+          strip.className = "sipo-thumbs";
+          shots.forEach(function (f) {
+            var im = document.createElement("img");
+            im.alt = f.name;
+            im.src = URL.createObjectURL(f);
+            im.addEventListener("click", function () { window.open(im.src, "_blank", "noopener"); });
+            strip.appendChild(im);
+          });
+          mine.insertBefore(strip, mine.querySelector("p"));
+        }
+      }
       showTyping(true);
       window.sipoUploadMany(files, {
         url: api.upload, csrf: api.csrf, threadId: threadId,

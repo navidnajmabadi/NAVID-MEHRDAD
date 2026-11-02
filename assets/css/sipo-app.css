@@ -413,3 +413,30 @@
 .set-photo .btn{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:120px;height:44px;margin:0;padding:0 18px;line-height:1;font-size:13px;text-align:center;cursor:pointer}
 .set-photo label.btn,.set-photo button.btn{font:600 14px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;padding:0 18px;margin:0;vertical-align:middle}
 .set-photo label.btn{display:inline-flex;align-items:center;justify-content:center}
+
+/* Link buttons under a reply: `.sipo-msg a` made them blue on blue (empty-looking button) */
+.sipo-msg a.sipo-link-btn,.sipo-msg a.sipo-link-btn:visited{color:#fff}
+.chat-coin-wrap{display:inline-block;vertical-align:-3px;margin:0 1px}
+.chat-coin-wrap .chat-coin{display:block}
+.sipo-attach[hidden]{display:none!important}
+
+/* Photos the owner sent, shown inside their own bubble */
+.sipo-thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sipo-thumbs img{display:block;max-width:100%;width:auto;max-height:220px;min-width:90px;object-fit:cover;border-radius:12px;cursor:zoom-in}
+.sipo-thumbs img:only-child{max-width:260px}
+
+/* Hold feedback: a ring fills for 1 second, then the button lifts and can be dragged */
+.sipo-fab::after{content:"";position:absolute;inset:-4px;border-radius:inherit;border:3px solid transparent;pointer-events:none}
+.sipo-fab.is-holding::after{border-color:var(--text);clip-path:inset(0 100% 0 0);animation:fab-hold 1s linear forwards}
+@keyframes fab-hold{to{clip-path:inset(0 0 0 0)}}
+.sipo-fab img{-webkit-user-drag:none;user-select:none}
+@media (prefers-reduced-motion:reduce){.sipo-fab.is-holding::after{animation-duration:1s}}
+
+/* Dashboard pet picture: round like the owner's profile picture, face-friendly crop, manual change */
+.home2-hero{grid-template-columns:104px 1fr}
+.home2-photo{width:104px;height:104px;border-radius:50%}
+.home2-photo img{object-position:50% 28%}
+.home2-actions{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}
+.home2-photo-form{display:flex;gap:8px}
+.home2-photo-form .btn{flex:1;box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:44px;margin:0;padding:0 12px;font:600 14px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.home2-photo-form label.btn,.home2-photo-form button.btn{font:600 14px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;padding:0 12px;margin:0;vertical-align:middle;display:flex;align-items:center;justify-content:center;width:auto;height:44px;min-height:44px}

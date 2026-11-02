@@ -76,12 +76,10 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
     <div class="sipo-gate" id="sipoGate" role="status" hidden></div>
 
     <form class="sipo-composer" id="sipoForm" autocomplete="off">
-      <?php if (!$vm['thread']['onboarding']): ?>
-      <label class="sipo-attach" title="Send a photo or PDF (lab report, food label, prescription, pet photo)">
+      <label class="sipo-attach" id="sipoAttach" <?= $vm['thread']['onboarding'] ? 'hidden' : '' ?> title="Send a photo or PDF (lab report, food label, prescription, pet photo)">
         <input type="file" id="sipoFile" accept="image/jpeg,image/png,image/webp,application/pdf" multiple hidden />
         <svg aria-hidden="true"><use href="#i-clip"/></svg><span class="sr-only">Attach a photo or PDF</span>
       </label>
-      <?php endif; ?>
       <label for="sipoInput" class="sr-only">Message SIPO</label>
       <textarea id="sipoInput" rows="1" maxlength="4000" enterkeyhint="send"
         placeholder="<?= $petName ? 'Tell SIPO about ' . rrp_h($petName) . '…' : 'Say hi to SIPO…' ?>"></textarea>
