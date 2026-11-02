@@ -104,11 +104,11 @@ window.addEventListener("pageshow", function (e) {
   if (e.persisted) location.reload();
 });
 
-/* Ask SIPO button: hold it for about half a second, then drag it anywhere. It remembers where you left it. */
+/* Ask SIPO button: a tap opens SIPO; hold it for 1 second (a ring fills), then drag it anywhere. It remembers where you left it. */
 (function () {
   var fab = document.querySelector('.sipo-fab');
   if (!fab) return;
-  var KEY = 'sipo_fab_pos', HOLD = 450, timer = null, lifted = false, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
+  var KEY = 'sipo_fab_pos', HOLD = 1000, timer = null, lifted = false, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
   function clamp(x, y) {
     var w = fab.offsetWidth, h = fab.offsetHeight;
     return [Math.min(Math.max(8, x), window.innerWidth - w - 8), Math.min(Math.max(8, y), window.innerHeight - h - 8)];
@@ -124,21 +124,25 @@ window.addEventListener("pageshow", function (e) {
   window.addEventListener('resize', function () {
     if (fab.style.left) { var r = fab.getBoundingClientRect(); place(r.left, r.top); }
   });
+  // The button is a link: stop the browser's own link/image dragging, it cancels our pointer events.
+  fab.setAttribute('draggable', 'false');
+  [].forEach.call(fab.querySelectorAll('img'), function (im) { im.setAttribute('draggable', 'false'); });
   fab.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   fab.addEventListener('pointerdown', function (e) {
     if (e.button > 0) return;
     var r = fab.getBoundingClientRect();
     sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top; moved = false;
     clearTimeout(timer);
+    fab.classList.add('is-holding');
     timer = setTimeout(function () {
-      lifted = true; moved = true; fab.classList.add('is-lifted');
+      lifted = true; moved = true; fab.classList.remove('is-holding'); fab.classList.add('is-lifted');
       try { fab.setPointerCapture(e.pointerId); } catch (x) {}
       if (navigator.vibrate) navigator.vibrate(12);
     }, HOLD);
   });
   fab.addEventListener('pointermove', function (e) {
     if (!lifted) {
-      if (Math.abs(e.clientX - sx) > 8 || Math.abs(e.clientY - sy) > 8) clearTimeout(timer);
+      if (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10) { clearTimeout(timer); fab.classList.remove('is-holding'); }
       return;
     }
     moved = true;
@@ -146,6 +150,7 @@ window.addEventListener("pageshow", function (e) {
   });
   function end() {
     clearTimeout(timer);
+    fab.classList.remove('is-holding');
     if (!lifted) return;
     lifted = false; fab.classList.remove('is-lifted');
     var r = fab.getBoundingClientRect();

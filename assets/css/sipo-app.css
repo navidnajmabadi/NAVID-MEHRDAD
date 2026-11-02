@@ -424,3 +424,10 @@
 .sipo-thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .sipo-thumbs img{display:block;max-width:100%;width:auto;max-height:220px;min-width:90px;object-fit:cover;border-radius:12px;cursor:zoom-in}
 .sipo-thumbs img:only-child{max-width:260px}
+
+/* Hold feedback: a ring fills for 1 second, then the button lifts and can be dragged */
+.sipo-fab::after{content:"";position:absolute;inset:-4px;border-radius:inherit;border:3px solid transparent;pointer-events:none}
+.sipo-fab.is-holding::after{border-color:var(--text);clip-path:inset(0 100% 0 0);animation:fab-hold 1s linear forwards}
+@keyframes fab-hold{to{clip-path:inset(0 0 0 0)}}
+.sipo-fab img{-webkit-user-drag:none;user-select:none}
+@media (prefers-reduced-motion:reduce){.sipo-fab.is-holding::after{animation-duration:1s}}
