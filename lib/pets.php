@@ -75,6 +75,19 @@ function rrp_pet_type_label(array $pet): string
     return ucfirst((string) $pet['type']);
 }
 
+/** Delete a saved pet or owner picture file (path as stored in the database); ignores anything outside uploads/. */
+function rrp_pet_image_delete_file(string $path): void
+{
+    $path = ltrim($path, '/');
+    if ($path === '' || !str_starts_with($path, 'uploads/') || str_contains($path, '..')) {
+        return;
+    }
+    $full = dirname(__DIR__) . '/' . $path;
+    if (is_file($full)) {
+        @unlink($full);
+    }
+}
+
 function rrp_save_pet_image(?array $file, ?string $existing = null, string $folder = 'pets'): ?string
 {
     if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {

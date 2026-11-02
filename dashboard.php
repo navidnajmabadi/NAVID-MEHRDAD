@@ -8,6 +8,31 @@ $owner = rrp_require_owner();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
     if (rrp_verify_csrf($_POST['csrf'] ?? null)) {
+        if ($action === 'pet_photo') {
+            // Manual pet picture, same as the owner's profile picture: Change photo / Remove.
+            $pp = rrp_pet_by_id((int) ($_POST['pet_id'] ?? 0), (int) $owner['id']);
+            if ($pp) {
+                try {
+                    if (!empty($_POST['remove'])) {
+                        rrp_pet_image_delete_file((string) ($pp['image_path'] ?? ''));
+                        rrp_db()->prepare('UPDATE pets SET image_path = NULL WHERE id = ? AND owner_id = ?')->execute([(int) $pp['id'], (int) $owner['id']]);
+                        rrp_flash_set('ok', 'Photo removed.');
+                    } else {
+                        $path = rrp_save_pet_image($_FILES['photo'] ?? null, null);
+                        if ($path) {
+                            rrp_pet_image_delete_file((string) ($pp['image_path'] ?? ''));
+                            rrp_db()->prepare('UPDATE pets SET image_path = ? WHERE id = ? AND owner_id = ?')->execute([$path, (int) $pp['id'], (int) $owner['id']]);
+                            rrp_flash_set('ok', 'Photo saved 💙');
+                        } else {
+                            rrp_flash_set('error', 'Choose a photo first.');
+                        }
+                    }
+                } catch (Throwable $e) {
+                    rrp_flash_set('error', $e->getMessage());
+                }
+            }
+            rrp_redirect('dashboard.php?pet=' . (int) ($_POST['pet_id'] ?? 0));
+        }
         if ($action === 'lost_trigger') {
             $result = rrp_trigger_lost((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0));
             if (!empty($result['ok'])) {
@@ -136,6 +161,12 @@ rrp_app_start(['nav' => 'settings']);
       </div>
       <div class="home2-actions">
         <a class="btn outline" href="pet-profile.php?id=<?= (int) $activeId ?>">Profile</a>
+        <form method="post" enctype="multipart/form-data" class="home2-photo-form">
+          <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="action" value="pet_photo" /><input type="hidden" name="pet_id" value="<?= (int) $activeId ?>" />
+          <label class="btn outline" for="petPhoto"><?= !empty($active['image_path']) ? 'Change photo' : 'Add photo' ?></label>
+          <input id="petPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()" />
+          <?php if (!empty($active['image_path'])): ?><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
+        </form>
       </div>
     </section>
 
