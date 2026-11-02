@@ -49,6 +49,8 @@ function rrp_care_handle_upload(array $owner, array $thread, array $file): array
             error_log('upload extract: ' . ($res['error'] ?? '?'));
             return ['ok' => false, 'error' => 'SIPO could not read that file. Try a clearer photo or the PDF.'];
         }
+        // The model call can take a minute and MySQL closes an idle connection: check it before saving anything.
+        rrp_db_keepalive();
         rrp_sipo_track_tokens((int) $owner['id'], (int) ($res['usage']['total_tokens'] ?? 0));
         return rrp_care_route_extract($owner, $pet, $res['data'], $tmp, $mime);
     } finally {

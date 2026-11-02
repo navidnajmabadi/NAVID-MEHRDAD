@@ -86,10 +86,14 @@ function rrp_db_keepalive(): void
     try {
         rrp_db()->query('SELECT 1');
     } catch (Throwable $e) {
-        try {
-            rrp_db(true);
-        } catch (Throwable $e2) {
-            error_log('rrp_db_keepalive: ' . $e2->getMessage());
+        for ($try = 0; $try < 3; $try++) {
+            try {
+                rrp_db(true)->query('SELECT 1');
+                return;
+            } catch (Throwable $e2) {
+                error_log('rrp_db_keepalive (try ' . ($try + 1) . '): ' . $e2->getMessage());
+                usleep(200000);
+            }
         }
     }
 }
