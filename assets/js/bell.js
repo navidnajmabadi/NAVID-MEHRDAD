@@ -41,6 +41,15 @@
       });
     });
     head.appendChild(all);
+    var clr = el("button", "bell-all", "Clear read"); clr.type = "button";
+    clr.disabled = !j.items.some(function (i) { return i.read; });
+    clr.addEventListener("click", function () {
+      var fd = new FormData(); fd.append("csrf", csrf); fd.append("act", "clear_read");
+      fetch("api/notifications.php", { method: "POST", credentials: "same-origin", body: fd }).then(function (r) { return r.json(); }).then(function (r) {
+        if (r && r.ok) { items = items.filter(function (i) { return !i.read; }); render({ unread: j.unread, items: items, push: j.push }); }
+      });
+    });
+    head.appendChild(clr);
     pop.appendChild(head);
     var list = el("ul", "bell-list"); list.setAttribute("role", "list");
     if (!j.items.length) list.appendChild(el("li", "bell-empty", "Nothing yet. Reminders and SIPO check-ins will show here."));

@@ -459,3 +459,13 @@ body.pcrop-open{overflow:hidden}
 /* Drop a file on the chat */
 .sipo-chat{position:relative}
 .sipo-chat.is-drop::after{content:"Drop to send to SIPO";position:absolute;inset:8px;z-index:20;display:grid;place-items:center;border:2px dashed var(--blue);background:rgba(37,99,255,.08);color:var(--blue);font-weight:600;font-size:16px;border-radius:var(--r-lg,12px);pointer-events:none;backdrop-filter:blur(2px)}
+
+/* Moved by the owner: just SIPO's face, no text; the ring and lift are blue, and the hold is short */
+.sipo-fab.is-compact{width:56px;padding:0;justify-content:center;gap:0}
+.sipo-fab.is-compact span{display:none}
+.sipo-fab.is-holding::after{border-color:var(--blue);animation-duration:.6s}
+.sipo-fab.is-lifted{box-shadow:0 14px 34px rgba(0,0,0,.35),0 0 0 3px var(--blue)}
+@media (prefers-reduced-motion:reduce){.sipo-fab.is-holding::after{animation-duration:.6s}}
+.sipo-fab:focus{outline:none}
+.sipo-fab:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.bell-head{gap:14px}.bell-head b{margin-right:auto}

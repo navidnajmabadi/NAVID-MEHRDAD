@@ -149,13 +149,19 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
   <h3 class="label">Care routines</h3>
   <p class="meta"><?= rrp_h($vm['region_label']) ?> · your vet sets the exact schedule.</p>
   <ul class="care-routines" role="list">
-    <?php foreach ($vm['routines'] as $r): ?>
+    <?php foreach ($vm['routines'] as $r): $ex = rrp_care_explain((string) ($r['key'] ?? ''), (string) $r['state']); ?>
       <li class="is-<?= rrp_h($r['state']) ?>">
-        <span class="dot" aria-hidden="true"></span>
-        <div><b><?= rrp_h($r['title']) ?></b>
-          <small><?= $r['last_done'] ? 'Last ' . rrp_h($r['last_done']) . ' · ' : '' ?><?= $r['next_due'] ? 'Next ' . rrp_h($r['next_due']) : ($r['state'] === 'unknown' ? 'Not known yet' : '') ?></small>
-          <small class="meta"><?= rrp_h($r['when']) ?></small></div>
-        <span class="chip-s"><?= rrp_h(['ok' => 'On track', 'due_soon' => 'Due soon', 'overdue' => 'Overdue', 'unknown' => 'Unknown'][$r['state']]) ?></span>
+        <details class="care-rt" open>
+          <summary>
+            <span class="dot" aria-hidden="true"></span>
+            <span class="care-rt-main"><b><?= rrp_h($r['title']) ?></b>
+              <small><?= $r['last_done'] ? 'Last ' . rrp_h($r['last_done']) . ' · ' : '' ?><?= $r['next_due'] ? 'Next ' . rrp_h($r['next_due']) : ($r['state'] === 'unknown' ? 'Not known yet' : '') ?></small></span>
+            <span class="chip-s"><?= rrp_h(['ok' => 'On track', 'due_soon' => 'Due soon', 'overdue' => 'Overdue', 'unknown' => 'Unknown'][$r['state']]) ?></span>
+          </summary>
+          <p class="care-rt-line"><span>What it is</span><?= rrp_h($ex['what']) ?></p>
+          <p class="care-rt-line is-todo"><span>What to do</span><?= rrp_h($ex['todo']) ?></p>
+          <p class="care-rt-more"><?= rrp_h($r['when']) ?><?= !empty($r['note']) ? ' · ' . rrp_h($r['note']) : '' ?></p>
+        </details>
       </li>
     <?php endforeach; ?>
   </ul>
