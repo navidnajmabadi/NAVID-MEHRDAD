@@ -105,10 +105,16 @@ function rrp_notify_record(int $ownerId, string $title, string $body, ?string $u
     }
 }
 
+/** Types the owner never sees while their feature is switched off (the Pack board is hidden, so its removals and comments are too). */
+function rrp_notify_hidden_sql(): string
+{
+    return rrp_social_enabled() ? '' : " AND type NOT IN ('moderation','forum_comment')";
+}
+
 function rrp_notifications_for_owner(int $ownerId, int $limit = 30): array
 {
     $stmt = rrp_db()->prepare(
-        'SELECT * FROM notifications WHERE owner_id = ? ORDER BY created_at DESC LIMIT ?'
+        'SELECT * FROM notifications WHERE owner_id = ?' . rrp_notify_hidden_sql() . ' ORDER BY created_at DESC LIMIT ?'
     );
     $stmt->bindValue(1, $ownerId, PDO::PARAM_INT);
     $stmt->bindValue(2, $limit, PDO::PARAM_INT);
@@ -119,10 +125,18 @@ function rrp_notifications_for_owner(int $ownerId, int $limit = 30): array
 function rrp_notifications_unread_count(int $ownerId): int
 {
     $stmt = rrp_db()->prepare(
-        'SELECT COUNT(*) FROM notifications WHERE owner_id = ? AND read_at IS NULL'
+        'SELECT COUNT(*) FROM notifications WHERE owner_id = ? AND read_at IS NULL' . rrp_notify_hidden_sql()
     );
     $stmt->execute([$ownerId]);
     return (int) $stmt->fetchColumn();
+}
+
+/** Remove the notifications the owner has already read (their own list only). */
+function rrp_clear_read_notifications(int $ownerId): int
+{
+    $stmt = rrp_db()->prepare('DELETE FROM notifications WHERE owner_id = ? AND read_at IS NOT NULL');
+    $stmt->execute([$ownerId]);
+    return $stmt->rowCount();
 }
 
 function rrp_mark_notifications_read(int $ownerId): void

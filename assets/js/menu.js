@@ -104,16 +104,18 @@ window.addEventListener("pageshow", function (e) {
   if (e.persisted) location.reload();
 });
 
-/* Ask SIPO button: a tap opens SIPO; hold it for 1 second (a ring fills), then drag it anywhere. It remembers where you left it. */
+/* Ask SIPO button: a tap opens SIPO; hold it briefly (a blue ring fills), then drag it anywhere. It remembers where you left it. */
 (function () {
   var fab = document.querySelector('.sipo-fab');
   if (!fab) return;
-  var KEY = 'sipo_fab_pos', HOLD = 1000, timer = null, lifted = false, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
+  var KEY = 'sipo_fab_pos', HOLD = 600, timer = null, lifted = false, sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
   function clamp(x, y) {
     var w = fab.offsetWidth, h = fab.offsetHeight;
     return [Math.min(Math.max(8, x), window.innerWidth - w - 8), Math.min(Math.max(8, y), window.innerHeight - h - 8)];
   }
   function place(x, y) {
+    // Once the owner has put it somewhere, only SIPO's face stays: the text would cover the page.
+    fab.classList.add('is-compact');
     var c = clamp(x, y);
     fab.style.left = c[0] + 'px'; fab.style.top = c[1] + 'px'; fab.style.right = 'auto'; fab.style.bottom = 'auto';
   }

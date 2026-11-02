@@ -212,3 +212,40 @@ function rrp_care_sources(array $keys): array
     }
     return $out;
 }
+
+/**
+ * One line each: what a care routine is, and what the owner needs to do now.
+ * Keys are the catalogue keys without the species prefix.
+ *
+ * @return array{what:string, todo:string}
+ */
+function rrp_care_explain(string $key, string $state): array
+{
+    $k = preg_replace('/^(dog|cat)_/', '', $key) ?? $key;
+    $k = ['core_dhpp' => 'core', 'core_fvrcp' => 'core', 'flea_tick' => 'flea'][$k] ?? $k;
+    $map = [
+        'core' => ['Protects against deadly viruses (distemper, hepatitis, parvo, cat flu).', 'Find the date on the vaccine certificate and tell SIPO.'],
+        'rabies' => ['Required by law in many places; protects against a fatal disease.', 'Tell SIPO the date from the rabies certificate.'],
+        'lepto' => ['Protects against a bacterial disease from water and wildlife.', 'Ask your vet if it fits your pet\'s life, then tell SIPO the date.'],
+        'kennel_cough' => ['Protects against a contagious cough spread in groups.', 'Only needed for daycare, boarding or many dogs; tell SIPO if it was given.'],
+        'worming' => ['Clears intestinal worms that harm your pet and can spread to people.', 'Tell SIPO the last worming date, or ask your vet which one to use.'],
+        'flea' => ['Stops fleas and ticks that cause itching, anaemia and disease.', 'Tell SIPO which product you use and the last date.'],
+        'heartworm' => ['Prevents heartworm, a dangerous disease spread by mosquitoes.', 'Tell SIPO the last dose, or ask your vet if it is needed where you live.'],
+        'felv' => ['Protects cats from feline leukaemia, mainly outdoor cats.', 'Ask your vet if your cat needs it, then tell SIPO the date.'],
+        'teeth' => ['Prevents plaque, bad breath and gum disease.', 'Brush with pet toothpaste and tell SIPO each time, or let SIPO remind you.'],
+        'nails' => ['Keeps nails from overgrowing and hurting the paws.', 'Trim if they click on the floor, then tell SIPO the date.'],
+        'coat' => ['Removes loose hair and lets you check skin, lumps and ticks.', 'Brush today and tell SIPO.'],
+        'bath' => ['Keeps skin and coat clean without drying them out.', 'Bath when dirty (about every 3 months) and tell SIPO.'],
+        'ears' => ['Spots ear infections early (redness, smell, head shaking).', 'Look and sniff weekly; tell SIPO if anything looks off.'],
+        'bloodwork' => ['Finds kidney, liver, thyroid and sugar problems early.', 'Send SIPO the last blood test (photo or PDF), or book one with your vet.'],
+        'checkup' => ['A yearly vet exam catches problems early.', 'Tell SIPO the date of the last visit, or book one.'],
+    ];
+    [$what, $unknown] = $map[$k] ?? ['A routine care item for your pet.', 'Tell SIPO the last date.'];
+    $todo = match ($state) {
+        'ok' => 'Nothing to do now. SIPO will remind you before the next one.',
+        'due_soon' => 'Due soon: book it or do it this week, then tell SIPO.',
+        'overdue' => 'Overdue: do it or book it now, then tell SIPO.',
+        default => $unknown,
+    };
+    return ['what' => $what, 'todo' => $todo];
+}

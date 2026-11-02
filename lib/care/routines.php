@@ -361,7 +361,9 @@ function rrp_care_followup_tick(int $limit = 60): array
         if (!$f) {
             continue;
         }
-        if (rrp_sipo_is_quiet_hour((int) rrp_sipo_local_now($owner)->format('G'))) {
+        // "Remind me at 23:00" must arrive at 23:00: only SIPO's own follow-ups wait for the morning.
+        $ownReminder = ($r['kind'] ?? '') === 'custom' && ($r['merge_group'] ?? '') === '';
+        if (!$ownReminder && rrp_sipo_is_quiet_hour((int) rrp_sipo_local_now($owner)->format('G'))) {
             $stats['quiet']++;
             continue;
         }

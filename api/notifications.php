@@ -2,11 +2,14 @@
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/lib/bootstrap.php';
 
-/** GET: the latest notifications for the bell. POST act=read_all: mark them all read. */
+/** GET: the latest notifications for the bell. POST act=read_all: mark them all read; act=clear_read: delete the read ones. */
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     [$owner, $data] = rrp_api_owner_post();
     if (($data['act'] ?? '') === 'read_all') {
         rrp_mark_notifications_read((int) $owner['id']);
+    }
+    if (($data['act'] ?? '') === 'clear_read') {
+        rrp_clear_read_notifications((int) $owner['id']);
     }
     rrp_json(['ok' => true, 'unread' => rrp_notifications_unread_count((int) $owner['id'])]);
 }

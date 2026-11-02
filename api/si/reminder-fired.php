@@ -20,6 +20,8 @@ $claim->execute([$id]);
 if ($claim->rowCount() !== 1) {
     rrp_json(['ok' => true, 'already' => true]);
 }
+// The notification center keeps it too (the open chat only showed a bubble and a browser banner before).
+rrp_notify_record((int) $owner['id'], 'SIPO · ' . $r['pet_name'], '⏰ Reminder: ' . $r['title'], rrp_app_url('si-chat.php?pet=' . (int) $r['pet_id']));
 $thread = rrp_sipo_thread_for_pet((int) $owner['id'], (int) $r['pet_id']);
 $msg = $thread ? rrp_sipo_insert_message((int) $thread['id'], 'assistant', '⏰ Reminder: ' . $r['title'], 0, ['mascot' => 'happy', 'proactive' => 'reminder']) : null;
 rrp_json(['ok' => true, 'assistant' => $msg]);
