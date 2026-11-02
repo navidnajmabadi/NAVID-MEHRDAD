@@ -214,3 +214,57 @@
 .lab-rows{display:flex;flex-direction:column;gap:14px}
 .lab-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border:1px solid var(--line)}
 .lab-row .field:first-child{grid-column:1/-1}
+
+/* Lab dashboard: closed rows like a market list, open rows with the safe range */
+.lab-summary{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:13px}
+.lab-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.lab-dot.is-red{background:var(--red);animation:lab-pulse-red 1.1s ease-in-out infinite}
+.lab-dot.is-amber{background:#f5a524;animation:lab-pulse-amber 1.4s ease-in-out infinite;margin-left:4px}
+.lab-list{display:flex;flex-direction:column;gap:8px}
+.lab-row{display:block;border:1px solid var(--line);background:var(--bg)}
+.lab-row>summary{display:grid;grid-template-columns:minmax(0,1fr) 64px auto 64px;align-items:center;gap:10px;padding:12px;cursor:pointer;list-style:none}
+.lab-row>summary::-webkit-details-marker{display:none}
+.lab-name{display:flex;flex-direction:column;min-width:0}
+.lab-name b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lab-name small{font-size:12px;opacity:.6}
+.lab-val{text-align:right;font-size:15px;font-weight:600;white-space:nowrap}
+.lab-val small{font-weight:400;opacity:.6;margin-left:3px;font-size:11px}
+.lab-chg{justify-self:end;min-width:58px;text-align:center;padding:3px 6px;font-size:12px;font-weight:600;border:1px solid var(--line)}
+.lab-row.is-red .lab-chg{color:var(--red);border-color:var(--red)}
+.lab-row.is-amber .lab-chg{color:#f5a524;border-color:#f5a524}
+.lab-spark{width:64px;height:26px}
+.lab-spark path{fill:none;stroke:var(--sub);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.lab-spark.is-red path{stroke:var(--red)}.lab-spark.is-amber path{stroke:#f5a524}
+.lab-row.is-red{border-color:var(--red);animation:lab-glow-red 1.1s ease-in-out infinite}
+.lab-row.is-amber{border-color:#f5a524;animation:lab-glow-amber 1.4s ease-in-out infinite}
+.lab-row.is-red .lab-name small{color:var(--red);font-weight:600}
+.lab-row.is-amber .lab-name small{color:#f5a524;font-weight:600}
+.lab-row[open]{animation:none}
+.lab-row[open].is-red{box-shadow:0 0 0 1px var(--red)}.lab-row[open].is-amber{box-shadow:0 0 0 1px #f5a524}
+.lab-row[open]>summary .lab-name small{animation:care-blink 1.1s ease-in-out infinite}
+.lab-row[open].is-ok>summary .lab-name small{animation:none}
+@keyframes lab-glow-red{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,0)}50%{box-shadow:0 0 0 3px rgba(229,72,77,.45)}}
+@keyframes lab-glow-amber{0%,100%{box-shadow:0 0 0 0 rgba(245,165,36,0)}50%{box-shadow:0 0 0 3px rgba(245,165,36,.45)}}
+@keyframes lab-pulse-red{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes lab-pulse-amber{0%,100%{opacity:1}50%{opacity:.25}}
+.lab-open{padding:0 12px 14px;border-top:1px solid var(--line)}
+.lab-open .lab-info{margin:10px 0 6px}
+.lab-open .care-chart{height:150px}
+.lab-axis{display:flex;justify-content:space-between;font-size:11px;opacity:.55;margin:4px 0 0}
+.lab-params{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:12px 0}
+.lab-params dt{font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.08em}
+.lab-params dd{margin:0;font-size:14px}
+.lab-history{list-style:none;margin:0 0 12px;padding:0;font-size:13px}
+.lab-history li{display:grid;grid-template-columns:1fr auto 56px;gap:8px;padding:5px 0;border-top:1px solid var(--line)}
+.lab-history li.is-red b,.lab-history li.is-red em{color:var(--red)}
+.lab-history em{font-style:normal;font-size:11px;font-weight:600;text-align:right}
+.lab-ask{display:flex;justify-content:center;align-items:center}
+.lab-gauge{position:relative;height:10px;margin:18px 4px 10px;background:var(--line)}
+.lab-gauge .safe{position:absolute;top:0;bottom:0;background:var(--blue);opacity:.35}
+.lab-gauge .mark{position:absolute;top:-5px;width:4px;height:20px;margin-left:-2px;background:var(--text)}
+.lab-gauge .mark.is-red{background:var(--red);animation:care-blink 1.1s ease-in-out infinite}
+@media (max-width:420px){.lab-row>summary{grid-template-columns:minmax(0,1fr) 52px auto 58px;gap:8px;padding:10px}.lab-spark{width:52px}}
+@media (prefers-reduced-motion:reduce){
+  .lab-row.is-red,.lab-row.is-amber,.lab-dot,.lab-gauge .mark.is-red,.lab-row[open]>summary .lab-name small{animation:none}
+  .lab-row.is-red{box-shadow:0 0 0 2px var(--red)}.lab-row.is-amber{box-shadow:0 0 0 2px #f5a524}
+}

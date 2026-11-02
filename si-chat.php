@@ -16,6 +16,14 @@ $vm = rrp_vm_chat($owner, !empty($_GET['new']));
 // "Ask SIPO" from another page: SIPO explains that page (the question is sent once on load).
 $askKey = (string) ($_GET['ask'] ?? '');
 $vm['auto_ask'] = !empty($vm['thread']['pet']) && isset(RRP_SIPO_ASK_TOPICS[$askKey]) ? RRP_SIPO_ASK_TOPICS[$askKey] : null;
+if ($askKey === 'lab' && !empty($vm['thread']['pet'])) {
+    foreach (rrp_labs_trends((int) $vm['thread']['pet']['id']) as $a) {
+        if ($a['key'] === (string) ($_GET['lab'] ?? '')) {
+            $vm['auto_ask'] = 'Please analyse ' . $a['label'] . ' for ' . $vm['thread']['pet']['name'] . ': the latest value against its range, the trend over the earlier reports, and what could explain it given the breed, age, weight and routines. Tell me what to ask the vet.';
+            break;
+        }
+    }
+}
 $nav = rrp_owner_nav_context((int) $owner['id']);
 $csrf = rrp_csrf_token();
 $petName = $vm['thread']['pet']['name'] ?? null;

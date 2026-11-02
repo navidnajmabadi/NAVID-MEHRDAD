@@ -257,6 +257,20 @@ function rrp_labs_trends(int $petId): array
             $tol = $span > 0 ? $span * 0.05 : abs($prev) * 0.05;
             $a['direction'] = $last > $prev + $tol ? 'up' : ($last < $prev - $tol ? 'down' : 'flat');
         }
+        // Change vs the previous report, and a sharp swing: 25% of the old value, or 30% of the normal span.
+        $a['change_pct'] = null;
+        $a['sharp'] = false;
+        if (count($pts) >= 2) {
+            $prev = $pts[count($pts) - 2]['value'];
+            $d = $a['latest']['value'] - $prev;
+            $a['change_pct'] = abs($prev) > 1e-9 ? round(100 * $d / abs($prev), 1) : null;
+            $rl = $a['latest']['ref_low'];
+            $rh = $a['latest']['ref_high'];
+            $sp = ($rl !== null && $rh !== null) ? $rh - $rl : 0;
+            $a['sharp'] = (abs($prev) > 1e-9 && abs($d) >= 0.25 * abs($prev)) || ($sp > 0 && abs($d) >= 0.3 * $sp);
+        }
+        // red: outside the normal range · amber: inside it but moving sharply or right at the edge · ok
+        $a['alert'] = in_array($a['latest']['flag'], ['low', 'high'], true) ? 'red' : 'ok';
         // "Heading out of range": still normal but moving toward a limit fast.
         $a['watch'] = false;
         if ($a['latest']['flag'] === 'normal' && count($pts) >= 2 && $a['latest']['ref_high'] !== null && $a['latest']['ref_low'] !== null) {
@@ -269,10 +283,16 @@ function rrp_labs_trends(int $petId): array
         }
     }
     unset($a);
+    foreach ($by as &$a) {
+        if ($a['alert'] === 'ok' && ($a['sharp'] || $a['watch'])) {
+            $a['alert'] = 'amber';
+        }
+    }
+    unset($a);
     $list = array_values($by);
     // Abnormal first, then watch, then the rest alphabetically.
     usort($list, static function ($x, $y) {
-        $rank = static fn($a) => in_array($a['latest']['flag'], ['low', 'high'], true) ? 0 : ($a['watch'] ? 1 : 2);
+        $rank = static fn($a) => ['red' => 0, 'amber' => 1, 'ok' => 2][$a['alert']];
         return [$rank($x), $x['label']] <=> [$rank($y), $y['label']];
     });
     return $list;
