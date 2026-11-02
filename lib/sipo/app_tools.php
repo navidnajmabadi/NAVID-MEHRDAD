@@ -50,7 +50,8 @@ function rrp_sipo_app_tool_defs(callable $fn): array
         ], ['name']),
         $fn('list_my_pets', 'List all of the owner\'s pets with kind and whether Lost mode is on.', []),
         $fn('start_lost_mode', 'Turn on Lost mode for THIS pet when the owner says it is lost or missing. Alerts nearby SIPAW users.', [
-            'seen_lat' => ['type' => 'number', 'description' => 'Only if the owner shared where it was last seen'],
+            'seen_place' => ['type' => 'string', 'description' => 'WHERE the pet was last seen, in the owner\'s words (street, park, area, landmark). Ask for it before calling; the alert goes to owners around that spot.'],
+            'seen_lat' => ['type' => 'number', 'description' => 'Only if the owner shared their GPS spot'],
             'seen_lng' => ['type' => 'number'],
         ]),
         $fn('mark_pet_found', 'Close Lost mode for THIS pet when the owner says it is home or found.', []),
@@ -140,14 +141,16 @@ function rrp_sipo_run_app_tool(string $name, array $a, array &$ctx): array
             }
             $lat = isset($a['seen_lat']) ? (float) $a['seen_lat'] : null;
             $lng = isset($a['seen_lng']) ? (float) $a['seen_lng'] : null;
-            $res = rrp_trigger_lost($ownerId, (int) $pet['id'], $lat, $lng);
+            $res = rrp_trigger_lost($ownerId, (int) $pet['id'], $lat, $lng, isset($a['seen_place']) ? (string) $a['seen_place'] : null);
             if (!empty($res['ok'])) {
                 $ctx['emergency'] = true;
                 $ctx['events'][] = 'lost_started';
                 $ctx['links'][] = ['url' => 'lost.php?pet=' . (int) $pet['id'], 'label' => 'Open Lost mode'];
             }
             return ['ok' => !empty($res['ok']), 'error' => $res['error'] ?? null,
-                'note' => !empty($res['ok']) ? 'Nearby SIPAW users are being alerted. Walk the owner through the search plan.' : null];
+                'note' => !empty($res['ok'])
+                    ? 'SIPAW owners ' . (($res['centre'] ?? '') === 'last_seen' ? 'around the last-seen spot' : 'around the owner\'s home area') . ' (' . (int) ($res['recipients'] ?? 0) . ' owners, ' . (float) ($res['radius_km'] ?? 0) . ' km) are being alerted. Walk the owner through the search plan.'
+                    : null];
 
         case 'mark_pet_found':
             if ($pet === null) {

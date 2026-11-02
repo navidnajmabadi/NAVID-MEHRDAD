@@ -19,23 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $lat = is_numeric($_POST['seen_lat'] ?? null) ? round((float) $_POST['seen_lat'], 4) : null;
             $lng = is_numeric($_POST['seen_lng'] ?? null) ? round((float) $_POST['seen_lng'], 4) : null;
-            $result = rrp_trigger_lost((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0), $lat, $lng);
-            if (!empty($result['ok']) && !empty($result['alert_id'])) {
-                $note = trim((string) ($_POST['seen_note'] ?? ''));
-                try {
-                    rrp_db()->prepare('UPDATE lost_alerts SET last_seen_lat = ?, last_seen_lng = ?, last_seen_note = ? WHERE id = ?')
-                        ->execute([$lat, $lng, $note !== '' ? mb_substr($note, 0, 255) : null, (int) $result['alert_id']]);
-                } catch (Throwable $e) {
-                    // pre-012
-                }
-            }
+            $result = rrp_trigger_lost((int) $owner['id'], (int) ($_POST['pet_id'] ?? 0), $lat, $lng, trim((string) ($_POST['seen_note'] ?? '')));
             if (!empty($result['ok'])) {
                 $n = (int) ($result['recipients'] ?? 0);
+                $where = ($result['centre'] ?? '') === 'last_seen' ? 'around where ' . ($confirmPet['name'] ?? 'your pet') . ' was last seen' : 'around your home area';
                 rrp_flash_set(
                     'ok',
                     $n > 0
-                        ? "Lost mode sent to {$n} nearby owner" . ($n === 1 ? '' : 's') . '.'
-                        : 'Lost mode started. No owners nearby yet.'
+                        ? "Lost mode sent to {$n} nearby owner" . ($n === 1 ? '' : 's') . " {$where}."
+                        : "Lost mode started {$where}. No owners there yet."
                 );
             } else {
                 rrp_flash_set('error', $result['error'] ?? 'Could not start alert.');
@@ -146,7 +138,7 @@ rrp_app_start(['nav' => 'lost']);
             <div class="<?= $cls ?>">
               <span class="t"><?= rrp_h($row[0]) ?></span>
               <span class="rail"><i></i><span></span></span>
-              <div class="body"><b><?= rrp_h($row[1]) ?></b><small>Owners near your home area</small></div>
+              <div class="body"><b><?= rrp_h($row[1]) ?></b><small><?= !empty($open['last_seen_lat']) ? 'Owners around the last-seen spot' : 'Owners near your home area' ?></small></div>
             </div>
           <?php endforeach; ?>
         </div>
@@ -182,11 +174,12 @@ rrp_app_start(['nav' => 'lost']);
         <input type="hidden" name="seen_lat" id="seenLat" />
         <input type="hidden" name="seen_lng" id="seenLng" />
         <div class="field"><label for="seenNote">Where was <?= rrp_h($pet['name'] ?? 'your pet') ?> last seen?</label>
-          <div class="in"><input id="seenNote" name="seen_note" maxlength="255" placeholder="e.g. back garden, park gate, 7 pm" /></div></div>
+          <div class="in"><input id="seenNote" name="seen_note" maxlength="255" placeholder="e.g. Maple Park gate, 7 pm" /></div>
+          <small>We alert SIPAW owners around this spot. Type a place or use the button below. If you skip both, we use your home area.</small></div>
         <button type="button" class="btn outline" id="seenHere"><svg aria-hidden="true"><use href="#i-pin"/></svg>I'm where they were last seen</button>
         <div class="field"><label for="confirmName">Type <b><?= rrp_h($pet['name'] ?? '') ?></b> to confirm</label>
           <div class="in"><input id="confirmName" name="confirm_name" autocomplete="off" required placeholder="<?= rrp_h($pet['name'] ?? '') ?>" /></div>
-          <small>Nearby SIPAW owners get <?= rrp_h($pet['name'] ?? 'your pet') ?>'s photo and details now, again in 1 hour, and a last time after 5 hours.</small></div>
+          <small>SIPAW owners around that area get <?= rrp_h($pet['name'] ?? 'your pet') ?>'s photo and details now, again in 1 hour, and a last time after 5 hours.</small></div>
         <button type="submit" class="btn lost" id="lostGo" disabled>Turn on Lost mode</button>
       </form>
       <script>

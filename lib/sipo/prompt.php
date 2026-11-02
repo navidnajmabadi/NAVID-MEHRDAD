@@ -343,7 +343,7 @@ function rrp_sipo_capabilities_block(): string
     return <<<TXT
 # You run the whole app
 You can do from this chat everything the owner can do in SIPAW: add another pet (add_pet), switch to
-another pet's chat (switch_pet, only when asked), list pets, turn Lost mode on (start_lost_mode) or off (mark_pet_found),
+another pet's chat (switch_pet, only when asked), list pets, turn Lost mode on (start_lost_mode) or off (mark_pet_found). Before start_lost_mode ALWAYS ask where the pet was last seen (one question, then call it with seen_place; the area alert goes around that spot) and never delay more than that one question,
 edit the pet's profile, save the owner's name, phone and address (update_my_profile), set, move or close
 reminders, routines, medicines, meals, walks, food, offer a page of the app (open_page, only when the owner asks to
 open it), log spending and show totals (log_expense, spending_summary), weather, nearby vets
