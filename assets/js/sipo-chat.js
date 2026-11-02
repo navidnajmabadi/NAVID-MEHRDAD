@@ -451,39 +451,29 @@
   var fileInput = document.getElementById("sipoFile");
   if (fileInput) {
     fileInput.addEventListener("change", function () {
-      var f = fileInput.files && fileInput.files[0];
+      var files = [].slice.call(fileInput.files || []).slice(0, 10);
       fileInput.value = "";
-      if (!f || busy) return;
-      if (!/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.type)) {
+      if (!files.length || busy) return;
+      var bad = files.filter(function (f) { return !/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.type); });
+      var big = files.filter(function (f) { return f.size > 10 * 1024 * 1024; });
+      if (bad.length) {
         bubble({ role: "assistant", body: "I can read photos (JPG, PNG, WebP) and PDFs only.", created_at: new Date().toISOString() });
         return;
       }
-      if (f.size > 10 * 1024 * 1024) {
-        bubble({ role: "assistant", body: "That file is over 10 MB, so try a smaller photo or the PDF.", created_at: new Date().toISOString() });
+      if (big.length) {
+        bubble({ role: "assistant", body: "A file is over 10 MB, so try a smaller photo or the PDF.", created_at: new Date().toISOString() });
         return;
       }
       busy = true;
       sendBtn.disabled = true;
       setFace("thinking");
-      setStatus("Reading your file…");
-      var mine = bubble({ role: "user", body: "📎 " + f.name, created_at: new Date().toISOString() });
+      setStatus(files.length > 1 ? "Reading your " + files.length + " files…" : "Reading your file…");
+      var mine = bubble({ role: "user", body: "📎 " + (files.length > 1 ? files.length + " files" : files[0].name), created_at: new Date().toISOString() });
       showTyping(true);
-      var fd = new FormData();
-      fd.append("csrf", api.csrf);
-      try { fd.append("tz", Intl.DateTimeFormat().resolvedOptions().timeZone); } catch (e) {}
-      fd.append("thread_id", String(threadId));
-      fd.append("file", f);
-      fetch(api.upload, { method: "POST", credentials: "same-origin", body: fd })
-        .then(function (r) {
-          // QA B16: say why it failed instead of blaming the connection.
-          return r.json().catch(function () {
-            var why = r.status === 413 ? "That file is too big. The limit is 10 MB."
-              : r.status === 403 ? "That file name was blocked. Rename it (letters and numbers only) and try again."
-              : r.status === 415 || r.status === 400 ? "I can read photos (JPG, PNG, WebP) and PDFs only."
-              : "I couldn't read that file (error " + r.status + "). Try another photo or PDF.";
-            return { ok: false, error: why };
-          });
-        })
+      window.sipoUploadMany(files, {
+        url: api.upload, csrf: api.csrf, threadId: threadId,
+        onStep: function (i, n) { setStatus("Reading file " + i + " of " + n + "…"); }
+      })
         .then(function (j) {
           showTyping(false);
           if (!j.ok) {

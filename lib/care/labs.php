@@ -36,6 +36,65 @@ const RRP_LAB_SYNONYMS = [
     'usg' => ['usg', 'urinespecificgravity', 'specificgravity'],
 ];
 
+/** Persian (۰-۹) and Arabic-Indic (٠-٩) digits and separators → plain 0-9, '.' and '/'. */
+function rrp_digits_en(string $s): string
+{
+    return strtr($s, [
+        '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+        '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        '٫' => '.', '٬' => ',', '/' => '/',
+    ]);
+}
+
+/** Jalali (Shamsi) → Gregorian [year, month, day]. */
+function rrp_jalali_to_gregorian(int $jy, int $jm, int $jd): array
+{
+    $jy += 1595;
+    $days = -355668 + 365 * $jy + intdiv($jy, 33) * 8 + intdiv(($jy % 33) + 3, 4) + $jd + ($jm < 7 ? ($jm - 1) * 31 : ($jm - 7) * 30 + 186);
+    $gy = 400 * intdiv($days, 146097);
+    $days %= 146097;
+    if ($days > 36524) {
+        $days--;
+        $gy += 100 * intdiv($days, 36524);
+        $days %= 36524;
+        if ($days >= 365) {
+            $days++;
+        }
+    }
+    $gy += 4 * intdiv($days, 1461);
+    $days %= 1461;
+    if ($days > 365) {
+        $gy += intdiv($days - 1, 365);
+        $days = ($days - 1) % 365;
+    }
+    $gd = $days + 1;
+    $sal = [0, 31, (($gy % 4 === 0 && $gy % 100 !== 0) || $gy % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    for ($gm = 0; $gm < 13 && $gd > $sal[$gm]; $gm++) {
+        $gd -= $sal[$gm];
+    }
+    return [$gy, $gm, $gd];
+}
+
+/**
+ * Any report date → Gregorian 'Y-m-d', or null. Reads Persian digits, 1403/05/12 or 1403-05-12
+ * (Jalali years 1300-1500 are converted), and normal 2024-08-02.
+ */
+function rrp_lab_normalize_date(?string $raw): ?string
+{
+    $s = trim(rrp_digits_en((string) $raw));
+    if (!preg_match('/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/', $s, $m)) {
+        return null;
+    }
+    [$y, $mo, $d] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+    if ($mo < 1 || $mo > 12 || $d < 1 || $d > 31) {
+        return null;
+    }
+    if ($y >= 1300 && $y <= 1500) {
+        [$y, $mo, $d] = rrp_jalali_to_gregorian($y, $mo, $d);
+    }
+    return checkdate($mo, $d, $y) ? sprintf('%04d-%02d-%02d', $y, $mo, $d) : null;
+}
+
 function rrp_lab_key(string $labelOrKey): string
 {
     $k = preg_replace('/[^a-z0-9]/', '', mb_strtolower($labelOrKey)) ?? '';
@@ -72,10 +131,37 @@ function rrp_labs_save(array $owner, array $pet, array $lab, string $source = 'u
     if (!$results) {
         return ['ok' => false, 'error' => 'No results found in the report.'];
     }
-    $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) ($lab['examined_on'] ?? '')) ? $lab['examined_on']
-        : rrp_sipo_local_now($owner)->format('Y-m-d');
+    $today = rrp_sipo_local_now($owner)->format('Y-m-d');
+    $date = rrp_lab_normalize_date((string) ($lab['examined_on'] ?? ''));
+    if ($date === null || $date > $today) {
+        $date = $today;
+    }
     $type = in_array($lab['exam_type'] ?? '', ['blood', 'urine', 'imaging', 'physical', 'allergy_panel', 'other'], true) ? $lab['exam_type'] : 'blood';
-    $num = static fn($v) => is_numeric($v) ? (float) $v : null;
+    $num = static function ($v) {
+        $v = is_string($v) ? str_replace(',', '.', rrp_digits_en($v)) : $v;
+        return is_numeric($v) ? (float) $v : null;
+    };
+
+    // The same report sent again (same date and same numbers) is skipped, not saved twice.
+    $fpNew = [];
+    foreach ($results as $r) {
+        $fpNew[] = rrp_lab_key((string) ($r['key'] ?? $r['label'] ?? '')) . '=' . (($v = $num($r['value'] ?? null)) !== null ? round($v, 4) : '');
+    }
+    sort($fpNew);
+    try {
+        $q = rrp_db()->prepare('SELECT id FROM health_examinations WHERE pet_id = ? AND examined_on = ?');
+        $q->execute([(int) $pet['id'], $date]);
+        $rq = rrp_db()->prepare('SELECT analyte_key, value_num FROM health_lab_results WHERE examination_id = ?');
+        foreach ($q->fetchAll(PDO::FETCH_COLUMN) as $exId) {
+            $rq->execute([(int) $exId]);
+            $fpOld = array_map(static fn($x) => $x['analyte_key'] . '=' . ($x['value_num'] !== null ? round((float) $x['value_num'], 4) : ''), $rq->fetchAll());
+            sort($fpOld);
+            if ($fpOld === $fpNew) {
+                return ['ok' => true, 'duplicate' => true, 'date' => $date, 'counts' => ['low' => 0, 'normal' => 0, 'high' => 0, 'unknown' => 0], 'abnormal' => []];
+            }
+        }
+    } catch (Throwable $e) {
+    }
 
     $pdo = rrp_db();
     $pdo->beginTransaction();
@@ -253,7 +339,7 @@ const RRP_LAB_KINDS = [
 /** "10-100", "10 to 100", "<5", ">3", "10" → [low, high] (either may be null). */
 function rrp_lab_parse_range(string $s): array
 {
-    $s = trim(str_replace(['–', '—', '−', ','], ['-', '-', '-', '.'], $s));
+    $s = trim(str_replace(['–', '—', '−', ','], ['-', '-', '-', '.'], rrp_digits_en($s)));
     if ($s === '') {
         return [null, null];
     }
@@ -287,7 +373,7 @@ function rrp_labs_manual_add(array $owner, array $pet, string $kind, string $dat
     $results = [];
     foreach ($rows as $r) {
         $label = trim((string) ($r['label'] ?? ''));
-        $raw = str_replace(',', '.', trim((string) ($r['value'] ?? '')));
+        $raw = str_replace(',', '.', trim(rrp_digits_en((string) ($r['value'] ?? ''))));
         if ($label === '' && $raw === '') {
             continue;
         }
@@ -339,4 +425,28 @@ function rrp_labs_exam_delete(int $petId, int $examId): bool
     $st = rrp_db()->prepare('DELETE FROM health_examinations WHERE id = ? AND pet_id = ?');
     $st->execute([$examId, $petId]);
     return $st->rowCount() > 0;
+}
+
+const RRP_LAB_SHOW = 'Show me the dashboard';
+const RRP_LAB_ANALYSE = 'Analyse these results';
+
+/** After lab files were read: ask whether to open the dashboard (always the same offer). */
+function rrp_labs_offer(array &$ctx, array $reply, string $body): array
+{
+    if (!preg_match('/^📎 Lab report/mu', $body) || !empty($reply['choices'])) {
+        return $reply;
+    }
+    $reply['text'] = rtrim((string) $reply['text']) . "\n\nWant to see the lab dashboard?";
+    $reply['choices'] = [RRP_LAB_SHOW, RRP_LAB_ANALYSE];
+    return $reply;
+}
+
+/** The dashboard button is answered by code (a link); "Analyse" goes to the model as a normal message. */
+function rrp_labs_intercept(array &$ctx, string $body): ?array
+{
+    if (strcasecmp(trim($body), RRP_LAB_SHOW) !== 0 || empty($ctx['pet'])) {
+        return null;
+    }
+    $ctx['links'][] = ['url' => 'care.php?pet=' . (int) $ctx['pet']['id'] . '#sec-labs', 'label' => 'Open the lab dashboard'];
+    return ['text' => 'Here it is 💙 Tap the button to see every indicator and its trend. I am here if anything looks confusing.', 'tokens' => 0, 'mascot' => 'happy', 'tools' => [], 'model' => null];
 }

@@ -70,7 +70,7 @@ rrp_app_start(['nav' => 'chat', 'class' => 'chat-active app-wide']);
     <form class="sipo-composer" id="sipoForm" autocomplete="off">
       <?php if (!$vm['thread']['onboarding']): ?>
       <label class="sipo-attach" title="Send a photo or PDF (lab report, food label, prescription, pet photo)">
-        <input type="file" id="sipoFile" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
+        <input type="file" id="sipoFile" accept="image/jpeg,image/png,image/webp,application/pdf" multiple hidden />
         <svg aria-hidden="true"><use href="#i-clip"/></svg><span class="sr-only">Attach a photo or PDF</span>
       </label>
       <?php endif; ?>
@@ -125,5 +125,5 @@ rrp_app_end([
     'nav' => 'chat',
     'unread' => $nav['unread'],
     'lost_active' => $nav['lost_active'],
-    'scripts' => ['assets/js/sipo.js', 'assets/js/sipo-chat.js'],
+    'scripts' => ['assets/js/sipo.js', 'assets/js/upload-many.js', 'assets/js/sipo-chat.js'],
 ]);
