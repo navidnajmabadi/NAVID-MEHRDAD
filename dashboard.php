@@ -164,8 +164,8 @@ rrp_app_start(['nav' => 'settings']);
         <form method="post" enctype="multipart/form-data" class="home2-photo-form">
           <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="action" value="pet_photo" /><input type="hidden" name="pet_id" value="<?= (int) $activeId ?>" />
           <label class="btn outline" for="petPhoto"><?= !empty($active['image_path']) ? 'Change photo' : 'Add photo' ?></label>
-          <input id="petPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()" />
-          <?php if (!empty($active['image_path'])): ?><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
+          <input id="petPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" data-crop hidden />
+          <?php if (!empty($active['image_path'])): ?><button class="btn outline" type="button" data-crop-adjust="petPhoto" data-src="<?= rrp_h($active['image_path']) ?>">Adjust</button><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
         </form>
       </div>
     </section>

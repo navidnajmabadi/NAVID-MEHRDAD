@@ -157,8 +157,8 @@ rrp_app_start(['nav' => 'settings']);
       <?php if (!empty($owner['avatar_path'])): ?><img class="avatar" src="<?= rrp_h($owner['avatar_path']) ?>" alt="Your photo" width="64" height="64" /><?php else: ?><span class="avatar" aria-hidden="true"><?= rrp_h($initial) ?></span><?php endif; ?>
       <div>
         <label class="btn outline" for="pfPhoto">Change photo</label>
-        <input id="pfPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()" />
-        <?php if (!empty($owner['avatar_path'])): ?><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
+        <input id="pfPhoto" name="photo" type="file" accept="image/jpeg,image/png,image/webp" data-crop hidden />
+        <?php if (!empty($owner['avatar_path'])): ?><button class="btn outline" type="button" data-crop-adjust="pfPhoto" data-src="<?= rrp_h($owner['avatar_path']) ?>">Adjust</button><button class="btn outline" type="submit" name="remove" value="1">Remove</button><?php endif; ?>
       </div>
     </form>
     <form method="post" class="auth-form" style="padding:0">
