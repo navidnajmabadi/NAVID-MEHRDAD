@@ -7,7 +7,7 @@ declare(strict_types=1);
  * with a tool and the same thread then belongs to that pet.
  */
 
-const RRP_SIPO_MAX_TOOL_ROUNDS = 4;
+const RRP_SIPO_MAX_TOOL_ROUNDS = 3;
 const RRP_SIPO_MAX_BODY = 4000;
 
 // -----------------------------------------------------------------------------
@@ -260,6 +260,9 @@ function rrp_sipo_send(array $owner, array $thread, string $body): array
     if (!empty($assistant['id'])) {
         rrp_si_maybe_encrypt_message((int) $assistant['id'], $reply['text']);
     }
+    if ($fromModel) {
+        rrp_sipo_log_request($ctx, $body, $reply, $assistant);
+    }
     rrp_sipo_maybe_summarize($ctx['thread']);
 
     return [
@@ -291,8 +294,26 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
 
     $live = rrp_sipo_live_context($owner);
     $onboarding = $ctx['pet'] === null;
+    $recentRows = rrp_sipo_recent_for_model($ctx['thread']);
+    // Token diet (lib/sipo/router.php): only the tools and prompt blocks this turn can use. Proactive
+    // messages and emergencies have no routing and get everything.
+    $hint = '';
+    if ($instruction === null && empty($ctx['emergency'])) {
+        $lastUser = '';
+        $lastBot = '';
+        foreach (array_reverse($recentRows) as $m) {
+            if ($lastUser === '' && $m['sender_role'] !== 'assistant') {
+                $lastUser = (string) $m['body'];
+            } elseif ($lastUser !== '' && $lastBot === '' && $m['sender_role'] === 'assistant') {
+                $lastBot = (string) $m['body'];
+                break;
+            }
+        }
+        $hint = trim($lastUser . "\n" . $lastBot);
+    }
+    rrp_sipo_turn_hint($hint);
     $messages = [['role' => 'system', 'content' => rrp_sipo_system_prompt($owner, $ctx['pet'], $ctx['thread'], $live, $ctx['emergency'])]];
-    foreach (rrp_sipo_recent_for_model($ctx['thread']) as $m) {
+    foreach ($recentRows as $m) {
         $messages[] = [
             'role' => $m['sender_role'] === 'assistant' ? 'assistant' : 'user',
             'content' => (string) $m['body'],
@@ -306,7 +327,7 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
     $used = [];
     $model = $client->modelFor('si_chat');
     for ($round = 0; $round <= RRP_SIPO_MAX_TOOL_ROUNDS; $round++) {
-        $tools = $round < RRP_SIPO_MAX_TOOL_ROUNDS ? rrp_sipo_tool_defs($ctx['pet'] === null) : [];
+        $tools = $round < RRP_SIPO_MAX_TOOL_ROUNDS ? rrp_sipo_route_tools(rrp_sipo_tool_defs($ctx['pet'] === null)) : [];
         $res = $client->complete($messages, $tools, $model, 0.6);
         if (empty($res['ok'])) {
             error_log('SIPO model error: ' . ($res['error'] ?? '?'));
@@ -329,10 +350,16 @@ function rrp_sipo_generate(array &$ctx, ?string $instruction): array
             ];
         }
         $tokens += (int) ($res['usage']['total_tokens'] ?? 0);
+        $uu = (array) ($res['usage'] ?? []);
+        $ctx['usage']['prompt'] = ($ctx['usage']['prompt'] ?? 0) + (int) ($uu['prompt_tokens'] ?? 0);
+        $ctx['usage']['completion'] = ($ctx['usage']['completion'] ?? 0) + (int) ($uu['completion_tokens'] ?? 0);
+        $ctx['usage']['cached'] = ($ctx['usage']['cached'] ?? 0) + (int) ($uu['prompt_tokens_details']['cached_tokens'] ?? 0);
+        $ctx['usage']['reasoning'] = ($ctx['usage']['reasoning'] ?? 0) + (int) ($uu['completion_tokens_details']['reasoning_tokens'] ?? 0);
+        $ctx['usage']['rounds'] = $round + 1;
+        $ctx['usage']['tools_offered'] = max((int) ($ctx['usage']['tools_offered'] ?? 0), count($tools));
         $calls = $res['tool_calls'] ?? [];
         if (!$calls) {
-            rrp_sipo_track_tokens((int) $owner['id'], $tokens);
-            rrp_si_bump_usage((int) $owner['id'], 0, $tokens);
+            rrp_sipo_track_tokens((int) $owner['id'], $tokens); // also bumps the Admin usage; bumping again doubled the numbers
             $text = rrp_sipo_fix_greeting(trim((string) $res['content']), (int) rrp_sipo_local_now($owner)->format('G'));
             $text = rrp_sipo_fix_false_done($text, $ctx);
             $adminNote = null;

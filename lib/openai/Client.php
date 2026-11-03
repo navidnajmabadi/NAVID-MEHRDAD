@@ -126,6 +126,14 @@ final class RrpOpenAiClient
             }
         }
         $payload = array_merge($payload, $extra);
+        // Token diet: reasoning models think silently (and bill for it) unless told not to. Tool calls already run
+        // with reasoning off; every other call (final answers, JSON extraction) now uses "low". Models that do not
+        // know the setting are remembered, so they are not asked twice.
+        $defaultedEffort = false;
+        if (!isset($payload['reasoning_effort']) && !isset($payload['tools']) && !self::quirk((string) $payload['model'], 'no_reasoning_effort')) {
+            $payload['reasoning_effort'] = 'low';
+            $defaultedEffort = true;
+        }
 
         $res = ['ok' => false, 'error' => 'OpenAI request not sent.'];
         $retried5xx = false;
@@ -143,6 +151,9 @@ final class RrpOpenAiClient
                     && !str_contains($err, 'function tools')) {
                 // This model does not know reasoning_effort at all: send without it (tools may then be dropped below).
                 unset($payload['reasoning_effort']);
+                if ($defaultedEffort) {
+                    self::rememberQuirk((string) $payload['model'], 'no_reasoning_effort');
+                }
                 continue;
             }
             if (isset($payload['temperature']) && ($param === 'temperature' || str_contains($err, 'temperature'))) {

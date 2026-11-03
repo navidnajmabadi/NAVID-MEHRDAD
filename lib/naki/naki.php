@@ -356,6 +356,7 @@ function rrp_naki_tick(): array
     $runId = (int) rrp_db()->lastInsertId();
     $stats['review'] = rrp_naki_review_applied();
     $stats['pruned'] = rrp_naki_prune_memory();
+    $stats['graph'] = rrp_graph_rebuild(); // regroup the last 30 days of requests for the brain graph
     $last = rrp_db()->query("SELECT MAX(created_at) FROM naki_proposals")->fetchColumn();
     if (!$last || strtotime((string) $last . ' UTC') < time() - RRP_NAKI_EVOLVE_DAYS * 86400) {
         $stats['propose'] = rrp_naki_propose('schedule');

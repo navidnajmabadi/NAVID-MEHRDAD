@@ -272,6 +272,13 @@ function rrp_sipo_care_blocks(array $owner, array $pet): array
         }, $open));
     }
     $status = rrp_care_status($owner, $pet);
+    if ($status && !rrp_sipo_hint_matches('routines')) {
+        // Token diet: the full routine list only when the talk is about care; otherwise one line.
+        $unknown = count(array_filter($status, static fn($s) => $s['state'] === 'unknown'));
+        $attention = count(array_filter($status, static fn($s) => in_array($s['state'], ['due_soon', 'overdue'], true)));
+        $out['Care routines'] = "{$unknown} routines have no date yet, {$attention} are due soon or overdue. The full list with keys appears when the owner talks about vaccines, worming, flea, teeth, nails, bath, ears, check-ups or reminders.";
+        $status = [];
+    }
     if ($status) {
         $region = ['na' => 'USA/Canada (AAHA, CAPC)', 'eu' => 'Europe/UK (WSAVA, ESCCAP)', 'global' => 'WSAVA global'][rrp_care_region($owner, $pet)] ?? 'WSAVA global';
         $lines = ["Region guidelines: {$region}. Ask about UNKNOWN items one at a time when it fits; never all at once."];
@@ -288,11 +295,11 @@ function rrp_sipo_care_blocks(array $owner, array $pet): array
     if ($t) {
         $out['Under vet treatment'] = $t;
     }
-    $labs = rrp_labs_prompt_block($petId);
+    $labs = rrp_sipo_hint_matches('labs') ? rrp_labs_prompt_block($petId) : '';
     if ($labs) {
         $out['Lab results (latest per test)'] = $labs;
     }
-    if ($basics = rrp_knowledge_for_pet($pet)) {
+    if (rrp_sipo_hint_matches('knowledge') && ($basics = rrp_knowledge_for_pet($pet))) {
         $out['Health basics (reference, not a diagnosis; the vet and this pet\'s own records win)'] = $basics;
     }
     $out['Daily life'] = rrp_daily_prompt_block($owner, $pet);
