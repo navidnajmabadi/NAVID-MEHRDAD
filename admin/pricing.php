@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         rrp_setting_set('max_total_pct', (string) $max);
         rrp_setting_set('tax_pct', rtrim(rtrim(number_format($tax, 2, '.', ''), '0'), '.') ?: '0');
         rrp_setting_set('tax_label', mb_substr($taxLabel, 0, 20) ?: 'Tax');
-        rrp_setting_set('tax_countries', $countries !== '' ? $countries : 'CA');
+        rrp_setting_set('tax_countries', $countries !== '' ? $countries : '*');
         rrp_admin_log((int) $admin['id'], 'pricing_update', 'app_settings', 0, "price=$price $cur coin={$coin}c max={$max}% tax={$tax}%");
         rrp_flash_set('ok', 'Pricing saved. It applies to the next payment straight away.');
         rrp_redirect('pricing.php');
@@ -99,7 +99,7 @@ rrp_admin_shell_start('Pricing', 'pricing');
       <div class="in"><input id="tl" name="tax_label" maxlength="20" value="<?= rrp_h($tax['label']) ?>" /></div></div>
     <div class="field"><label for="tc">Owners in these countries pay the tax</label>
       <div class="in"><input id="tc" name="tax_countries" value="<?= rrp_h(implode(',', $tax['countries'])) ?>" /></div>
-      <p class="meta">Two-letter codes separated by commas, for example <b>CA</b> or <b>CA,US</b>. Use <b>*</b> for everyone. Owners without a country are not taxed. Ask your accountant which customers owe tax.</p></div>
+      <p class="meta">Two-letter codes separated by commas, for example <b>CA</b> or <b>CA,US</b>. Use <b>*</b> for everyone (the default). With a list, owners without a country, or from another country, are not taxed. Ask your accountant which customers owe tax.</p></div>
     <h2 style="margin:22px 0 4px">Invoice details (printed on every invoice)</h2>
     <div class="field"><label for="bn">Business name</label>
       <div class="in"><input id="bn" name="biz_name" maxlength="60" value="<?= rrp_h((string) rrp_setting('biz_name', 'NAKILAB')) ?>" /></div></div>

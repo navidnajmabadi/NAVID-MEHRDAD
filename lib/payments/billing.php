@@ -110,7 +110,7 @@ function rrp_billing_policy(): array
  */
 function rrp_billing_tax_rule(): array
 {
-    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', 'CA')))));
+    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', '*')))));
     return [
         'pct' => min(40.0, max(0.0, (float) rrp_setting('tax_pct', '13'))),
         'label' => mb_substr(trim((string) rrp_setting('tax_label', 'HST')) ?: 'Tax', 0, 20),
@@ -555,10 +555,6 @@ function rrp_billing_charge_saved_card(array $owner, array $opt = []): array
     if ($q['amount'] === 0) {
         rrp_billing_mark_paid($orderId); // a 100% coupon: nothing to charge
         return ['ok' => true, 'order_id' => $orderId, 'amount' => 0, 'quote' => $q];
-    }
-    if ($q['amount'] < 100) {
-        $pdo->prepare("UPDATE billing_orders SET status = 'failed' WHERE id = ?")->execute([$orderId]);
-        return ['ok' => false, 'error' => 'The amount is too small to charge. Please contact support.'];
     }
     $c = rrp_square_cfg();
     $res = rrp_square_request('POST', '/v2/payments', [
