@@ -11,6 +11,31 @@ const RRP_SIPO_NUDGE_GAP_HOURS = 3;
 const RRP_SIPO_DEFAULT_HOURS = [9, 13, 18];
 
 /**
+ * Only one process at a time may speak for an owner (database lock, not waiting). Without this, two cron
+ * URLs that fire in the same minute (the old per-job URL and tick.php) both saw "nothing sent yet" and each
+ * sent its own "Good evening" (live bug: 3 messages at 18:00).
+ */
+function rrp_lock_try(string $name): bool
+{
+    try {
+        $st = rrp_db()->prepare('SELECT GET_LOCK(?, 0)');
+        $st->execute([mb_substr($name, 0, 60)]);
+        return (int) $st->fetchColumn() === 1;
+    } catch (Throwable $e) {
+        return true; // lock service unavailable: carry on rather than stop SIPO speaking
+    }
+}
+
+function rrp_lock_release(string $name): void
+{
+    try {
+        $st = rrp_db()->prepare('SELECT RELEASE_LOCK(?)');
+        $st->execute([mb_substr($name, 0, 60)]);
+    } catch (Throwable $e) {
+    }
+}
+
+/**
  * Up to 3 preferred local hours (busiest first) inside waking hours.
  * @return list<int>
  */
@@ -149,25 +174,35 @@ function rrp_sipo_nudge_tick(int $maxSend = 40): array
             break;
         }
         $stats['checked']++;
-        $allowed = rrp_sipo_nudge_allowed($owner, rrp_sipo_local_now($owner));
-        if (!$allowed['ok']) {
-            $stats['skipped'][$allowed['reason']] = ($stats['skipped'][$allowed['reason']] ?? 0) + 1;
+        $lock = 'sipo_nudge_' . (int) $owner['id'];
+        if (!rrp_lock_try($lock)) {
+            $stats['skipped']['busy'] = ($stats['skipped']['busy'] ?? 0) + 1; // another run is already writing to this owner
             continue;
         }
-        $pick = rrp_sipo_pick_nudge((int) $owner['id']);
-        if (!$pick) {
-            continue;
+        try {
+            // Checked after the lock: a run that waited behind another now sees its message ("too_soon").
+            $allowed = rrp_sipo_nudge_allowed($owner, rrp_sipo_local_now($owner));
+            if (!$allowed['ok']) {
+                $stats['skipped'][$allowed['reason']] = ($stats['skipped'][$allowed['reason']] ?? 0) + 1;
+                continue;
+            }
+            $pick = rrp_sipo_pick_nudge((int) $owner['id']);
+            if (!$pick) {
+                continue;
+            }
+            $msg = rrp_sipo_proactive($owner, $pick['thread'], $pick['kind']);
+            if (!$msg) {
+                $stats['skipped']['no_message'] = ($stats['skipped']['no_message'] ?? 0) + 1;
+                continue;
+            }
+            $pet = rrp_pet_by_id((int) $pick['thread']['pet_id'], (int) $owner['id']);
+            $title = 'SIPO · ' . ($pet['name'] ?? 'your pet');
+            rrp_sipo_push((int) $owner['id'], $title, mb_substr($msg['body'], 0, 140), rrp_app_url('si-chat.php?pet=' . (int) $pick['thread']['pet_id']));
+            rrp_sipo_log_nudge($owner, (int) $pick['thread']['pet_id'], (int) $pick['thread']['id'], (int) $msg['id'], $pick['kind'], true);
+            $stats['sent']++;
+        } finally {
+            rrp_lock_release($lock);
         }
-        $msg = rrp_sipo_proactive($owner, $pick['thread'], $pick['kind']);
-        if (!$msg) {
-            $stats['skipped']['no_message'] = ($stats['skipped']['no_message'] ?? 0) + 1;
-            continue;
-        }
-        $pet = rrp_pet_by_id((int) $pick['thread']['pet_id'], (int) $owner['id']);
-        $title = 'SIPO · ' . ($pet['name'] ?? 'your pet');
-        rrp_sipo_push((int) $owner['id'], $title, mb_substr($msg['body'], 0, 140), rrp_app_url('si-chat.php?pet=' . (int) $pick['thread']['pet_id']));
-        rrp_sipo_log_nudge($owner, (int) $pick['thread']['pet_id'], (int) $pick['thread']['id'], (int) $msg['id'], $pick['kind'], true);
-        $stats['sent']++;
     }
 
     // Keep long chats cheap: fold old messages of recently active threads.

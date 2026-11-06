@@ -206,7 +206,6 @@
   .sipo-top-right .petswitch{padding:2px}
   .sipo-top-right .top-actions .iconbtn{width:40px;height:40px}
   .sipo-who{min-width:0}
-  .sipo-who sipo-mascot{width:56px;height:56px}
   .sipo-progress{max-width:120px}
 }
 
@@ -266,7 +265,10 @@
 @media (max-width:480px){
   .app-main.has-tab .sipo-top{padding-left:52px;padding-right:8px;gap:6px}
   .sipo-who{gap:8px}
-  .sipo-who sipo-mascot{width:48px;height:48px}
+  /* The face draws itself 64px wide inside its tag, so shrinking the tag let it spill over the text:
+     scale the whole face to 48px and give back the 16px it no longer uses. */
+  .sipo-who{gap:14px}
+  .sipo-who sipo-mascot{width:64px;height:64px;transform:scale(.75);transform-origin:0 50%;margin-right:-16px}
   .sipo-top-right .coin-badge{padding:0 4px;gap:3px}
   .sipo-top-right .top-actions .iconbtn{width:34px}
   .sipo-progress{max-width:128px}
@@ -297,7 +299,10 @@
 .side-pet-check{width:18px;height:18px;color:var(--blue);flex:none}
 .side-pet.is-busy{opacity:.5}
 .side-pet.is-add b{color:var(--blue)}
-.sipo-chat{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+/* Sits close to the phone's home bar instead of floating above a wide empty band */
+.sipo-chat{padding-bottom:max(0px,calc(env(safe-area-inset-bottom,0px) - 14px))}
+@media (max-width:767px){.sipo-composer{margin-bottom:8px}}
+.page-sipo .app{height:var(--vvh,100dvh);max-height:var(--vvh,100dvh)}
 
 /* iPhone notch / status bar (PWA uses black-translucent): keep the menu and top bars below it */
 .menu-btn{top:calc(10px + env(safe-area-inset-top,0px));left:calc(10px + env(safe-area-inset-left,0px))}
@@ -421,9 +426,11 @@
 .sipo-attach[hidden]{display:none!important}
 
 /* Photos the owner sent, shown inside their own bubble */
-.sipo-thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
-.sipo-thumbs img{display:block;max-width:100%;width:auto;max-height:220px;min-width:90px;object-fit:cover;border-radius:12px;cursor:zoom-in}
-.sipo-thumbs img:only-child{max-width:260px}
+/* Photos under the message text: one row, swipe sideways, every photo shown */
+.sipo-thumbs{display:flex;flex-wrap:nowrap;gap:8px;margin:8px 0 6px;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sipo-thumbs::-webkit-scrollbar{display:none}
+.sipo-thumbs img{display:block;flex:none;height:150px;width:auto;max-width:none;object-fit:cover;border-radius:12px;cursor:zoom-in;scroll-snap-align:start}
+.sipo-thumbs img:only-child{height:auto;max-height:220px;max-width:260px}
 
 /* Hold feedback: a ring fills for 1 second, then the button lifts and can be dragged */
 .sipo-fab::after{content:"";position:absolute;inset:-4px;border-radius:inherit;border:3px solid transparent;pointer-events:none}

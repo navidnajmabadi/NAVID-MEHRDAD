@@ -484,6 +484,21 @@
     send(text);
   });
 
+  // iPhone: the keyboard slides the whole page up, and when it closes the page can stay pushed up
+  // (header under the clock, a blank band at the bottom). Size the chat to the visible area and
+  // keep the page at the top.
+  (function () {
+    var vv = window.visualViewport, root = document.documentElement;
+    function fit() {
+      if (vv) root.style.setProperty("--vvh", Math.round(vv.height) + "px");
+      if (window.scrollY > 0) window.scrollTo(0, 0);
+    }
+    if (vv) { vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); }
+    window.addEventListener("scroll", function () { if (window.scrollY > 0) window.scrollTo(0, 0); }, { passive: true });
+    document.addEventListener("focusout", function () { setTimeout(fit, 80); setTimeout(fit, 350); });
+    fit();
+  })();
+
   // Attach: photo or PDF → SIPO reads it, saves the data, deletes the file, replies.
   var fileInput = document.getElementById("sipoFile");
   function sendFiles(files) {
@@ -510,7 +525,7 @@
       var mine = bubble({ role: "user", body: "📎 " + (files.length > 1 ? files.length + " files" : files[0].name), created_at: new Date().toISOString() });
       // Show the photos themselves in the bubble (this device only: files are not kept on the server).
       if (mine) {
-        var shots = files.filter(function (f) { return /^image\//.test(f.type); }).slice(0, 4);
+        var shots = files.filter(function (f) { return /^image\//.test(f.type); });
         if (shots.length) {
           var strip = document.createElement("div");
           strip.className = "sipo-thumbs";
@@ -521,7 +536,8 @@
             im.addEventListener("click", function () { window.open(im.src, "_blank", "noopener"); });
             strip.appendChild(im);
           });
-          mine.insertBefore(strip, mine.querySelector("p"));
+          // The words first, then every photo in one row you can swipe sideways.
+          mine.querySelector("p").insertAdjacentElement("afterend", strip);
         }
       }
       showTyping(true);
