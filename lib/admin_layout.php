@@ -18,6 +18,7 @@ function rrp_admin_icon(string $name): string
         'pulse' => 'M3 12h4l2-6 4 12 2-6h6',
         'check' => 'M5 12l4 4 10-10',
         'shield' => 'M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6zM9 12l2 2 4-4',
+        'alert' => 'M12 3 2 20h20L12 3zM12 10v5M12 18h.01',
         'list' => 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
         'logout' => 'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',
         'menu' => 'M4 7h16M4 12h16M4 17h16',
@@ -34,7 +35,7 @@ function rrp_admin_nav(string $active = 'home'): void
         'Overview' => [['home', 'index.php', 'Overview', 'home'], ['insights', 'insights.php', 'Insights', 'chart'], ['geo', 'geo.php', 'Map and cities', 'map']],
         'People' => [['accounts', 'accounts.php', 'Accounts', 'users'], ['tickets', 'tickets.php', 'Tickets', 'ticket'], ['coupons', 'coupons.php', 'Coupons', 'tag'], ['emails', 'emails.php', 'Emails', 'mail']],
         'SIPO brain' => [['brain', 'naki.php', 'NAKI brain', 'brain'], ['graph', 'graph.php', 'Brain graph', 'graph'], ['lab', 'lab.php', 'Test lab', 'flask'], ['sipo', 'sipo-check.php', 'SIPO check', 'check']],
-        'System' => [['site', 'site.php', 'Site health', 'pulse'], ['logs', 'logs.php', 'Logs', 'list']],
+        'System' => [['site', 'site.php', 'Site health', 'pulse'], ['errors', 'errors.php', 'Errors', 'alert'], ['logs', 'logs.php', 'Logs', 'list']],
     ];
     if (rrp_social_enabled()) {
         $groups['People'][] = ['moderation', 'moderation.php', 'Moderation', 'shield'];
