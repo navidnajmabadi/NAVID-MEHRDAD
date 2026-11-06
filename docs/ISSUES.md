@@ -46,6 +46,13 @@ Status: **Merged** = fixed and in `PetFinder`. **In PR** = fixed, waiting for me
 - Real phone: touch dragging of the SIPO button and the photo editor (items 8, 10).
 - Settings → "Send me a test" for phone notifications; live config needs VAPID keys and SMTP.
 
+## Error capture (added with Admin → Errors)
+
+Hostinger shows no PHP error log for this site, so SIPAW now keeps its own. Admin → Errors lists every
+crash, warning, browser (JavaScript) error and failed request (HTTP 5xx), each with a 6-letter code,
+the page, the line, the trace and a Copy button. Crash pages show the same code to the person who hit it.
+PHP's own log is also written to `config/php-error.log` (closed to the web). Needs migration 025.
+
 ## Approved extras not built yet
 
 Daily health check, weight trend chart on Health, vaccine/drops course reminder, pet health folder with one doctor link.

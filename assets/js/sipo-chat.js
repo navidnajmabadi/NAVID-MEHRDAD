@@ -170,16 +170,50 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  var typingEl = null;
-  function showTyping(on) {
+  // The waiting bubble says what SIPO is doing, not just three dots. The words come from what the owner
+  // asked (a guess at the work), then change as the wait gets longer so it never looks stuck.
+  var typingEl = null, typingTimers = [];
+  function activityFor(text) {
+    var t = String(text || "").toLowerCase();
+    var pet = (vm.thread && vm.thread.pet && vm.thread.pet.name) || "your pet";
+    var rules = [
+      [/remind|alarm|every day|each day|tomorrow|at \d|\d ?(am|pm)\b/, "Setting that up as a reminder…"],
+      [/vaccin|worm|flea|tick|rabies|booster|check-?up/, "Looking at " + pet + "'s care records…"],
+      [/weigh|\bkg\b|\blbs?\b/, "Noting " + pet + "'s weight…"],
+      [/walk|run|exercise/, "Looking at " + pet + "'s walks…"],
+      [/food|eat|meal|feed|treat|kibble|diet/, "Working out " + pet + "'s food…"],
+      [/spent|spend|cost|paid|price|\$|expens/, "Adding that to expenses…"],
+      [/lost|missing|escaped/, "Getting the lost-pet help ready…"],
+      [/vet\b|clinic|doctor|emergency/, "Thinking about the best next step for " + pet + "…"],
+      [/name|breed|birthday|born|age|sex|male|female/, "Updating " + pet + "'s profile…"],
+      [/blood|lab|test result|urine|x-?ray/, "Reading the results…"]
+    ];
+    for (var i = 0; i < rules.length; i++) if (rules[i][0].test(t)) return rules[i][1];
+    return "Thinking about " + pet + "…";
+  }
+  function setActivity(text) {
+    if (!typingEl) return;
+    var em = typingEl.querySelector("em");
+    if (em) em.textContent = text;
+    setStatus(text);
+  }
+  function showTyping(on, label) {
     if (on && !typingEl) {
       typingEl = document.createElement("div");
       typingEl.className = "sipo-msg from-sipo sipo-typing";
-      typingEl.setAttribute("aria-label", "SIPO is typing");
-      typingEl.innerHTML = "<span></span><span></span><span></span>";
+      typingEl.setAttribute("role", "status");
+      typingEl.innerHTML = '<b class="dots"><span></span><span></span><span></span></b><em></em>';
       log.appendChild(typingEl);
+      setActivity(label || "Thinking…");
+      typingTimers = [
+        setTimeout(function () { setActivity("Writing the answer…"); }, 2500),
+        setTimeout(function () { setActivity("Still on it, this one takes a moment…"); }, 9000),
+        setTimeout(function () { setActivity("Almost there, thank you for waiting 💙"); }, 22000)
+      ];
       scrollDown();
     } else if (!on && typingEl) {
+      typingTimers.forEach(clearTimeout);
+      typingTimers = [];
       typingEl.remove();
       typingEl = null;
     }
@@ -400,8 +434,8 @@
     clearChoices();
     var thanked = THANKS.test(text);
     var mine = bubble({ role: "user", body: text, created_at: new Date().toISOString() });
-    showTyping(true);
-    var writingTimer = setTimeout(function () { setFace("writing"); setStatus("Writing…"); }, 1400);
+    showTyping(true, activityFor(text));
+    var writingTimer = setTimeout(function () { setFace("writing"); }, 2500);
 
     post(api.send, { thread_id: threadId, body: text })
       .then(function (j) {
@@ -435,7 +469,7 @@
 
   function greet() {
     setFace("thinking");
-    showTyping(true);
+    showTyping(true, "Getting ready to say hello…");
     post(api.greet, { thread_id: threadId })
       .then(function (j) {
         showTyping(false);
@@ -484,19 +518,72 @@
     send(text);
   });
 
+  // iPhone: the keyboard slides the whole page up, and when it closes the page can stay pushed up
+  // (header under the clock, a blank band at the bottom). Size the chat to the visible area and
+  // keep the page at the top.
+  (function () {
+    var vv = window.visualViewport, root = document.documentElement;
+    function fit() {
+      if (vv) root.style.setProperty("--vvh", Math.round(vv.height) + "px");
+      if (window.scrollY > 0) window.scrollTo(0, 0);
+    }
+    if (vv) { vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit); }
+    window.addEventListener("scroll", function () { if (window.scrollY > 0) window.scrollTo(0, 0); }, { passive: true });
+    document.addEventListener("focusout", function () { setTimeout(fit, 80); setTimeout(fit, 350); });
+    fit();
+  })();
+
   // Attach: photo or PDF → SIPO reads it, saves the data, deletes the file, replies.
   var fileInput = document.getElementById("sipoFile");
+  // Camera photos are big (5 to 12 MB), can arrive with no type or as HEIC, and the phone can be slow to
+  // hand them over. Every image is redrawn as a normal JPEG (longest side 2000 px) before it is sent:
+  // smaller, always a type the server accepts, and quicker to read.
+  var IMG_EXT = /\.(jpe?g|png|webp|heic|heif)$/i;
+  function typed(f) { return f.type ? f : new File([f], f.name || "photo.jpg", { type: "image/jpeg" }); }
+  function normalizeImage(f) {
+    var isImg = /^image\//.test(f.type) || (!f.type && (IMG_EXT.test(f.name) || !f.name));
+    if (!isImg) return Promise.resolve(f);
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(f), im = new Image();
+      im.onload = function () {
+        URL.revokeObjectURL(url);
+        var w = im.naturalWidth, h = im.naturalHeight;
+        if (!w || !h) return resolve(typed(f));
+        var k = Math.min(1, 2000 / Math.max(w, h)), c = document.createElement("canvas");
+        c.width = Math.round(w * k); c.height = Math.round(h * k);
+        var x = c.getContext("2d");
+        x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height);
+        x.drawImage(im, 0, 0, c.width, c.height);
+        c.toBlob(function (b) {
+          resolve(b ? new File([b], (f.name || "photo").replace(/\.[a-z0-9]+$/i, "") + ".jpg", { type: "image/jpeg" }) : typed(f));
+        }, "image/jpeg", 0.86);
+      };
+      im.onerror = function () { URL.revokeObjectURL(url); resolve(typed(f)); };
+      im.src = url;
+    });
+  }
+  var preparing = false;
   function sendFiles(files) {
-      files = files.slice(0, 10);
-      if (!files.length || busy) return;
-      if (vm.thread.onboarding) {
-        bubble({ role: "assistant", body: "Tell me your pet's name first, then you can send photos and files.", created_at: new Date().toISOString() });
-        return;
-      }
+    files = files.slice(0, 10);
+    if (!files.length || busy || preparing) return;
+    if (vm.thread.onboarding) {
+      bubble({ role: "assistant", body: "Tell me your pet's name first, then you can send photos and files.", created_at: new Date().toISOString() });
+      return;
+    }
+    preparing = true;
+    setFace("thinking");
+    setStatus(files.length > 1 ? "Getting your photos ready…" : "Getting your photo ready…");
+    Promise.all(files.map(normalizeImage)).then(function (ready) { return ready; }, function () { return files.map(typed); }).then(function (ready) {
+      preparing = false;
+      setStatus();
+      sendPrepared(ready);
+    });
+  }
+  function sendPrepared(files) {
       var bad = files.filter(function (f) { return !/^(image\/(jpeg|png|webp)|application\/pdf)$/.test(f.type); });
       var big = files.filter(function (f) { return f.size > 10 * 1024 * 1024; });
       if (bad.length) {
-        bubble({ role: "assistant", body: "I can read photos (JPG, PNG, WebP) and PDFs only.", created_at: new Date().toISOString() });
+        bubble({ role: "assistant", body: "I can read photos (JPG, PNG, WebP) and PDFs only. On iPhone, set the camera format to Most Compatible (Settings, Camera, Formats) if photos do not come through.", created_at: new Date().toISOString() });
         return;
       }
       if (big.length) {
@@ -510,7 +597,7 @@
       var mine = bubble({ role: "user", body: "📎 " + (files.length > 1 ? files.length + " files" : files[0].name), created_at: new Date().toISOString() });
       // Show the photos themselves in the bubble (this device only: files are not kept on the server).
       if (mine) {
-        var shots = files.filter(function (f) { return /^image\//.test(f.type); }).slice(0, 4);
+        var shots = files.filter(function (f) { return /^image\//.test(f.type); });
         if (shots.length) {
           var strip = document.createElement("div");
           strip.className = "sipo-thumbs";
@@ -521,13 +608,14 @@
             im.addEventListener("click", function () { window.open(im.src, "_blank", "noopener"); });
             strip.appendChild(im);
           });
-          mine.insertBefore(strip, mine.querySelector("p"));
+          // The words first, then every photo in one row you can swipe sideways.
+          mine.querySelector("p").insertAdjacentElement("afterend", strip);
         }
       }
-      showTyping(true);
+      showTyping(true, files.length > 1 ? "Reading your " + files.length + " files…" : (files[0].type === "application/pdf" ? "Reading your PDF…" : "Looking at your photo…"));
       window.sipoUploadMany(files, {
         url: api.upload, csrf: api.csrf, threadId: threadId,
-        onStep: function (i, n) { setStatus("Reading file " + i + " of " + n + "…"); }
+        onStep: function (i, n) { setActivity("Reading file " + i + " of " + n + "…"); }
       })
         .then(function (j) {
           showTyping(false);

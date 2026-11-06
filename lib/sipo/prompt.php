@@ -234,7 +234,7 @@ function rrp_sipo_system_prompt(array $owner, ?array $pet, ?array $thread, array
         $parts[] = "# Summary of older conversation\n" . $summary;
     }
 
-    $ctx = ['# Live context', 'Local time: ' . $live['local_time'] . ' (' . $live['day_part'] . ')'];
+    $ctx = ['# Live context', 'Local time: ' . $live['local_time'] . ' (' . $live['day_part'] . ')', rrp_units_prompt_line($owner)];
     if (!empty($live['area'])) {
         $ctx[] = 'Area: ' . $live['area'];
     }

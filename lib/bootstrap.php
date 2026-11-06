@@ -200,8 +200,19 @@ function rrp_start_session(): void
     }
     $cfg = rrp_load_config();
     session_name($cfg['session_name'] ?? 'rrp_session');
-    // Remember-me (lib/auth.php) carries long logins; this just avoids 24-min GC drops.
-    ini_set('session.gc_maxlifetime', (string) (8 * 3600));
+    // Shared hosting clears the common session folder every ~24 minutes (other sites' settings win), which
+    // logged people out and broke every open page ("Session expired"). Keep our sessions in our own folder,
+    // closed to the web (config/.htaccess), and clean it ourselves.
+    $dir = dirname(__DIR__) . '/config/sessions';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    if (is_dir($dir) && is_writable($dir)) {
+        ini_set('session.save_path', $dir);
+        ini_set('session.gc_probability', '1');
+        ini_set('session.gc_divisor', '100');
+    }
+    ini_set('session.gc_maxlifetime', (string) (7 * 86400));
     ini_set('session.use_strict_mode', '1');
     session_set_cookie_params([
         'lifetime' => 0,
@@ -287,21 +298,46 @@ function rrp_redirect(string $path): void
     exit;
 }
 
+/**
+ * The form token lives in a long-lived cookie (double submit), not only in the session, so a page that
+ * stays open longer than the session still works: the cookie outlives it. SameSite=Lax + HttpOnly.
+ */
+function rrp_csrf_cookie(bool $rotate = false): string
+{
+    $c = (string) ($_COOKIE['sipaw_csrf'] ?? '');
+    if ($rotate || !preg_match('/^[a-f0-9]{64}$/', $c)) {
+        $c = bin2hex(random_bytes(32));
+        if (!headers_sent()) {
+            setcookie('sipaw_csrf', $c, [
+                'expires' => time() + 60 * 86400,
+                'path' => '/',
+                'secure' => rrp_request_is_https(),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+        $_COOKIE['sipaw_csrf'] = $c;
+    }
+    return $c;
+}
+
 function rrp_csrf_token(): string
 {
-    rrp_start_session();
-    if (empty($_SESSION['csrf'])) {
-        $_SESSION['csrf'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf'];
+    return rrp_csrf_cookie();
 }
 
 function rrp_verify_csrf(?string $token): bool
 {
+    if (!is_string($token) || $token === '') {
+        return false;
+    }
+    $c = (string) ($_COOKIE['sipaw_csrf'] ?? '');
+    if ($c !== '' && hash_equals($c, $token)) {
+        return true;
+    }
+    // Pages rendered before this change carry the old session token: accept them once.
     rrp_start_session();
-    return is_string($token)
-        && isset($_SESSION['csrf'])
-        && hash_equals($_SESSION['csrf'], $token);
+    return isset($_SESSION['csrf']) && hash_equals((string) $_SESSION['csrf'], $token);
 }
 
 function rrp_public_id(int $bytes = 8): string
@@ -323,6 +359,10 @@ function rrp_client_ua(): ?string
 
 require_once __DIR__ . '/ops/health.php';
 rrp_ops_install_handlers();
+// The form token cookie must be sent before any page output starts.
+if (PHP_SAPI !== 'cli') {
+    rrp_csrf_cookie();
+}
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/api.php';
 require_once __DIR__ . '/plan.php';
@@ -332,6 +372,7 @@ require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/email.php';
 require_once __DIR__ . '/report.php';
 require_once __DIR__ . '/onboarding.php';
+require_once __DIR__ . '/units.php';
 require_once __DIR__ . '/sipo/knowledge.php';
 require_once __DIR__ . '/sipo/choices.php';
 require_once __DIR__ . '/sipo/driver.php';

@@ -53,6 +53,7 @@ if ($quarter) {
     $run('sipo_nudges', static fn() => rrp_sipo_nudge_tick(40));
     $run('rewards', static fn() => rrp_rewards_tick());
     $run('renewals', static fn() => rrp_billing_renewal_tick());
+    $run('auto_renew', static fn() => rrp_billing_auto_tick(20));
     $run('weekly_report', static fn() => rrp_report_tick(20));
     $run('naki', static fn() => rrp_naki_tick());
     rrp_ops_heartbeat('cron_sipo');

@@ -65,7 +65,9 @@
 .sipo-msg.from-me time{color:rgba(255,255,255,.75)}
 .sipo-msg.is-alert{border-color:var(--red);box-shadow:inset 3px 0 0 var(--red)}
 @keyframes msg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.sipo-typing{display:flex;gap:4px;padding:14px 14px}
+.sipo-typing{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.sipo-typing .dots{display:flex;gap:4px;flex:none}
+.sipo-typing em{font-style:normal;font-size:13.5px;line-height:1.3;color:var(--sub)}
 .sipo-typing span{width:6px;height:6px;background:var(--sub);border-radius:50%;animation:dot 1s infinite ease-in-out}
 .sipo-typing span:nth-child(2){animation-delay:.15s}.sipo-typing span:nth-child(3){animation-delay:.3s}
 @keyframes dot{0%,80%,100%{opacity:.25;transform:none}40%{opacity:1;transform:translateY(-3px)}}
@@ -206,7 +208,6 @@
   .sipo-top-right .petswitch{padding:2px}
   .sipo-top-right .top-actions .iconbtn{width:40px;height:40px}
   .sipo-who{min-width:0}
-  .sipo-who sipo-mascot{width:56px;height:56px}
   .sipo-progress{max-width:120px}
 }
 
@@ -216,7 +217,6 @@
 /* Left side menu (hamburger) */
 .menu-btn{position:fixed;top:10px;left:10px;z-index:60;width:40px;height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;background:var(--bg);border:0;cursor:pointer;padding:0}
 .menu-btn span{display:block;width:20px;height:2px;background:var(--text)}
-.menu-dot{position:absolute;top:8px;right:6px;width:8px;height:8px;border-radius:50%;background:#e5484d}
 .app-main.has-tab>.topbar,.app-main.has-tab>.homehead{padding-left:58px}
 .app-main.has-tab .sipo-top{padding-left:58px}
 .side-backdrop{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.55)}
@@ -266,7 +266,10 @@
 @media (max-width:480px){
   .app-main.has-tab .sipo-top{padding-left:52px;padding-right:8px;gap:6px}
   .sipo-who{gap:8px}
-  .sipo-who sipo-mascot{width:48px;height:48px}
+  /* The face draws itself 64px wide inside its tag, so shrinking the tag let it spill over the text:
+     scale the whole face to 48px and give back the 16px it no longer uses. */
+  .sipo-who{gap:14px}
+  .sipo-who sipo-mascot{width:64px;height:64px;transform:scale(.75);transform-origin:0 50%;margin-right:-16px}
   .sipo-top-right .coin-badge{padding:0 4px;gap:3px}
   .sipo-top-right .top-actions .iconbtn{width:34px}
   .sipo-progress{max-width:128px}
@@ -286,6 +289,7 @@
 @media (prefers-reduced-motion:reduce){.sipo-fab:active{transform:none}}
 .a2hs{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 /* My pets in the side menu */
+.side-head + .side-pets{margin-top:0;padding-top:4px;border-top:0}
 .side-pets{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
 .side-pets .label{margin:0 4px 6px}
 .side-pet{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:6px 8px;background:none;border:1px solid transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;text-decoration:none}
@@ -297,7 +301,10 @@
 .side-pet-check{width:18px;height:18px;color:var(--blue);flex:none}
 .side-pet.is-busy{opacity:.5}
 .side-pet.is-add b{color:var(--blue)}
-.sipo-chat{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+/* Sits close to the phone's home bar instead of floating above a wide empty band */
+.sipo-chat{padding-bottom:max(0px,calc(env(safe-area-inset-bottom,0px) - 14px))}
+@media (max-width:767px){.sipo-composer{margin-bottom:8px}}
+.page-sipo .app{height:var(--vvh,100dvh);max-height:var(--vvh,100dvh)}
 
 /* iPhone notch / status bar (PWA uses black-translucent): keep the menu and top bars below it */
 .menu-btn{top:calc(10px + env(safe-area-inset-top,0px));left:calc(10px + env(safe-area-inset-left,0px))}
@@ -421,9 +428,11 @@
 .sipo-attach[hidden]{display:none!important}
 
 /* Photos the owner sent, shown inside their own bubble */
-.sipo-thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
-.sipo-thumbs img{display:block;max-width:100%;width:auto;max-height:220px;min-width:90px;object-fit:cover;border-radius:12px;cursor:zoom-in}
-.sipo-thumbs img:only-child{max-width:260px}
+/* Photos under the message text: one row, swipe sideways, every photo shown */
+.sipo-thumbs{display:flex;flex-wrap:nowrap;gap:8px;margin:8px 0 6px;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sipo-thumbs::-webkit-scrollbar{display:none}
+.sipo-thumbs img{display:block;flex:none;height:150px;width:auto;max-width:none;object-fit:cover;border-radius:12px;cursor:zoom-in;scroll-snap-align:start}
+.sipo-thumbs img:only-child{height:auto;max-height:220px;max-width:260px}
 
 /* Hold feedback: a ring fills for 1 second, then the button lifts and can be dragged */
 .sipo-fab::after{content:"";position:absolute;inset:-4px;border-radius:inherit;border:3px solid transparent;pointer-events:none}

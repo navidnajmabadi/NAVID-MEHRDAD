@@ -101,6 +101,34 @@ function rrp_coin_award(int $ownerId, string $key, string $description, ?string 
     return $amount;
 }
 
+/** Spend coins (a Plus discount). The balance never goes below 0. Returns the coins actually taken. */
+function rrp_coin_spend(int $ownerId, int $coins, string $why, string $relatedType, int $relatedId): int
+{
+    if ($coins <= 0) {
+        return 0;
+    }
+    $pdo = rrp_db();
+    try {
+        $owner = $pdo->query('SELECT * FROM owners WHERE id = ' . $ownerId)->fetch();
+        $day = $owner ? rrp_sipo_local_now($owner)->format('Y-m-d') : gmdate('Y-m-d');
+        $pdo->beginTransaction();
+        $have = (int) $pdo->query('SELECT sip_balance FROM owners WHERE id = ' . $ownerId . ' FOR UPDATE')->fetchColumn();
+        $take = min($coins, $have);
+        $pdo->prepare('UPDATE owners SET sip_balance = sip_balance - ? WHERE id = ?')->execute([$take, $ownerId]);
+        $pdo->prepare(
+            'INSERT INTO sip_ledger (owner_id, entry_type, amount, balance_after, description, related_type, related_id, local_day) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        )->execute([$ownerId, 'plus_discount', -$take, $have - $take, mb_substr($why, 0, 200), $relatedType, $relatedId, $day]);
+        $pdo->commit();
+        return $take;
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('rrp_coin_spend: ' . $e->getMessage());
+        return 0;
+    }
+}
+
 /** Take back coins earned for a thing (e.g. a removed post). */
 function rrp_coin_revoke(int $ownerId, string $key, string $relatedType, int $relatedId, string $why): int
 {

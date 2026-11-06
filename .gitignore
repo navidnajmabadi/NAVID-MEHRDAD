@@ -8,3 +8,5 @@ uploads/pets/*
 !uploads/pets/.htaccess
 .DS_Store
 
+config/*.log
+config/sessions/

@@ -28,12 +28,12 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
   <h3 class="label">Profile</h3>
   <dl class="care-kv">
     <?php foreach (['Kind' => $pet['kind'], 'Breed' => $pet['breed'], 'Sex' => $pet['sex'] ? ucfirst($pet['sex']) : null, 'Age' => $pet['age'],
-        'Weight' => $pet['weight_kg'] ? rtrim(rtrim(number_format($pet['weight_kg'], 1), '0'), '.') . ' kg' : null, 'Conditions' => $pet['conditions']] as $k => $v): ?>
+        'Weight' => $pet['weight_kg'] ? rrp_fmt_weight((float) $pet['weight_kg']) : null, 'Conditions' => $pet['conditions']] as $k => $v): ?>
       <div><dt><?= rrp_h($k) ?></dt><dd><?= $v ? rrp_h((string) $v) : '<span class="meta">—</span>' ?></dd></div>
     <?php endforeach; ?>
   </dl>
   <?php if (count($vm['weights']) >= 2): ?>
-    <div class="care-chart-wrap"><span class="meta">Weight (kg)</span><?php rrp_view_line_chart($vm['weights'], null, null, 'kg'); ?></div>
+    <div class="care-chart-wrap"><?php $wu = rrp_units()['weight']; $wChart = array_map(static fn($p) => ['value' => round(rrp_weight_show((float) $p['value']), 1)] + $p, $vm['weights']); ?><span class="meta">Weight (<?= rrp_h($wu) ?>)</span><?php rrp_view_line_chart($wChart, null, null, $wu); ?></div>
   <?php endif; ?>
 </section>
 
@@ -104,7 +104,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
             <ul class="lab-history"><?php foreach (array_reverse($pts) as $pt): ?><li class="<?= in_array($pt['flag'], ['low', 'high'], true) ? 'is-red' : '' ?>"><span><?= rrp_h($pt['date']) ?></span><b class="data"><?= rrp_h($fmt($pt['value'])) ?></b><em><?= in_array($pt['flag'], ['low', 'high'], true) ? rrp_h(strtoupper($pt['flag'])) : '' ?></em></li><?php endforeach; ?></ul>
           <?php endif; ?>
           <?php if (!$readOnly): ?>
-            <a class="btn primary lab-ask" href="si-chat.php?ask=lab&amp;lab=<?= rrp_h(rawurlencode((string) $a['key'])) ?>">Ask SIPO to analyse <?= rrp_h($a['label']) ?></a>
+            <a class="btn primary lab-ask" href="si-chat.php?ask=lab&amp;lab=<?= rrp_h(rawurlencode((string) $a['key'])) ?>" aria-label="Ask SIPO to analyse <?= rrp_h($a['label']) ?>">Ask SIPO about this result</a>
           <?php endif; ?>
         </div>
       </details>

@@ -99,7 +99,7 @@ rrp_app_start(['nav' => 'health']);
     <h3 class="label">Activity · last 7 days</h3>
     <?php if ($top['walk'] && $top['walk']['week_minutes'] > 0): ?>
       <?php rrp_view_bar_chart(array_map(static fn($d) => ['label' => substr($d['dow'], 0, 2), 'value' => $d['minutes']], $top['walk']['week']), 'min', $top['walk']['goal'] ? (float) $top['walk']['goal'] : null); ?>
-      <p class="meta"><?= (int) $top['walk']['week_minutes'] ?> min · <?= rrp_h((string) $top['walk']['week_km']) ?> km this week<?= $top['walk']['goal'] ? ' · goal ' . (int) $top['walk']['goal'] . ' min a day' : '' ?></p>
+      <p class="meta"><?= (int) $top['walk']['week_minutes'] ?> min · <?= rrp_h(rrp_fmt_distance((float) $top['walk']['week_km'])) ?> this week<?= $top['walk']['goal'] ? ' · goal ' . (int) $top['walk']['goal'] . ' min a day' : '' ?></p>
     <?php else: ?>
       <p class="sub">No walks logged this week. <a class="link" href="walk.php">Start a walk</a> or tell SIPO.</p>
     <?php endif; ?>

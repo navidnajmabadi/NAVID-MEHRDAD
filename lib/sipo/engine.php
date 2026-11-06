@@ -632,14 +632,16 @@ function rrp_sipo_proactive_instruction(string $kind, bool $hasPet, ?array $owne
             . 'Under 70 words. Do not call tools yet.';
     }
     $base = 'You are starting the conversation (the owner has not written yet). Write ONE short message (max 45 words). '
-        . 'Do not call tools. Use local time and weather naturally. ';
+        . 'Do not call tools. Use local time and weather naturally. Never repeat a question you already asked earlier today. ';
     return $when . $base . match ($kind) {
         'greeting' => 'They just opened the app. Greet them for this part of the day and ask one caring question: '
             . 'prefer an overdue/upcoming reminder, then the most useful unknown profile item, then how the pet is.',
         'checkin' => 'This is a gentle check-in sent as a phone notification. Ask one easy question about today '
             . '(meal, walk, mood, bathroom) or follow up on something unresolved from the summary.',
         'profile_gap' => 'Kindly ask for ONE missing profile item that would improve care, and say why in a few words.',
-        'reminder' => 'Follow up on an overdue or due-today reminder: ask if it happened, offer to find a vet.',
+        'reminder' => 'Follow up on ONE reminder that is not done yet: ask if it happened. Say "overdue" only when it was due on an earlier day; '
+            . 'a reminder that was due earlier today is "this morning\'s" or "today\'s" (use its real time of day, never guess). '
+            . 'Offer to find a vet only when a health problem is mentioned, not for a routine like tooth brushing.',
         'walk' => 'No walk logged yet today. Suggest a good time from the walk window and weather in Daily life, '
             . 'warmly, and mention the walk tracker on the Daily page.',
         default => 'Say hello and ask how the pet is.',
@@ -661,6 +663,20 @@ function rrp_sipo_static_welcome(array $owner, array $thread): string
 }
 
 function rrp_sipo_greet_if_due(array $owner, array $thread): ?array
+{
+    // Two requests opening the chat together (page load + a retry) must not both greet.
+    $lock = 'sipo_greet_' . (int) $thread['id'];
+    if (!rrp_lock_try($lock)) {
+        return null;
+    }
+    try {
+        return rrp_sipo_greet_locked($owner, $thread);
+    } finally {
+        rrp_lock_release($lock);
+    }
+}
+
+function rrp_sipo_greet_locked(array $owner, array $thread): ?array
 {
     $now = rrp_sipo_local_now($owner);
     $startLocal = $now->setTime(0, 0);

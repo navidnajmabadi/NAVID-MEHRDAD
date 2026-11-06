@@ -1,22 +1,71 @@
 <?php
 declare(strict_types=1);
 
-const RRP_UI_SKINS = ['studio' => 'Studio', 'friendly' => 'Friendly', 'clean' => 'Clean'];
+const RRP_UI_SKINS = ['friendly' => 'Friendly', 'clean' => 'Clean'];
+const RRP_UI_DEFAULT_SKIN = 'friendly';
 
-/** Appearance chosen in Settings (per device, cookie). Default clean; studio = the original dark look. */
+/**
+ * Appearance. The choice belongs to the account (owners.ui_skin), so every device shows the same look;
+ * the cookie is only a copy for pages before sign-in and for accounts without the column yet.
+ * First time (nothing chosen anywhere): Friendly. A look picked earlier on this device is moved to the account.
+ */
 function rrp_ui_skin(): string
 {
-    $s = (string) ($_COOKIE['sipaw_skin'] ?? 'clean'); // Clean is the default (Navid, 2026-10-28)
-    return isset(RRP_UI_SKINS[$s]) ? $s : 'clean';
+    static $skin = null;
+    if ($skin !== null) {
+        return $skin;
+    }
+    $cookie = (string) ($_COOKIE['sipaw_skin'] ?? '');
+    $cookie = isset(RRP_UI_SKINS[$cookie]) ? $cookie : '';
+    $ownerId = 0;
+    try {
+        rrp_start_session();
+        $ownerId = (int) ($_SESSION['owner_id'] ?? 0);
+    } catch (Throwable $e) {
+    }
+    $saved = '';
+    if ($ownerId > 0) {
+        try {
+            $st = rrp_db()->prepare('SELECT ui_skin FROM owners WHERE id = ?');
+            $st->execute([$ownerId]);
+            $v = (string) $st->fetchColumn();
+            $saved = isset(RRP_UI_SKINS[$v]) ? $v : '';
+            if ($saved === '' && $cookie !== '') {
+                // Picked on this device before accounts remembered it: keep it for every device.
+                rrp_db()->prepare('UPDATE owners SET ui_skin = ? WHERE id = ? AND ui_skin IS NULL')->execute([$cookie, $ownerId]);
+            }
+        } catch (Throwable $e) {
+            // column not there yet (migration 026): the cookie decides
+        }
+    }
+    $skin = $saved !== '' ? $saved : ($cookie !== '' ? $cookie : RRP_UI_DEFAULT_SKIN);
+    // Copy the account's look to this device's cookie; the default is never written down as if it were a choice.
+    if ($saved !== '' && $saved !== $cookie && !headers_sent()) {
+        rrp_ui_write_cookie($saved);
+    }
+    return $skin;
 }
 
-function rrp_ui_set_skin(string $skin): void
+function rrp_ui_write_cookie(string $skin): void
+{
+    setcookie('sipaw_skin', $skin, ['expires' => time() + 365 * 86400, 'path' => '/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => false, 'samesite' => 'Lax']);
+    $_COOKIE['sipaw_skin'] = $skin;
+}
+
+/** Save the look for this account (all devices) and this device. */
+function rrp_ui_set_skin(string $skin, ?int $ownerId = null): void
 {
     if (!isset(RRP_UI_SKINS[$skin])) {
         return;
     }
-    setcookie('sipaw_skin', $skin, ['expires' => time() + 365 * 86400, 'path' => '/', 'secure' => !empty($_SERVER['HTTPS']), 'httponly' => false, 'samesite' => 'Lax']);
-    $_COOKIE['sipaw_skin'] = $skin;
+    if ($ownerId) {
+        try {
+            rrp_db()->prepare('UPDATE owners SET ui_skin = ? WHERE id = ?')->execute([$skin, $ownerId]);
+        } catch (Throwable $e) {
+            error_log('rrp_ui_set_skin: ' . $e->getMessage());
+        }
+    }
+    rrp_ui_write_cookie($skin);
 }
 
 function rrp_layout_head(string $title, array $opts = []): void
@@ -34,7 +83,7 @@ function rrp_layout_head(string $title, array $opts = []): void
     }
     $skin = rrp_ui_skin();
     $theme = $opts['theme'] ?? ($skin === 'studio' ? 'dark' : 'light');
-    $skinFonts = ['friendly' => 'Nunito:wght@400;600;700;800', 'clean' => 'Figtree:wght@400;500;600;700'][$skin] ?? null;
+    $skinFonts = ['friendly' => 'Nunito:wght@400;500;600;700;800', 'clean' => 'Figtree:wght@400;500;600;700'][$skin] ?? null;
     ?>
 <!doctype html>
 <html lang="en" data-theme="<?= rrp_h((string) $theme) ?>"<?= $skin !== 'studio' ? ' data-skin="' . rrp_h($skin) . '"' : '' ?>>
@@ -212,7 +261,7 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
     $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     ?>
 <button type="button" class="menu-btn" id="menuBtn" aria-label="Menu" aria-controls="sideMenu" aria-expanded="false">
-  <span></span><span></span><span></span><?php if ($unread > 0): ?><i class="menu-dot" aria-hidden="true"></i><?php endif; ?>
+  <span></span><span></span><span></span>
 </button>
 <div class="side-backdrop" id="sideBackdrop" hidden></div>
 <nav class="side-menu" id="sideMenu" aria-label="Menu" data-csrf="<?= rrp_h(rrp_csrf_token()) ?>" hidden>
@@ -355,8 +404,9 @@ function rrp_layout_foot(array $opts = []): void
 <script src="<?= rrp_h(rrp_asset('assets/js/menu.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/photo-crop.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/bell.js', true)) ?>" defer></script>
+<script src="<?= rrp_h(rrp_asset('assets/js/error-report.js', true)) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
-<script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src, true)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
+<script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src, true)) ?>"<?= str_contains($src, 'cdn') && !str_contains($src, 'squarecdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>
 </body>
 </html>

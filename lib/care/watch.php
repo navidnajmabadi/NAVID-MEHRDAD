@@ -52,12 +52,12 @@ function rrp_watch_check(array $owner, array $pet): ?array
         $days = (int) ((strtotime($last['date']) - strtotime($first['date'])) / 86400);
         $chg = $first['kg'] > 0 ? ($last['kg'] - $first['kg']) / $first['kg'] : 0;
         if ($days >= 7 && abs($chg) > 0.05) {
-            $from = rtrim(rtrim(number_format($first['kg'], 1), '0'), '.');
-            $to = rtrim(rtrim(number_format($last['kg'], 1), '0'), '.');
+            $from = rrp_fmt_weight((float) $first['kg'], $owner);
+            $to = rrp_fmt_weight((float) $last['kg'], $owner);
             $pct = (int) round(abs($chg) * 100);
             $text = $chg > 0
-                ? "{$name}'s weight went from {$from} kg to {$to} kg in about " . max(1, (int) round($days / 7)) . " weeks (+{$pct}%). A little less food or an extra walk can help. Is this planned? If not, mention it to the vet."
-                : "{$name}'s weight went from {$from} kg to {$to} kg in about " . max(1, (int) round($days / 7)) . " weeks (−{$pct}%). If this is not planned, please let your vet know. Is {$name} eating and drinking as usual?";
+                ? "{$name}'s weight went from {$from} to {$to} in about " . max(1, (int) round($days / 7)) . " weeks (+{$pct}%). A little less food or an extra walk can help. Is this planned? If not, mention it to the vet."
+                : "{$name}'s weight went from {$from} to {$to} in about " . max(1, (int) round($days / 7)) . " weeks (−{$pct}%). If this is not planned, please let your vet know. Is {$name} eating and drinking as usual?";
             return ['key' => 'weight', 'text' => $text, 'mascot' => 'concerned'];
         }
     }
