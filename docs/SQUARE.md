@@ -44,6 +44,13 @@ Order: price → coupon → perfect care weeks → paw coins → tax.
   the next payment's coin discount starts from the new balance.
 - Tax (default 13% HST) is added after the discounts, for owners in the listed countries (default `CA`).
 
+## 3b. Billing page and invoices
+
+- Menu, Billing (also Settings, Plus and billing) is where owners pay, see the saved card and auto-renew, and read their payment history.
+- Each paid payment has an invoice number (SIPAW-year-000123), a PDF to download, and an Email PDF button (to their own address or another one).
+- The seller details printed on invoices (business name, address, HST number, billing email) are set in Admin, Pricing, Invoice details. Email sending uses the SMTP settings in the config file.
+- The old /plus.php link redirects to billing.php.
+
 ## 4. Check list after deploy
 
 - `php scripts/migrate.php` runs migration 027 (settings table, card columns, order columns).

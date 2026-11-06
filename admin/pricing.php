@@ -27,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
     } elseif ($tax < 0 || $tax > 40) {
         $error = 'Tax must be between 0 and 40 percent.';
     } else {
+        foreach (['biz_name' => 60, 'biz_address' => 200, 'biz_tax_no' => 40, 'biz_email' => 100] as $k => $max) {
+            rrp_setting_set($k, mb_substr(trim((string) ($_POST[$k] ?? '')), 0, $max));
+        }
         rrp_setting_set('price_monthly_cents', (string) (int) round($price * 100));
         rrp_setting_set('currency', $cur);
         rrp_setting_set('coin_value_cents', (string) $coin);
@@ -97,6 +100,17 @@ rrp_admin_shell_start('Pricing', 'pricing');
     <div class="field"><label for="tc">Owners in these countries pay the tax</label>
       <div class="in"><input id="tc" name="tax_countries" value="<?= rrp_h(implode(',', $tax['countries'])) ?>" /></div>
       <p class="meta">Two-letter codes separated by commas, for example <b>CA</b> or <b>CA,US</b>. Use <b>*</b> for everyone. Owners without a country are not taxed. Ask your accountant which customers owe tax.</p></div>
+    <h2 style="margin:22px 0 4px">Invoice details (printed on every invoice)</h2>
+    <div class="field"><label for="bn">Business name</label>
+      <div class="in"><input id="bn" name="biz_name" maxlength="60" value="<?= rrp_h((string) rrp_setting('biz_name', 'NAKILAB')) ?>" /></div></div>
+    <div class="field"><label for="ba">Address</label>
+      <div class="in"><input id="ba" name="biz_address" maxlength="200" placeholder="Street, City, Province, Postal code, Country" value="<?= rrp_h((string) rrp_setting('biz_address', '')) ?>" /></div>
+      <p class="meta">Separate the lines with commas.</p></div>
+    <div class="field"><label for="bt">Tax registration number (HST)</label>
+      <div class="in"><input id="bt" name="biz_tax_no" maxlength="40" placeholder="123456789 RT0001" value="<?= rrp_h((string) rrp_setting('biz_tax_no', '')) ?>" /></div>
+      <p class="meta">Required on invoices where you charge HST. Leave empty if you have none.</p></div>
+    <div class="field"><label for="be">Billing email</label>
+      <div class="in"><input id="be" name="biz_email" type="email" maxlength="100" value="<?= rrp_h((string) rrp_setting('biz_email', '')) ?>" /></div></div>
     <button class="ad-btn is-primary" type="submit">Save pricing</button>
   </form>
 

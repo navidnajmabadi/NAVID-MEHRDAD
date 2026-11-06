@@ -9,7 +9,7 @@ declare(strict_types=1);
 /**
  * @return array{ok:bool, error?:string, via?:string}
  */
-function rrp_send_mail_result(string $to, string $subject, string $bodyText, ?string $bodyHtml = null): array
+function rrp_send_mail_result(string $to, string $subject, string $bodyText, ?string $bodyHtml = null, array $attachments = []): array
 {
     $cfg = rrp_load_config();
     $from = (string) ($cfg['mail_from'] ?? 'noreply@nakilab.com');
@@ -28,7 +28,7 @@ function rrp_send_mail_result(string $to, string $subject, string $bodyText, ?st
             ];
         }
 
-        $sent = rrp_smtp_send($smtp, $from, $fromName, $to, $subject, $bodyText, $bodyHtml);
+        $sent = rrp_smtp_send($smtp, $from, $fromName, $to, $subject, $bodyText, $bodyHtml, $attachments);
         if (empty($sent['ok'])) {
             return [
                 'ok' => false,
@@ -40,7 +40,7 @@ function rrp_send_mail_result(string $to, string $subject, string $bodyText, ?st
     }
 
     // Legacy PHP mail() for non-reset alerts when SMTP is off.
-    $mime = rrp_mail_mime($bodyText, $bodyHtml);
+    $mime = rrp_mail_mime($bodyText, $bodyHtml, $attachments);
     $headers = [
         'MIME-Version: 1.0',
         'Content-Type: ' . $mime['content_type'],
@@ -71,18 +71,34 @@ function rrp_send_mail(string $to, string $subject, string $bodyText, ?string $b
  *
  * @return array{content_type:string, body:string}
  */
-function rrp_mail_mime(string $text, ?string $html = null): array
+function rrp_mail_mime(string $text, ?string $html = null, array $attachments = []): array
 {
     $qp = static fn(string $s): string => quoted_printable_encode(str_replace(["\r\n", "\r"], "\n", $s));
     if ($html === null || $html === '') {
-        return ['content_type' => 'text/plain; charset=UTF-8', 'body' => $text];
+        $inner = ['content_type' => 'text/plain; charset=UTF-8', 'body' => $text];
+    } else {
+        $b = 'sipaw_' . bin2hex(random_bytes(12));
+        $body = "This is a multi-part message in MIME format.\r\n\r\n"
+            . "--{$b}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n" . $qp($text) . "\r\n"
+            . "--{$b}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n" . $qp($html) . "\r\n"
+            . "--{$b}--\r\n";
+        $inner = ['content_type' => 'multipart/alternative; boundary="' . $b . '"', 'body' => $body];
     }
-    $b = 'sipaw_' . bin2hex(random_bytes(12));
-    $body = "This is a multi-part message in MIME format.\r\n\r\n"
-        . "--{$b}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n" . $qp($text) . "\r\n"
-        . "--{$b}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n" . $qp($html) . "\r\n"
-        . "--{$b}--\r\n";
-    return ['content_type' => 'multipart/alternative; boundary="' . $b . '"', 'body' => $body];
+    if (!$attachments) {
+        return $inner;
+    }
+    // With files: multipart/mixed = the message above, then each file as base64.
+    $m = 'sipaw_mix_' . bin2hex(random_bytes(12));
+    $out = "This is a multi-part message in MIME format.\r\n\r\n--{$m}\r\nContent-Type: " . $inner['content_type']
+        . "\r\n\r\n" . $inner['body'] . "\r\n";
+    foreach ($attachments as $a) {
+        $name = preg_replace('/[^A-Za-z0-9._-]/', '_', (string) ($a['name'] ?? 'file')) ?: 'file';
+        $out .= "--{$m}\r\nContent-Type: " . ($a['type'] ?? 'application/octet-stream') . '; name="' . $name . "\"\r\n"
+            . "Content-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename=\"{$name}\"\r\n\r\n"
+            . chunk_split(base64_encode((string) ($a['data'] ?? '')), 76, "\r\n");
+    }
+    $out .= "--{$m}--\r\n";
+    return ['content_type' => 'multipart/mixed; boundary="' . $m . '"', 'body' => $out];
 }
 
 function rrp_mail_encode_address(string $name, string $email): string
@@ -93,7 +109,7 @@ function rrp_mail_encode_address(string $name, string $email): string
 /**
  * @return array{ok:bool, error?:string}
  */
-function rrp_smtp_send(array $smtp, string $from, string $fromName, string $to, string $subject, string $body, ?string $bodyHtml = null): array
+function rrp_smtp_send(array $smtp, string $from, string $fromName, string $to, string $subject, string $body, ?string $bodyHtml = null, array $attachments = []): array
 {
     $host = $smtp['host'] ?? '';
     $port = (int) ($smtp['port'] ?? 465);
@@ -196,7 +212,7 @@ function rrp_smtp_send(array $smtp, string $from, string $fromName, string $to, 
         return ['ok' => false, 'error' => $err];
     }
 
-    $mime = rrp_mail_mime($body, $bodyHtml);
+    $mime = rrp_mail_mime($body, $bodyHtml, $attachments);
     // SMTP DATA: a body line that starts with "." must be doubled, or the server ends the message early.
     $payload = preg_replace('/^\./m', '..', str_replace(["\r\n", "\r"], "\n", $mime['body'])) ?? $mime['body'];
     $payload = str_replace("\n", "\r\n", $payload);

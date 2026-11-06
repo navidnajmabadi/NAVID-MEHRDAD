@@ -343,3 +343,21 @@
 .pp-sq{min-height:92px}
 .care-card .pp-check b{font-size:15px;font-weight:700;line-height:1.3}
 .care-card .pp-check small{font-size:13px}
+
+/* Billing: payment history */
+.bh-list{list-style:none;margin:6px 0 0;padding:0}
+.bh-row{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.bh-row:last-child{border-bottom:0}
+.bh-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.bh-main b{font-size:15px;line-height:1.3}
+.bh-amt{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.bh-amt b{font-size:15px;white-space:nowrap}
+.bh-ok{background:var(--good-soft,#DDF5EA);color:#0E6B47}
+.bh-bad{background:var(--soft-red,#FDE3E5);color:var(--soft-red-ink,#A91F28)}
+.bh-acts{grid-column:1 / -1;display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.bh-acts .btn{width:auto;flex:1 1 140px;height:44px;padding:0 14px;font-size:14px}
+.bh-mail{grid-column:1 / -1;display:grid;gap:8px;margin-top:6px;padding:12px;border:1px solid var(--line);border-radius:var(--r-md,12px);background:var(--bg)}
+.bh-mail[hidden]{display:none}
+.bh-mail label{font-size:13px;font-weight:600;color:var(--sub)}
+.bh-mail input{min-height:46px;padding:0 14px;border:1px solid var(--edge,var(--line));background:var(--panel);color:var(--text);border-radius:var(--r-md,12px);font:inherit}
+.bh-mail .btn{height:46px}

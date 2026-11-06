@@ -236,7 +236,7 @@ function rrp_email_weekly_report(array $r, ?string $manageUrl = null): array
  * @param array{subject:string, text:string, html:string} $mail
  * @return array{ok:bool, error?:string, via?:string}
  */
-function rrp_email_send(string $to, array $mail): array
+function rrp_email_send(string $to, array $mail, array $attachments = []): array
 {
-    return rrp_send_mail_result($to, $mail['subject'], $mail['text'], $mail['html']);
+    return rrp_send_mail_result($to, $mail['subject'], $mail['text'], $mail['html'], $attachments);
 }
