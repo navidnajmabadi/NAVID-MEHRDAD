@@ -19,3 +19,5 @@ Branch: `cursor/claude-error-log`
 | 13 | Sent 7 photos but only 4 shown; want the text on top and a horizontal carousel | Done | All photos shown in one swipeable row under the text |
 | 14 | Remove old per-job cron URLs in hPanel (only tick.php should remain) | Pending | Needs you: Hostinger → Cron jobs |
 | 15 | Red dot on the menu (hamburger) button, always shown, unclear what it means | Done | Removed. It only meant "you have unread notifications", which the bell already shows with its number, and the notification center keeps them |
+| 16 | Appearance: keep Friendly and Clean (Studio removed), Friendly is the first-time default, the choice is saved on the account so every device shows it | Done | New `owners.ui_skin` (migration 026). Tested: first time Friendly; a choice follows the account to a new device; an old per-phone choice moves to the account; the old Studio cookie falls back to Friendly |
+| 17 | Login and sign up pages in the same Friendly / Clean look | Done | They already follow the look; fields were still square boxes and are now rounded. Before sign-in the phone's own choice (or Friendly) is used; after sign-in the account's look takes over |

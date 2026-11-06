@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         }
         rrp_redirect('settings.php#timezone');
     } elseif ($act === 'skin') {
-        rrp_ui_set_skin((string) ($_POST['skin'] ?? 'studio'));
+        rrp_ui_set_skin((string) ($_POST['skin'] ?? RRP_UI_DEFAULT_SKIN), (int) $owner['id']);
         rrp_flash_set('ok', 'Look changed ✨');
         rrp_redirect('settings.php#appearance');
     } elseif ($act === 'profile') {
@@ -178,7 +178,7 @@ rrp_app_start(['nav' => 'settings']);
     <h3 class="label">Appearance</h3>
     <form method="post" class="skin-pick">
       <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="skin" />
-      <?php foreach (['studio' => 'Dark and sharp, the original look', 'friendly' => 'Warm, soft curves, made for dog people', 'clean' => 'Light and calm, like top health apps'] as $k => $why): ?>
+      <?php foreach (['friendly' => 'Warm, soft curves, made for dog people', 'clean' => 'Light and calm, like top health apps'] as $k => $why): ?>
         <button type="submit" name="skin" value="<?= rrp_h($k) ?>" class="skin-opt" aria-pressed="<?= rrp_ui_skin() === $k ? 'true' : 'false' ?>">
           <span class="skin-swatch skin-<?= rrp_h($k) ?>" aria-hidden="true"><i></i><i></i><i></i></span>
           <b><?= rrp_h(RRP_UI_SKINS[$k]) ?></b><small><?= rrp_h($why) ?></small>

@@ -18,6 +18,10 @@
 [data-skin] :is(.petswitch,.coin-badge,.hd-tabs a,.daily-tabs a,.chip-s){border-radius:var(--r-pill)}
 [data-skin] .daily-tabs{border-radius:var(--r-pill);overflow:hidden}
 [data-skin] .pet-avatar{border-radius:50%}
+/* Form fields (login, sign up, settings): rounded like the rest of the look, not square boxes */
+[data-skin] .field .in{border-radius:var(--r-md);overflow:hidden;background:var(--panel);border-color:var(--edge)}
+[data-skin] .field .in:focus-within{box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
+[data-skin] .field .in input{background:transparent!important}
 [data-skin] .sipo-msg{border-radius:20px}
 [data-skin] .sipo-msg.from-sipo{border-bottom-left-radius:6px}
 [data-skin] .sipo-msg.from-me{border-bottom-right-radius:6px}
@@ -115,7 +119,7 @@
 [data-skin="clean"] .set-danger{box-shadow:none;border:1px solid #FFD0D0}
 
 /* Settings → Appearance chooser */
-.skin-pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.skin-pick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
 .skin-opt{display:flex;flex-direction:column;gap:8px;padding:8px;border:2px solid var(--line);background:none;color:var(--text);font:inherit;cursor:pointer;text-align:left;border-radius:var(--r-md,0)}
 .skin-opt[aria-pressed="true"]{border-color:var(--blue)}
 .skin-opt b{font-size:13px}
