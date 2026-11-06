@@ -139,3 +139,15 @@
 [data-skin] .daily-tabs a{font-family:var(--f-body);font-weight:700;font-size:14px}
 [data-skin] .daily-tabs a[aria-current="page"]{border-radius:var(--r-pill)}
 [data-skin] .care-actions .btn,[data-skin] .care-actions label.care-upload{font-size:14px;font-weight:600}
+
+/* ---------- Softer buttons: tinted fills with dark text instead of loud solid colour ----------
+   Inside the app (not the sign-in pages, which keep one clear solid button). Text on the tint is 5.5:1 or
+   better, higher than the old white-on-red (3.9:1). */
+[data-skin]{--soft-blue:#DCE7FF;--soft-blue-hover:#CBDBFF;--soft-blue-ink:#1A47C4;--soft-red:#FDE3E5;--soft-red-hover:#FAD3D6;--soft-red-ink:#A91F28}
+:root[data-skin="friendly"]{--soft-red:#FFE2DC;--soft-red-hover:#FFD3CA;--soft-red-ink:#A8231A}
+body:not(.page-auth):not(.page-welcome) :is(.btn.primary,.btn-primary,.btn-call){background:var(--soft-blue);color:var(--soft-blue-ink);box-shadow:none}
+body:not(.page-auth):not(.page-welcome) :is(.btn.primary,.btn-primary,.btn-call):is(:hover,:focus-visible){background:var(--soft-blue-hover)}
+[data-skin] :is(.btn.lost,.btn-danger,.btn.btn-danger,.btn.btn-lost,.set-lost){background:var(--soft-red);color:var(--soft-red-ink);border-color:transparent;box-shadow:none}
+[data-skin] :is(.btn.lost,.btn-danger,.btn.btn-danger,.btn.btn-lost,.set-lost):is(:hover,:focus-visible){background:var(--soft-red-hover)}
+/* sign-in and welcome: same blue, a little calmer */
+[data-skin] body:is(.page-auth,.page-welcome) .btn.primary{background:#4A7FFF}
