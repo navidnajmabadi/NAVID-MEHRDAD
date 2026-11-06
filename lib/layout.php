@@ -83,7 +83,7 @@ function rrp_layout_head(string $title, array $opts = []): void
     }
     $skin = rrp_ui_skin();
     $theme = $opts['theme'] ?? ($skin === 'studio' ? 'dark' : 'light');
-    $skinFonts = ['friendly' => 'Nunito:wght@400;600;700;800', 'clean' => 'Figtree:wght@400;500;600;700'][$skin] ?? null;
+    $skinFonts = ['friendly' => 'Nunito:wght@400;500;600;700;800', 'clean' => 'Figtree:wght@400;500;600;700'][$skin] ?? null;
     ?>
 <!doctype html>
 <html lang="en" data-theme="<?= rrp_h((string) $theme) ?>"<?= $skin !== 'studio' ? ' data-skin="' . rrp_h($skin) . '"' : '' ?>>

@@ -222,6 +222,7 @@ function rrp_auth_start_owner_session(int $ownerId, bool $remember): void
     $_SESSION['owner_id'] = $ownerId;
     // Fresh CSRF per login so a token from before login can't be replayed.
     $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    rrp_csrf_cookie(true);
     if ($remember) {
         rrp_auth_remember_issue($ownerId);
     }

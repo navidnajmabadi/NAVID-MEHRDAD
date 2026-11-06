@@ -151,3 +151,10 @@ body:not(.page-auth):not(.page-welcome) :is(.btn.primary,.btn-primary,.btn-call)
 [data-skin] :is(.btn.lost,.btn-danger,.btn.btn-danger,.btn.btn-lost,.set-lost):is(:hover,:focus-visible){background:var(--soft-red-hover)}
 /* sign-in and welcome: same blue, a little calmer */
 [data-skin] body:is(.page-auth,.page-welcome) .btn.primary{background:#4A7FFF}
+
+/* ---------- Easier to read: regular text one step heavier (Medium, 500) ----------
+   The default weight 400 looked thin on phones, especially the grey helper text and chat bubbles. */
+[data-skin] body{font-weight:500;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+[data-skin] :is(input,textarea,select){font-weight:500}
+[data-skin] :is(.sipo-msg,.sipo-msg p,.sub,.meta,small,.field label,.care-card p,.set-list small){font-weight:500}
+[data-skin] :is(.sub,.meta,small){color:color-mix(in srgb,var(--sub) 88%,var(--text))}

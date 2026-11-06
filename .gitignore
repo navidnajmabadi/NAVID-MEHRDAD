@@ -9,3 +9,4 @@ uploads/pets/*
 .DS_Store
 
 config/*.log
+config/sessions/

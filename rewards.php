@@ -55,11 +55,12 @@ rrp_app_start(['nav' => 'settings']);
   <?php if ($history): ?>
   <section class="care-card">
     <h3 class="label">Recent coins</h3>
-    <ul class="care-routines" role="list">
-      <?php foreach ($history as $h): ?>
-        <li><span class="dot" aria-hidden="true" style="background:<?= (int) $h['amount'] >= 0 ? 'var(--blue)' : 'var(--red)' ?>"></span>
+    <ul class="rw-coins" role="list">
+      <?php foreach ($history as $h): $amt = (int) $h['amount']; ?>
+        <li>
+          <span class="rw-amt<?= $amt < 0 ? ' is-neg' : '' ?>"><?= $amt > 0 ? '+' : '' ?><?= $amt ?></span>
           <div><b><?= rrp_h((string) $h['description']) ?></b><small><?= rrp_h(substr((string) $h['created_at'], 0, 16)) ?> UTC</small></div>
-          <span class="chip-s"><?= (int) $h['amount'] > 0 ? '+' : '' ?><?= (int) $h['amount'] ?></span></li>
+        </li>
       <?php endforeach; ?>
     </ul>
   </section>

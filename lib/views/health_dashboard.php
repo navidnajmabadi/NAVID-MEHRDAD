@@ -104,7 +104,7 @@ function rrp_view_health_dashboard(array $vm, bool $readOnly): void
             <ul class="lab-history"><?php foreach (array_reverse($pts) as $pt): ?><li class="<?= in_array($pt['flag'], ['low', 'high'], true) ? 'is-red' : '' ?>"><span><?= rrp_h($pt['date']) ?></span><b class="data"><?= rrp_h($fmt($pt['value'])) ?></b><em><?= in_array($pt['flag'], ['low', 'high'], true) ? rrp_h(strtoupper($pt['flag'])) : '' ?></em></li><?php endforeach; ?></ul>
           <?php endif; ?>
           <?php if (!$readOnly): ?>
-            <a class="btn primary lab-ask" href="si-chat.php?ask=lab&amp;lab=<?= rrp_h(rawurlencode((string) $a['key'])) ?>">Ask SIPO to analyse <?= rrp_h($a['label']) ?></a>
+            <a class="btn primary lab-ask" href="si-chat.php?ask=lab&amp;lab=<?= rrp_h(rawurlencode((string) $a['key'])) ?>" aria-label="Ask SIPO to analyse <?= rrp_h($a['label']) ?>">Ask SIPO about this result</a>
           <?php endif; ?>
         </div>
       </details>
