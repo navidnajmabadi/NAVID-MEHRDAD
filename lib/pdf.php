@@ -12,6 +12,8 @@ final class RrpPdf
     public const W = 595.0;
     public const H = 842.0;
     private string $ops = '';
+    /** @var list<array{data:string, w:int, h:int}> JPEG images used on the page (names /Im1, /Im2 ...) */
+    private array $images = [];
 
     /** Fonts: 'r' Helvetica, 'b' Helvetica-Bold, 'm' Courier, 'mb' Courier-Bold. */
     private const FONTS = ['r' => 'F1', 'b' => 'F2', 'm' => 'F3', 'mb' => 'F4'];
@@ -68,18 +70,132 @@ final class RrpPdf
             self::n($x), self::n(self::H - $top - $h), self::n($w), self::n($h));
     }
 
+    /**
+     * Draw an SVG path (absolute M L H V Q C Z only, as our logo files use) as a filled shape.
+     * $scale maps SVG units to points; ($ox, $oy) is where the SVG's (0,0) lands (top-left based, in points).
+     * @param array{0:float,1:float,2:float} $rgb
+     */
+    public function svgPath(string $d, float $scale, float $ox, float $oy, array $rgb): void
+    {
+        $X = static fn(float $v): string => self::n($ox + $v * $scale);
+        $Y = static fn(float $v): string => self::n(self::H - ($oy + $v * $scale));
+        $ops = sprintf("%s %s %s rg\n", self::n($rgb[0]), self::n($rgb[1]), self::n($rgb[2]));
+        $cx = $cy = $sx = $sy = 0.0;
+        foreach (self::parseSvgPath($d) as $seg) {
+            switch ($seg[0]) {
+                case 'M':
+                    [$cx, $cy] = [$seg[1], $seg[2]];
+                    [$sx, $sy] = [$cx, $cy];
+                    $ops .= $X($cx) . ' ' . $Y($cy) . " m\n";
+                    break;
+                case 'L':
+                    [$cx, $cy] = [$seg[1], $seg[2]];
+                    $ops .= $X($cx) . ' ' . $Y($cy) . " l\n";
+                    break;
+                case 'Q': // quadratic → cubic
+                    [$x1, $y1, $x, $y] = [$seg[1], $seg[2], $seg[3], $seg[4]];
+                    $ops .= $X($cx + 2 / 3 * ($x1 - $cx)) . ' ' . $Y($cy + 2 / 3 * ($y1 - $cy)) . ' '
+                        . $X($x + 2 / 3 * ($x1 - $x)) . ' ' . $Y($y + 2 / 3 * ($y1 - $y)) . ' ' . $X($x) . ' ' . $Y($y) . " c\n";
+                    [$cx, $cy] = [$x, $y];
+                    break;
+                case 'C':
+                    $ops .= $X($seg[1]) . ' ' . $Y($seg[2]) . ' ' . $X($seg[3]) . ' ' . $Y($seg[4]) . ' ' . $X($seg[5]) . ' ' . $Y($seg[6]) . " c\n";
+                    [$cx, $cy] = [$seg[5], $seg[6]];
+                    break;
+                case 'Z':
+                    $ops .= "h\n";
+                    [$cx, $cy] = [$sx, $sy];
+                    break;
+            }
+        }
+        $this->ops .= $ops . "f\n";
+    }
+
+    /** Path data to segments: ['M',x,y] ['L',x,y] ['Q',x1,y1,x,y] ['C',x1,y1,x2,y2,x,y] ['Z']. H and V become L. @return list<list<string|float>> */
+    public static function parseSvgPath(string $d): array
+    {
+        preg_match_all('/[MLHVQCZ]|-?\d*\.?\d+(?:e-?\d+)?/i', $d, $m);
+        $t = $m[0];
+        $out = [];
+        $i = 0;
+        $n = count($t);
+        $cmd = '';
+        $cx = $cy = 0.0;
+        $num = static fn(int $k): float => (float) $t[$k];
+        $count = ['M' => 2, 'L' => 2, 'H' => 1, 'V' => 1, 'Q' => 4, 'C' => 6, 'Z' => 0];
+        while ($i < $n) {
+            if (ctype_alpha($t[$i])) {
+                $cmd = strtoupper($t[$i]);
+                $i++;
+                if ($cmd === 'Z') {
+                    $out[] = ['Z'];
+                    continue;
+                }
+            }
+            $need = $count[$cmd] ?? 0;
+            if ($need === 0 || $i + $need > $n) {
+                break;
+            }
+            if ($cmd === 'M') {
+                [$cx, $cy] = [$num($i), $num($i + 1)];
+                $out[] = ['M', $cx, $cy];
+                $cmd = 'L'; // extra pairs after a move are lines
+            } elseif ($cmd === 'L') {
+                [$cx, $cy] = [$num($i), $num($i + 1)];
+                $out[] = ['L', $cx, $cy];
+            } elseif ($cmd === 'H') {
+                $cx = $num($i);
+                $out[] = ['L', $cx, $cy];
+            } elseif ($cmd === 'V') {
+                $cy = $num($i);
+                $out[] = ['L', $cx, $cy];
+            } elseif ($cmd === 'Q') {
+                $out[] = ['Q', $num($i), $num($i + 1), $num($i + 2), $num($i + 3)];
+                [$cx, $cy] = [$num($i + 2), $num($i + 3)];
+            } else {
+                $out[] = ['C', $num($i), $num($i + 1), $num($i + 2), $num($i + 3), $num($i + 4), $num($i + 5)];
+                [$cx, $cy] = [$num($i + 4), $num($i + 5)];
+            }
+            $i += $need;
+        }
+        return $out;
+    }
+
+    /** Draw a JPEG file (bytes) into the box at ($x, $top) of $w by $h points. */
+    public function jpeg(string $data, float $x, float $top, float $w, float $h): void
+    {
+        $info = @getimagesizefromstring($data);
+        if (!$info || ($info[2] ?? 0) !== IMAGETYPE_JPEG) {
+            return;
+        }
+        $this->images[] = ['data' => $data, 'w' => (int) $info[0], 'h' => (int) $info[1]];
+        $this->ops .= sprintf("q %s 0 0 %s %s %s cm /Im%d Do Q\n", self::n($w), self::n($h), self::n($x), self::n(self::H - $top - $h), count($this->images));
+    }
+
     /** The finished PDF file as a string. */
     public function output(string $title = 'Document'): string
     {
         $objs = [];
+        $imgRes = '';
+        $next = 10; // objects 1-9 are fixed; images follow
+        $imgObjs = [];
+        foreach ($this->images as $k => $im) {
+            $id = $next++;
+            $imgRes .= '/Im' . ($k + 1) . " {$id} 0 R ";
+            $imgObjs[$id] = "<< /Type /XObject /Subtype /Image /Width {$im['w']} /Height {$im['h']} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " . strlen($im['data']) . " >>\nstream\n" . $im['data'] . "\nendstream";
+        }
         $objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
         $objs[2] = '<< /Type /Pages /Kids [3 0 R] /Count 1 >>';
-        $objs[3] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R /F4 8 0 R >> >> >>';
+        $objs[3] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R /F4 8 0 R >>'
+            . ($imgRes !== '' ? ' /XObject << ' . $imgRes . '>>' : '') . ' >> >>';
         $objs[4] = "<< /Length " . strlen($this->ops) . " >>\nstream\n" . $this->ops . "endstream";
         foreach ([5 => 'Helvetica', 6 => 'Helvetica-Bold', 7 => 'Courier', 8 => 'Courier-Bold'] as $i => $f) {
             $objs[$i] = "<< /Type /Font /Subtype /Type1 /BaseFont /{$f} /Encoding /WinAnsiEncoding >>";
         }
         $objs[9] = '<< /Title (' . self::enc($title) . ') /Producer (SIPAW) /CreationDate (D:' . gmdate('YmdHis') . 'Z) >>';
+        foreach ($imgObjs as $id => $body) {
+            $objs[$id] = $body;
+        }
         $out = "%PDF-1.4\n";
         $offsets = [];
         foreach ($objs as $i => $body) {
