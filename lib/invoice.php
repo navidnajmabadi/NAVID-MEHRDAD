@@ -91,6 +91,67 @@ function rrp_invoice_data(array $order, array $owner): array
     ];
 }
 
+/**
+ * Draw the SI PAW "by NAKILAB" logo from the brand SVG as vector shapes (sharp at any zoom) plus the NAKILAB mark as a
+ * high-resolution JPEG. Fits a box $width points wide with its top-left at ($x, $top). Returns the height used, or 0
+ * when the logo files are missing (the caller then writes the name as text).
+ */
+function rrp_invoice_draw_logo(RrpPdf $pdf, float $x, float $top, float $width): float
+{
+    $root = dirname(__DIR__) . '/assets/img/logos/';
+    $svg = @file_get_contents($root . 'sipaw-wordmark-endorsed-on-white.svg');
+    if (!is_string($svg) || !preg_match_all('/<path\b[^>]*>/', $svg, $tags)) {
+        return 0.0;
+    }
+    $paths = [];
+    $minX = $minY = INF;
+    $maxX = $maxY = -INF;
+    foreach ($tags[0] as $tag) {
+        if (!preg_match('/\bd="([^"]+)"/', $tag, $d)) {
+            continue;
+        }
+        $rgb = [0.0, 0.0, 0.0];
+        if (preg_match('/\bfill="#([0-9A-Fa-f]{6})"/', $tag, $f)) {
+            $rgb = [hexdec(substr($f[1], 0, 2)) / 255, hexdec(substr($f[1], 2, 2)) / 255, hexdec(substr($f[1], 4, 2)) / 255];
+        }
+        if (preg_match('/fill-opacity="([0-9.]+)"/', $tag, $o)) {
+            $a = (float) $o[1]; // the page is white, so a see-through colour is that colour mixed with white
+            $rgb = array_map(static fn($c) => $c * $a + (1 - $a), $rgb);
+        }
+        $paths[] = [$d[1], $rgb];
+        foreach (RrpPdf::parseSvgPath($d[1]) as $seg) {
+            for ($i = 1; $i + 1 < count($seg); $i += 2) {
+                $minX = min($minX, $seg[$i]);
+                $maxX = max($maxX, $seg[$i]);
+                $minY = min($minY, $seg[$i + 1]);
+                $maxY = max($maxY, $seg[$i + 1]);
+            }
+        }
+    }
+    $img = null;
+    if (preg_match('/<image\b[^>]*\bx="([0-9.]+)"[^>]*\by="([0-9.]+)"[^>]*\bwidth="([0-9.]+)"[^>]*\bheight="([0-9.]+)"/', $svg, $m)) {
+        $img = array_map('floatval', array_slice($m, 1));
+        $minX = min($minX, $img[0]);
+        $minY = min($minY, $img[1]);
+        $maxX = max($maxX, $img[0] + $img[2]);
+        $maxY = max($maxY, $img[1] + $img[3]);
+    }
+    if (!$paths || !is_finite($minX) || $maxX <= $minX) {
+        return 0.0;
+    }
+    $k = $width / ($maxX - $minX);
+    $ox = $x - $minX * $k;
+    $oy = $top - $minY * $k;
+    foreach ($paths as [$d, $rgb]) {
+        $pdf->svgPath($d, $k, $ox, $oy, $rgb);
+    }
+    $jpg = $img ? @file_get_contents($root . 'nakilab-mark-on-white.jpg') : false;
+    if ($img && is_string($jpg)) {
+        $pdf->jpeg($jpg, $ox + $img[0] * $k, $oy + $img[1] * $k, $img[2] * $k, $img[3] * $k);
+    }
+    return ($maxY - $minY) * $k;
+}
+
 /** "CAD 19.99", "-CAD 2.55": plain text amount for the PDF. */
 function rrp_invoice_amount(int $cents, string $currency): string
 {
@@ -108,8 +169,10 @@ function rrp_invoice_pdf(array $inv): string
     $R = 545.0;
     $cur = $inv['currency'];
 
-    $pdf->text($L, 48, 'SIPAW', 28, 'b', $blue);
-    $pdf->text($L, 80, 'by NAKILAB', 9, 'r', $grey);
+    if (rrp_invoice_draw_logo($pdf, $L, 40, 104) <= 0) {
+        $pdf->text($L, 48, 'SIPAW', 28, 'b', $blue); // logo files missing: write the name instead
+        $pdf->text($L, 80, 'by NAKILAB', 9, 'r', $grey);
+    }
     $pdf->text(330, 52, 'INVOICE', 22, 'b', $ink);
     $pdf->text(330, 82, 'Invoice no.  ' . $inv['number'], 10, 'r', $ink);
     $pdf->text(330, 97, 'Date  ' . $inv['date'], 10, 'r', $ink);
