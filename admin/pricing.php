@@ -44,6 +44,7 @@ $prices = rrp_billing_prices();
 $pol = rrp_billing_policy();
 $tax = rrp_billing_tax_rule();
 $sq = rrp_square_cfg();
+$cfgFile = rrp_config_file();
 $stat = ['plus' => 0, 'auto' => 0, 'paid30' => 0, 'rev30' => 0];
 try {
     $db = rrp_db();
@@ -111,8 +112,9 @@ rrp_admin_shell_start('Pricing', 'pricing');
   <section class="dash-card" style="margin-top:14px;max-width:640px">
     <h2>Square connection</h2>
     <ul style="list-style:none;margin:0;padding:0">
-      <?php foreach ($check as $label => $ok): ?><li><?= $ok ? '✅' : '❌' ?> <?= rrp_h($label) ?> <span class="meta"><?= $ok ? 'set' : 'missing in config/sipaw.php' ?></span></li><?php endforeach; ?>
+      <?php foreach ($check as $label => $ok): ?><li><?= $ok ? '✅' : '❌' ?> <?= rrp_h($label) ?> <span class="meta"><?= $ok ? 'set' : 'missing in the file below' ?></span></li><?php endforeach; ?>
     </ul>
-    <p class="meta"><?= rrp_square_cards_ready() ? 'Card payments are on.' : 'Card payments stay off ("Payments open soon") until all three are set.' ?> The keys go only in the server's <code>config/sipaw.php</code>, never here. Steps: <code>docs/SQUARE.md</code>.</p>
+    <p class="meta"><?= rrp_square_cards_ready() ? 'Card payments are on.' : 'Card payments stay off ("Payments open soon") until all three are set.' ?> The keys go only in the server's config file, never here. Steps: <code>docs/SQUARE.md</code>.</p>
+    <p class="meta"><b>The app is reading this file:</b><br /><code style="word-break:break-all"><?= rrp_h($cfgFile ?? 'none found') ?></code><br />Add the <code>'square' =&gt; [ ... ]</code> block inside this file, above the last line <code>];</code>. Editing any other copy changes nothing.</p>
   </section>
 <?php rrp_admin_shell_end(); ?>

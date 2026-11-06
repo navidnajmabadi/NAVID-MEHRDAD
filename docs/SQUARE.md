@@ -11,8 +11,9 @@ never reach SIPAW's server. Everything is **live** (no sandbox): the first real 
    - **Application ID** (starts with `sq0idp-`)
    - **Access token** (starts with `EAAA`). Treat it like a password.
 4. In the left menu of the dashboard open **Locations** and copy the **Location ID** of the shop that takes the money.
-5. Put the three values in the server file `config/sipaw.php`, in the `square` block (see `config.example.php`). Hostinger:
-   File Manager → the app folder → `config/sipaw.php`. **Never** paste them into chat, git or a screenshot.
+5. Put the three values in the server file `config/sipaw.php`, in the `square` block (see `config.example.php`). The file can be named `sipaw.php` or the older `ringringpaw.php`: **Admin → Pricing → Square connection shows the exact path the app reads**, edit that one.
+   Hostinger:
+   File Manager → that path. **Never** paste them into chat, git or a screenshot.
    Square's receipts and payouts then work as for any other payment.
 6. Make sure the Square account currency is **CAD** (Admin → Pricing → Currency must match it).
 7. Open **Admin → Pricing**: the "Square connection" box shows three green ticks when all is set.
