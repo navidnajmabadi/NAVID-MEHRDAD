@@ -234,6 +234,10 @@ function rrp_sipo_fab(string $active): void
     }
     $topic = rrp_sipo_ask_topic_for_page();
     $href = 'si-chat.php' . ($topic ? '?ask=' . $topic : '');
+    $me = rrp_current_owner();
+    if ($me && rrp_access_expired($me)) {
+        $href = 'billing.php?trial=ended'; // after the trial, Ask SIPO only opens the Billing page
+    }
     $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     echo '<a class="sipo-fab" href="' . rrp_h($href) . '" aria-label="Ask SIPO about this page"><img src="' . rrp_h($mascot) . '" alt="" width="40" height="40" /><span>Ask SIPO</span></a>' . "\n";
 }
@@ -258,6 +262,26 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
     ];
     if (rrp_social_enabled()) {
         array_splice($items, 4, 0, [['forum.php', 'Pack', 'Posts from pets near and far', 'i-social']]);
+    }
+    // Trial ended and no Plus: parts that need Plus open the Billing page instead (and say so); Billing shows the state.
+    $acc = $owner ? rrp_access($owner) : null;
+    if ($acc && $acc['state'] === 'expired') {
+        foreach ($items as &$it) {
+            if ($it[0] === 'billing.php') {
+                $it[2] = 'Trial ended: subscribe here';
+            } elseif (!rrp_access_href_allowed($it[0])) {
+                $it[0] = 'billing.php?trial=ended';
+                $it[2] = 'Subscribe to Plus to unlock';
+            }
+        }
+        unset($it);
+    } elseif ($acc && $acc['state'] === 'trial') {
+        foreach ($items as &$it) {
+            if ($it[0] === 'billing.php') {
+                $it[2] = 'Trial: ' . (int) $acc['days_left'] . ($acc['days_left'] === 1 ? ' day left' : ' days left');
+            }
+        }
+        unset($it);
     }
     $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     ?>

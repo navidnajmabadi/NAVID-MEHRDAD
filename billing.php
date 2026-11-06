@@ -30,6 +30,10 @@ if (!empty($_GET['paid'])) {
 }
 $owner = rrp_current_owner() ?? $owner;
 $plan = rrp_owner_plan($owner);
+$acc = rrp_access($owner); // admin | plus | trial | expired | full
+$isAdmin = $acc['state'] === 'admin';
+$tz0 = rrp_sipo_owner_tz($owner);
+$localDate = static fn(?string $utc) => $utc ? (new DateTimeImmutable($utc, new DateTimeZone('UTC')))->setTimezone($tz0)->format('j M Y') : null;
 $profile = rrp_billing_profile((int) $owner['id']);
 $monthly = rrp_billing_quote($owner, 'plus_monthly', ['use_coins' => (bool) $profile['use_coins']]);
 $ref = rrp_referral_progress((int) $owner['id']);
@@ -66,14 +70,30 @@ rrp_app_start(['nav' => 'billing']);
       <?= $paidStatus === 'paid' ? 'Payment received. Welcome to Plus! 🎉' : 'Thanks! Square is confirming your payment; Plus turns on in a minute or two.' ?></div>
   <?php endif; ?>
 
-  <section class="care-status <?= $plan === 'plus' ? 'is-good' : '' ?>">
+  <?php $state = $acc['state'];
+  $trialEnd = $localDate($acc['trial_ends_at']); $plusUntil = $localDate($acc['plus_until']) ?: $expires; ?>
+  <section class="care-status <?= in_array($state, ['plus', 'admin'], true) ? 'is-good' : '' ?>">
     <div>
-      <h2><?= $plan === 'plus' ? 'You are on Plus' : 'Free plan' ?></h2>
-      <p class="sub"><?= $plan === 'plus' ? ($expires ? 'Plus until ' . rrp_h($expires) . '.' : 'Plus is on for this account.') : 'Everything SIPO does is open during the test period. Plus keeps it on and adds up to 3 pets.' ?></p>
+      <?php if ($state === 'admin'): ?>
+        <h2>Admin account</h2>
+        <p class="sub">Admin accounts have everything on and never subscribe or pay. Nothing to do here.</p>
+      <?php elseif ($state === 'plus'): ?>
+        <h2>You are on Plus</h2>
+        <p class="sub"><?= $acc['canceled'] ? 'Canceled: Plus keeps working until ' . rrp_h((string) $plusUntil) . ', then stops. No more charges.' : ($plusUntil ? 'Plus until ' . rrp_h((string) $plusUntil) . '.' . ($profile['auto_renew'] ? ' It renews automatically.' : ' Auto-renew is off.') : 'Plus is on for this account.') ?></p>
+      <?php elseif ($state === 'trial'): ?>
+        <h2>Free trial: <?= (int) $acc['days_left'] ?> <?= $acc['days_left'] === 1 ? 'day' : 'days' ?> left</h2>
+        <p class="sub">Everything is open until <?= rrp_h((string) $trialEnd) ?>. After that, Health stays visible to read and SIPO needs Plus. Subscribe any time.</p>
+      <?php elseif ($state === 'expired'): ?>
+        <h2>Your free trial has ended</h2>
+        <p class="sub">Health is still here to read. Subscribe to Plus to talk to SIPO, add records and use everything else.</p>
+      <?php else: ?>
+        <h2>Everything is open</h2>
+        <p class="sub">Trial rules are off at the moment.</p>
+      <?php endif; ?>
     </div>
   </section>
 
-  <?php if ($ref['free_months'] > 0): ?>
+  <?php if ($ref['free_months'] > 0 && !$isAdmin): ?>
     <form method="post" class="care-card">
       <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" /><input type="hidden" name="act" value="free_month" />
       <h3 class="label">🎁 Free months from friends</h3>
@@ -82,7 +102,7 @@ rrp_app_start(['nav' => 'billing']);
     </form>
   <?php endif; ?>
 
-  <?php if ($monthly): ?>
+  <?php if ($monthly && !$isAdmin): ?>
   <section class="care-card" id="plusPay"
     data-csrf="<?= rrp_h($csrf) ?>" data-app-id="<?= rrp_h($sq['application_id']) ?>" data-location-id="<?= rrp_h($sq['location_id']) ?>"
     data-has-card="<?= $profile['card_id'] !== '' ? '1' : '0' ?>" data-ready="<?= $cardsReady ? '1' : '0' ?>">
@@ -125,11 +145,51 @@ rrp_app_start(['nav' => 'billing']);
   <section class="care-card" id="plusManage" data-csrf="<?= rrp_h($csrf) ?>">
     <h3 class="label">Your subscription</h3>
     <p class="sub">💳 <?= rrp_h(ucwords(strtolower(str_replace('_', ' ', $profile['card_brand'] ?: 'Card')))) ?> ending <?= rrp_h($profile['card_last4']) ?></p>
-    <label class="pp-check"><input type="checkbox" data-manage="auto_renew" <?= $profile['auto_renew'] ? 'checked' : '' ?> />
-      <span><b>Renew automatically every month</b><small class="meta"><?= $profile['auto_renew'] ? 'On: the card is charged shortly before Plus ends.' : 'Off: Plus ends on the date above unless you pay again.' ?></small></span></label>
+    <?php $paidActive = $state === 'plus'; ?>
+    <?php if ($paidActive && $acc['canceled']): ?>
+      <div class="sub-ask">
+        <b>Canceled</b>
+        <p class="meta">Plus works until <?= rrp_h((string) $plusUntil) ?>, then stops. Changed your mind? Turn auto-renew back on and nothing is lost.</p>
+        <button type="button" class="btn primary" data-manage="resume">Turn auto-renew back on</button>
+      </div>
+    <?php elseif ($paidActive && !$profile['auto_renew']): ?>
+      <div class="sub-ask">
+        <b>Auto-renew is off</b>
+        <p class="meta">Plus ends on <?= rrp_h((string) $plusUntil) ?>. Keep it going without thinking about it? You can cancel any time.</p>
+        <button type="button" class="btn primary" data-manage="resume">Yes, renew automatically</button>
+      </div>
+    <?php elseif ($paidActive): ?>
+      <div class="sub-ask">
+        <b>Renews automatically</b>
+        <p class="meta">The card is charged shortly before Plus ends<?= $plusUntil ? ' (' . rrp_h((string) $plusUntil) . ')' : '' ?>. We remind you 3 days before.</p>
+      </div>
+    <?php else: ?>
+      <label class="pp-check"><input type="checkbox" data-manage="auto_renew" <?= $profile['auto_renew'] ? 'checked' : '' ?> />
+        <span><b>Renew automatically every month</b><small class="meta">Takes effect with your next payment.</small></span></label>
+    <?php endif; ?>
     <label class="pp-check"><input type="checkbox" data-manage="use_coins" <?= $profile['use_coins'] ? 'checked' : '' ?> />
       <span><b>Use my paw coins in the subscription</b><small class="meta">Coins give a discount and are spent when used, so the next discount starts from what you have then.</small></span></label>
     <button type="button" class="btn outline" data-manage="remove_card" style="margin-top:8px">Remove saved card</button>
+    <?php if ($paidActive && !$acc['canceled']): ?>
+      <div class="cancel-box">
+        <h3 class="label">Cancel subscription</h3>
+        <p class="meta">You can cancel at any time. You will not be charged again, and Plus keeps working until <?= rrp_h((string) ($plusUntil ?: 'the end of the period you paid for')) ?>. The current period is not refunded. You can come back whenever you like.</p>
+        <button type="button" class="btn outline cancel-open" id="cancelOpen">Cancel subscription</button>
+        <form class="cancel-form" id="cancelForm" hidden>
+          <label for="cancelWhy">Would you tell us why? (optional)</label>
+          <select id="cancelWhy">
+            <option value="">Prefer not to say</option>
+            <option value="too_expensive">Too expensive</option>
+            <option value="not_using">I do not use it enough</option>
+            <option value="missing_feature">Something I need is missing</option>
+            <option value="temporary">Only needed it for a while</option>
+            <option value="other">Other</option>
+          </select>
+          <button type="submit" class="btn primary" id="cancelGo">Yes, cancel my subscription</button>
+          <button type="button" class="btn outline" id="cancelKeep">Keep my subscription</button>
+        </form>
+      </div>
+    <?php endif; ?>
     <p class="meta" id="pmMsg" role="status" aria-live="polite"></p>
   </section>
   <?php endif; ?>

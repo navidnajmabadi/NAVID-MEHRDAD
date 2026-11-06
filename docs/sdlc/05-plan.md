@@ -11,7 +11,7 @@ Just built, **waiting for the first real payment**: Square card payments, auto-r
 | 2 | Put the Square Application ID, Access token and Location ID in the server config; make one real 2 cent payment; check the invoice PDF and email | Payments are only tested against a stand-in | Navid |
 | 3 | Fill Admin → Pricing → Invoice details (name, address, HST number, billing email) | Invoices need the seller's details | Navid |
 | 4 | Remove the old per-job cron URLs in Hostinger; confirm "Last cron check-in" is recent | Auto-renew and nudges depend on the one job | Navid |
-| 5 | Ask the accountant whether HST applies to customers outside Canada; set the tax countries in Admin → Pricing | Tax is charged to everyone by default | Navid |
+| 5 | Watch the CAD 30,000 small-supplier limit (GST/HST registration is required once taxable sales pass it, over four consecutive quarters, to confirm with the accountant). If you register: set the rate and HST number in Admin → Pricing | No HST is charged today | Navid |
 | 6 | Verify on a real iPhone: chat position after the keyboard closes, camera photo upload, home-screen icon | Fixed from the code and a desktop browser only | Navid, then assistant |
 | 7 | Confirm Hostinger backups (files and database) and write the restore steps into `04-operations.md` | Not documented | Navid |
 
@@ -46,7 +46,9 @@ Just built, **waiting for the first real payment**: Square card payments, auto-r
 | Coins have no cash price by default (1 cent each, set in Admin) | Reward without making coins a currency |
 | Discounts: coupon, then perfect weeks, then coins, capped at 50% in total; coins spent only on a successful payment | Predictable price, no double discount |
 | Square live only, card typed in Square's form, our own scheduler for renewals | No card data on our server; price can change each month |
-| Tax added after discounts (HST 13%), countries set by admin | Matches a Canadian CAD price list; legal scope to confirm |
+| No tax charged now (small supplier, under CAD 30,000); the admin can switch tax on later | Simplest and correct while under the limit; confirm with the accountant |
+| 7-day free trial per account (admin can change each one); after it, Health is read-only and SIPO is locked until Plus | Gives a real try, then a clear reason to subscribe; Lost-pet alerts stay open because a lost pet must never wait for a payment |
+| Cancel subscription the standard way (access until the end of the paid period, no refund of the current period, easy to resume) | Fair and expected by customers and card networks |
 | Friendly (default) and Clean looks, saved on the account; Studio removed | Consistent look across devices |
 | Units by country (lb/miles/°F in the US) with metric storage | Local feel, one source of truth |
 | One PR per working batch, merged by Navid only; per-chat task table | Control and traceability |
@@ -64,7 +66,7 @@ Just built, **waiting for the first real payment**: Square card payments, auto-r
 | One approver | Bottleneck | Clear PR tables so review is quick |
 
 ## Open questions
-1. Which exact tax rule applies to customers outside Canada?
+1. When will taxable sales near CAD 30,000, and who handles HST registration?
 2. Annual plan or only monthly?
 3. Should NAKI wait for Navid's approval before changing SIPO's prompt?
 4. When does the test period end (limits on, Plus-only features)?

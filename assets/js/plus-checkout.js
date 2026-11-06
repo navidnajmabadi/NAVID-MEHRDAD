@@ -26,6 +26,29 @@
         pm.textContent = j.ok ? "Saved." : (j.error || "Could not save that.");
       });
     });
+    // Resume auto-renew (also the "ask": turn it back on)
+    manage.addEventListener("click", function (e) {
+      var r = e.target.closest && e.target.closest("[data-manage=resume]");
+      if (!r) return;
+      r.disabled = true;
+      post("api/billing/manage.php", { csrf: manage.getAttribute("data-csrf"), what: "auto_renew", on: 1 }).then(function (j) {
+        if (j.ok) location.reload(); else { r.disabled = false; pm.textContent = j.error || "Could not turn it on."; }
+      });
+    });
+    // Cancel subscription: ask once, with an optional reason, then confirm clearly
+    var cOpen = $("cancelOpen"), cForm = $("cancelForm");
+    if (cOpen && cForm) {
+      cOpen.addEventListener("click", function () { cForm.hidden = false; cOpen.hidden = true; $("cancelWhy").focus(); });
+      $("cancelKeep").addEventListener("click", function () { cForm.hidden = true; cOpen.hidden = false; });
+      cForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var go = $("cancelGo"); go.disabled = true; pm.style.color = ""; pm.textContent = "Canceling…";
+        post("api/billing/manage.php", { csrf: manage.getAttribute("data-csrf"), what: "cancel", reason: $("cancelWhy").value }).then(function (j) {
+          if (j.ok) { pm.textContent = "Canceled. You will not be charged again. We sent you an email."; setTimeout(function () { location.reload(); }, 1200); }
+          else { go.disabled = false; pm.style.color = "var(--red)"; pm.textContent = j.error || "Could not cancel. Please try again."; }
+        });
+      });
+    }
     manage.addEventListener("click", function (e) {
       var b = e.target.closest && e.target.closest("[data-manage=remove_card]");
       if (!b) return;
@@ -119,9 +142,15 @@
   function initCard() {
     if (cardInit) return cardInit;
     if (!window.Square) { setMsg("The secure card form could not load. Check your connection and refresh.", true); cardInit = Promise.reject(); cardInit.catch(function () {}); return cardInit; }
-    cardInit = window.Square.payments(box.getAttribute("data-app-id"), box.getAttribute("data-location-id")).card().then(function (c) {
-      card = c; return c.attach("#sqCard");
-    }).catch(function () { setMsg("The secure card form could not start. Please refresh and try again.", true); });
+    try {
+      // This can throw at once (for example on a page that is not https), so it must not stop the price from showing.
+      cardInit = window.Square.payments(box.getAttribute("data-app-id"), box.getAttribute("data-location-id")).card().then(function (c) {
+        card = c; return c.attach("#sqCard");
+      }).catch(function () { setMsg("The secure card form could not start. Please refresh and try again.", true); });
+    } catch (e) {
+      setMsg("The secure card form could not start. Please refresh and try again.", true);
+      cardInit = Promise.resolve();
+    }
     return cardInit;
   }
 
@@ -151,6 +180,6 @@
     function fail() { busy = false; render(); setMsg("Something went wrong. Please try again.", true); }
   });
 
-  if (!hasCard) initCard();
   refresh();
+  if (!hasCard) initCard();
 })();

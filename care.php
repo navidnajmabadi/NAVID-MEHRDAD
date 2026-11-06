@@ -39,8 +39,9 @@ if (!$pet) {
 }
 $petId = (int) $pet['id'];
 
+$locked = rrp_access($owner)['readonly']; // trial over, no Plus: Health is look-only
 $newLink = null;
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
+if (!$locked && $_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? null)) {
     $action = (string) ($_POST['action'] ?? '');
     if ($action === 'share') {
         $r = rrp_share_create($owner, $pet);
@@ -79,9 +80,18 @@ rrp_app_start(['nav' => 'health']);
 <div class="pad stack care-page">
   <?php rrp_render_flash(); ?>
   <nav class="daily-tabs" aria-label="Health sections">
-    <a href="care.php" aria-current="page">Health</a><a href="daily.php">Daily</a>
+    <a href="care.php" aria-current="page">Health</a><?php if (!$locked): ?><a href="daily.php">Daily</a><?php endif; ?>
   </nav>
 
+  <?php if ($locked): ?>
+    <div class="care-card lock-note" role="status">
+      <h3 class="label">Your trial has ended</h3>
+      <p class="sub">You can still look at <?= rrp_h($pet['name']) ?>'s health records here, but only to read them. Subscribe to Plus to ask SIPO, add records and use everything else.</p>
+      <a class="btn primary" href="billing.php?trial=ended">See Billing and subscribe</a>
+    </div>
+  <?php endif; ?>
+
+  <?php if (!$locked): ?>
   <div class="care-actions">
     <label class="btn primary care-upload">
       <input type="file" id="careFile" accept="image/jpeg,image/png,image/webp,application/pdf" multiple hidden />
@@ -90,10 +100,11 @@ rrp_app_start(['nav' => 'health']);
     <a class="btn outline" href="si-chat.php?ask=health">Ask SIPO</a>
     <a class="btn outline" href="health-care.php">Edit records</a>
   </div>
-  <p class="meta" id="careUploadNote" aria-live="polite">Photos or PDFs (several at once, any order), up to 10 MB each. SIPO saves the numbers and deletes the file.</p>
+  <?php endif; ?>
+  <p class="meta" id="careUploadNote" aria-live="polite"<?= $locked ? ' hidden' : '' ?>>Photos or PDFs (several at once, any order), up to 10 MB each. SIPO saves the numbers and deletes the file.</p>
 
   <?php $top = rrp_vm_health_top($owner, $pet, $vm); rrp_view_health_top($top); ?>
-  <?php rrp_view_health_dashboard($vm, false); ?>
+  <?php rrp_view_health_dashboard($vm, $locked); ?>
 
   <section class="care-card" id="sec-activity">
     <h3 class="label">Activity · last 7 days</h3>
@@ -116,6 +127,7 @@ rrp_app_start(['nav' => 'health']);
     <?php endif; ?>
   </section>
 
+  <?php if (!$locked): ?>
   <section class="care-card" id="share">
     <h3 class="label">Share with your vet</h3>
     <p class="sub">A private, read-only link to this page. Works for <?= RRP_SHARE_DAYS ?> days; turn it off anytime.</p>
@@ -136,6 +148,7 @@ rrp_app_start(['nav' => 'health']);
       </form>
     <?php endforeach; ?>
   </section>
+  <?php endif; ?>
 </div>
 <script>
 (function(){

@@ -16,6 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
             rrp_redirect('coupons.php');
         }
         $error = $r['error'] ?? 'Could not create.';
+    } elseif ($action === 'update') {
+        $r = rrp_coupon_update((int) $admin['id'], (int) ($_POST['coupon_id'] ?? 0), $_POST);
+        rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Coupon saved.' : ($r['error'] ?? 'Could not save.'));
+        rrp_redirect('coupons.php');
+    } elseif ($action === 'delete') {
+        $r = rrp_coupon_delete((int) $admin['id'], (int) ($_POST['coupon_id'] ?? 0));
+        rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Coupon deleted.' : ($r['error'] ?? 'Could not delete.'));
+        rrp_redirect('coupons.php');
     } elseif ($action === 'disable') {
         rrp_coupon_set_status((int) $admin['id'], (int) ($_POST['coupon_id'] ?? 0), 'disabled');
         rrp_flash_set('ok', 'Coupon disabled.');
@@ -70,17 +78,42 @@ rrp_admin_shell_start('Coupons', 'coupons');
           <?php if ($c['description']): ?> · <?= rrp_h($c['description']) ?><?php endif; ?>
         </div>
       </div>
-      <form method="post">
-        <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
-        <input type="hidden" name="coupon_id" value="<?= (int) $c['id'] ?>" />
-        <?php if ($c['status'] === 'active'): ?>
-          <input type="hidden" name="action" value="disable" />
-          <button type="submit" class="btn btn-ghost">Disable</button>
-        <?php else: ?>
-          <input type="hidden" name="action" value="enable" />
-          <button type="submit" class="btn btn-secondary">Enable</button>
-        <?php endif; ?>
-      </form>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <form method="post">
+          <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+          <input type="hidden" name="coupon_id" value="<?= (int) $c['id'] ?>" />
+          <?php if ($c['status'] === 'active'): ?>
+            <input type="hidden" name="action" value="disable" />
+            <button type="submit" class="btn btn-ghost">Disable</button>
+          <?php else: ?>
+            <input type="hidden" name="action" value="enable" />
+            <button type="submit" class="btn btn-secondary">Enable</button>
+          <?php endif; ?>
+        </form>
+        <form method="post" onsubmit="return confirm('Delete coupon <?= rrp_h($c['code']) ?> for good? Past payments keep their record. To only stop it from being used, press Disable instead.');">
+          <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+          <input type="hidden" name="coupon_id" value="<?= (int) $c['id'] ?>" />
+          <input type="hidden" name="action" value="delete" />
+          <button type="submit" class="btn btn-ghost" style="color:var(--red)">Delete</button>
+        </form>
+      </div>
+      <details style="flex-basis:100%">
+        <summary class="btn btn-secondary" style="display:inline-block;cursor:pointer;margin-top:8px">Edit</summary>
+        <form method="post" class="panel" style="margin-top:8px">
+          <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+          <input type="hidden" name="coupon_id" value="<?= (int) $c['id'] ?>" />
+          <input type="hidden" name="action" value="update" />
+          <p class="meta">Code <b><?= rrp_h($c['code']) ?></b> stays the same.</p>
+          <label>Description<input name="description" value="<?= rrp_h((string) $c['description']) ?>" /></label>
+          <label>Type<select name="discount_type">
+            <?php foreach (['percent' => 'Percent', 'fixed' => 'Fixed $', 'free_month' => 'Free month'] as $k => $l): ?><option value="<?= $k ?>" <?= $c['discount_type'] === $k ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?>
+          </select></label>
+          <label>Value<input name="discount_value" type="number" step="0.01" min="0" value="<?= rrp_h((string) $c['discount_value']) ?>" /></label>
+          <label>Max redemptions (empty = no limit)<input name="max_redemptions" type="number" min="1" value="<?= $c['max_redemptions'] !== null ? (int) $c['max_redemptions'] : '' ?>" /></label>
+          <label>Last day it works (optional)<input name="valid_until" type="date" value="<?= !empty($c['valid_until']) ? rrp_h(substr((string) $c['valid_until'], 0, 10)) : '' ?>" /></label>
+          <div class="stack-actions"><button type="submit" class="btn btn-primary">Save changes</button></div>
+        </form>
+      </details>
     </div>
   <?php endforeach; ?>
 <?php rrp_admin_shell_end(); ?>

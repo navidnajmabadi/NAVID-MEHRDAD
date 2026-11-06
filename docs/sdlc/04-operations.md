@@ -75,6 +75,7 @@ Check: Admin → Site health → "Last cron check-in" should be minutes old.
 | A migration failed | The runner stops and reports the file and statement; fix the SQL in a new migration if it already partly ran, never edit an applied file |
 | Duplicate proactive messages | Remove old per-job cron URLs so only `tick.php` runs |
 | Payment problem | Admin → Pricing shows the three Square ticks; Square dashboard shows the charge; `billing_orders.status` is `paid` or `failed`; failed cards retry daily 3 times |
+| Everyone is locked to Billing by mistake | Admin → Pricing → untick **Trial rules on** and save: everything opens for everyone at once. Then check the trial days and each account's trial in Admin → Accounts |
 | Key leaked | Rotate it at the provider (OpenAI, Square token "Replace", SMTP password), update the server config file, never commit it |
 | Add a new admin | `php scripts/create-admin.php "Name" email 'password'` on the server, or `admin/setup.php` while fewer than 2 admins exist |
 

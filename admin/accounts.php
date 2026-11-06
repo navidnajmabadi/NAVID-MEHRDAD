@@ -13,6 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'suspend') {
             $r = rrp_admin_set_owner_status((int) $admin['id'], $ownerId, 'suspended');
             rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', $r['ok'] ? 'Account suspended.' : ($r['error'] ?? 'Failed'));
+        } elseif ($action === 'trial') {
+            $r = rrp_admin_trial_set((int) $admin['id'], $ownerId, (string) ($_POST['mode'] ?? 'from_now'), (int) ($_POST['days'] ?? 7));
+            rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Trial updated. It now ends ' . substr((string) $r['ends'], 0, 16) . ' UTC.' : ($r['error'] ?? 'Failed'));
+        } elseif ($action === 'remove_sub') {
+            $r = rrp_admin_remove_subscription((int) $admin['id'], $ownerId);
+            rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', !empty($r['ok']) ? 'Subscription removed: Plus ended, auto-renew off, card removed. Refund (if any) is done in Square.' : ($r['error'] ?? 'Failed'));
         } elseif ($action === 'unsuspend') {
             $r = rrp_admin_set_owner_status((int) $admin['id'], $ownerId, 'active');
             rrp_flash_set(!empty($r['ok']) ? 'ok' : 'error', $r['ok'] ? 'Account reactivated.' : ($r['error'] ?? 'Failed'));
@@ -25,6 +31,7 @@ $q = trim((string) ($_GET['q'] ?? ''));
 $status = in_array(($_GET['status'] ?? ''), ['active', 'suspended'], true) ? (string) $_GET['status'] : '';
 $sort = in_array(($_GET['sort'] ?? ''), ['joined', 'tokens', 'msgs', 'last'], true) ? (string) $_GET['sort'] : 'joined';
 $owners = rrp_admin_search_owners($q, 200);
+$accessRows = rrp_access_rows(array_column($owners, 'id'));
 if ($status !== '') {
     $owners = array_values(array_filter($owners, static fn($o) => $o['status'] === $status));
 }
@@ -80,7 +87,7 @@ rrp_admin_shell_start('Accounts', 'accounts');
   <div class="ad-tablewrap">
     <table class="ad-table">
       <thead><tr>
-        <th>Owner</th><th>Status</th><th>Where</th>
+        <th>Owner</th><th>Status</th><th>Access</th><th>Where</th>
         <?= $th('Joined', 'joined') ?>
         <?= $th('Messages 7d', 'msgs', true) ?>
         <?= $th('Tokens 7d', 'tokens', true) ?>
@@ -94,6 +101,15 @@ rrp_admin_shell_start('Accounts', 'accounts');
         <tr>
           <td class="ad-who" data-label="Owner"><b><?= rrp_h(rrp_admin_mask_name((string) $o['name'], (int) $o['id'])) ?></b><small><?= rrp_h(rrp_admin_mask_email((string) $o['email'])) ?><?= !empty($o['phone']) ? ' · phone on file' : '' ?></small></td>
           <td data-label="Status"><span class="ad-chip <?= $o['status'] === 'active' ? 'is-good' : 'is-bad' ?>"><?= rrp_h($o['status']) ?></span></td>
+          <?php $ar = $accessRows[(int) $o['id']] ?? null; $ac = $ar ? rrp_access_compute($o, $ar) : ['state' => 'full'];
+            $acText = match ($ac['state']) {
+                'admin' => ['Admin', 'is-good'],
+                'plus' => ['Plus' . (!empty($ac['plus_until']) ? ' until ' . substr((string) $ac['plus_until'], 0, 10) : '') . (!empty($ar['auto_renew']) ? ', auto' : '') . (!empty($ac['canceled']) ? ', canceled' : ''), 'is-good'],
+                'trial' => ['Trial: ' . (int) $ac['days_left'] . ' d left', 'is-warn'],
+                'expired' => ['Trial over', 'is-bad'],
+                default => ['Open', ''],
+            }; ?>
+          <td data-label="Access"><span class="ad-chip <?= $acText[1] ?>"><?= rrp_h($acText[0]) ?></span><?php if (!empty($ac['trial_ends_at']) && $ac['state'] !== 'plus'): ?><small class="meta" style="display:block">trial ends <?= rrp_h(substr((string) $ac['trial_ends_at'], 0, 10)) ?></small><?php endif; ?></td>
           <td data-label="Where"><?= rrp_h(trim((string) ($o['city'] ?? '') . ((!empty($o['city']) && !empty($o['country'])) ? ', ' : '') . (string) ($o['country'] ?? '')) ?: '—') ?></td>
           <td data-label="Joined"><?= rrp_h(substr((string) $o['created_at'], 0, 10)) ?></td>
           <td class="num" data-label="Messages 7d"><?= (int) $u['msgs_7d'] ?><small class="meta"> · all <?= (int) $u['msgs_all'] ?></small></td>
@@ -104,6 +120,27 @@ rrp_admin_shell_start('Accounts', 'accounts');
             <details class="ad-menu">
               <summary aria-label="Actions for <?= rrp_h(rrp_admin_mask_name((string) $o['name'], (int) $o['id'])) ?>"><?= rrp_admin_icon('dots') ?></summary>
               <div class="ad-menu-pop">
+                <?php if (($ac['state'] ?? '') !== 'admin'): ?>
+                <form method="post" class="ad-trialform">
+                  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+                  <input type="hidden" name="owner_id" value="<?= (int) $o['id'] ?>" />
+                  <input type="hidden" name="q" value="<?= rrp_h($q) ?>" />
+                  <input type="hidden" name="action" value="trial" />
+                  <label style="display:block;font-size:12px;margin-bottom:4px">Trial days <input type="number" name="days" min="0" max="365" value="7" style="width:70px" /></label>
+                  <button type="submit" name="mode" value="from_now">Set trial: N days from today</button>
+                  <button type="submit" name="mode" value="extend">Add N days to the trial</button>
+                  <button type="submit" name="mode" value="end_now" class="is-danger" onclick="return confirm('End this trial now? The owner keeps Health read-only and Billing until they subscribe.');">End trial now</button>
+                </form>
+                <?php if (($ac['state'] ?? '') === 'plus'): ?>
+                <form method="post">
+                  <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
+                  <input type="hidden" name="owner_id" value="<?= (int) $o['id'] ?>" />
+                  <input type="hidden" name="q" value="<?= rrp_h($q) ?>" />
+                  <input type="hidden" name="action" value="remove_sub" />
+                  <button type="submit" class="is-danger" onclick="return confirm('Remove this subscription? Plus ends now, auto-renew goes off and the saved card is removed. Refund in Square if needed.');">Remove subscription</button>
+                </form>
+                <?php endif; ?>
+                <?php endif; ?>
                 <form method="post">
                   <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" />
                   <input type="hidden" name="owner_id" value="<?= (int) $o['id'] ?>" />

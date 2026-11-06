@@ -162,6 +162,7 @@ function rrp_google_login_or_create(string $sub, string $email, string $name): a
              VALUES (?, ?, ?, NULL, NULL, ?, ?, \'free\', \'en\', NULL, UTC_TIMESTAMP(), UTC_TIMESTAMP())'
         )->execute([$nick, $nick, $email, password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT), $sub]);
         $id = (int) $db->lastInsertId();
+        rrp_trial_start($id);
     } catch (Throwable $e) {
         error_log('google sso create: ' . $e->getMessage());
         return ['ok' => false, 'error' => 'Could not create your account. Please try again.'];

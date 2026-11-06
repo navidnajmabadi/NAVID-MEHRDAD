@@ -174,6 +174,10 @@ function rrp_sipo_nudge_tick(int $maxSend = 40): array
             break;
         }
         $stats['checked']++;
+        if (rrp_access_expired($owner)) {
+            $stats['skipped']['trial_ended'] = ($stats['skipped']['trial_ended'] ?? 0) + 1; // SIPO is for trial and Plus owners
+            continue;
+        }
         $lock = 'sipo_nudge_' . (int) $owner['id'];
         if (!rrp_lock_try($lock)) {
             $stats['skipped']['busy'] = ($stats['skipped']['busy'] ?? 0) + 1; // another run is already writing to this owner

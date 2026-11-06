@@ -361,3 +361,15 @@
 .bh-mail label{font-size:13px;font-weight:600;color:var(--sub)}
 .bh-mail input{min-height:46px;padding:0 14px;border:1px solid var(--edge,var(--line));background:var(--panel);color:var(--text);border-radius:var(--r-md,12px);font:inherit}
 .bh-mail .btn{height:46px}
+
+/* Billing: subscription question, cancel box, locked Health note */
+.sub-ask{margin:12px 0 0;padding:14px;border:1px solid var(--line);border-radius:var(--r-md,12px);background:var(--bg)}
+.sub-ask b{font-size:15px}
+.sub-ask .btn{margin-top:10px}
+.cancel-box{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.cancel-open{margin-top:6px}
+.cancel-form{display:grid;gap:10px;margin-top:10px}
+.cancel-form[hidden]{display:none}
+.cancel-form label{font-size:13px;font-weight:600;color:var(--sub)}
+.cancel-form select{min-height:46px;padding:0 12px;border:1px solid var(--edge,var(--line));background:var(--panel);color:var(--text);border-radius:var(--r-md,12px);font:inherit}
+.lock-note{border:1px solid var(--soft-blue,#DCE7FF)}
