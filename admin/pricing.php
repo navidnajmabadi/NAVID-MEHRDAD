@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
     $max = (int) ($_POST['max_total_pct'] ?? 50);
     $tax = (float) str_replace(',', '.', (string) ($_POST['tax_pct'] ?? '0'));
     $taxLabel = trim((string) ($_POST['tax_label'] ?? 'HST'));
+    $trialDays = (int) ($_POST['trial_days'] ?? 7);
     $countries = strtoupper(preg_replace('/[^A-Za-z,*]/', '', (string) ($_POST['tax_countries'] ?? '')) ?? '');
     if ($price < 1 || $price > 500) {
         $error = 'The monthly price must be between 1 and 500.';
@@ -24,12 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         $error = 'A paw coin can be worth 0 to 100 cents.';
     } elseif ($max < 0 || $max > 90) {
         $error = 'The maximum discount must be between 0 and 90 percent.';
+    } elseif ($trialDays < 0 || $trialDays > 365) {
+        $error = 'The trial can be 0 to 365 days.';
     } elseif ($tax < 0 || $tax > 40) {
         $error = 'Tax must be between 0 and 40 percent.';
     } else {
-        foreach (['biz_name' => 60, 'biz_address' => 200, 'biz_tax_no' => 40, 'biz_email' => 100] as $k => $max) {
+        foreach (['biz_name' => 60, 'biz_address' => 200, 'biz_country' => 40, 'biz_tax_no' => 40, 'biz_email' => 100] as $k => $max) {
             rrp_setting_set($k, mb_substr(trim((string) ($_POST[$k] ?? '')), 0, $max));
         }
+        rrp_setting_set('trial_days', (string) $trialDays);
+        rrp_setting_set('trial_enforced', !empty($_POST['trial_enforced']) ? '1' : '0');
         rrp_setting_set('price_monthly_cents', (string) (int) round($price * 100));
         rrp_setting_set('currency', $cur);
         rrp_setting_set('coin_value_cents', (string) $coin);
@@ -82,6 +87,14 @@ rrp_admin_shell_start('Pricing', 'pricing');
 
   <form method="post" class="dash-card" style="margin-top:14px;max-width:640px">
     <input type="hidden" name="csrf" value="<?= rrp_h($csrf) ?>" />
+    <h2 style="margin:0 0 4px">Free trial</h2>
+    <div class="field"><label for="td">Trial length for new accounts (days)</label>
+      <div class="in"><input id="td" name="trial_days" inputmode="numeric" required value="<?= (int) rrp_trial_days_default() ?>" /></div>
+      <p class="meta">After the trial, owners without Plus can only read their Health page and open Billing. You can change the trial of any single account in <a class="link" href="accounts.php">Accounts</a>. Admin accounts never have a trial or a subscription.</p></div>
+    <label class="pp-check" style="display:flex;gap:10px;align-items:flex-start;margin:6px 0 18px"><input type="checkbox" name="trial_enforced" value="1" <?= rrp_access_enforced() ? 'checked' : '' ?> style="width:22px;height:22px;margin-top:2px" />
+      <span><b>Trial rules on</b><br /><small class="meta">Untick to open everything for everyone again (a safety switch).</small></span></label>
+
+    <h2 style="margin:0 0 4px">Price</h2>
     <div class="field"><label for="pr">Monthly price (before tax)</label>
       <div class="in"><input id="pr" name="price" inputmode="decimal" required value="<?= rrp_h(number_format($prices['monthly'] / 100, 2, '.', '')) ?>" /></div></div>
     <div class="field"><label for="cu">Currency</label>
@@ -94,7 +107,7 @@ rrp_admin_shell_start('Pricing', 'pricing');
       <div class="in"><input id="mx" name="max_total_pct" inputmode="numeric" required value="<?= (int) $pol['max_total_pct'] ?>" /></div></div>
     <div class="field"><label for="tp">Tax added to the price (%)</label>
       <div class="in"><input id="tp" name="tax_pct" inputmode="decimal" required value="<?= rrp_h((string) (+$tax['pct'])) ?>" /></div>
-      <p class="meta">Added after all discounts. Ontario HST is 13.</p></div>
+      <p class="meta">0 = no tax (you are under the CAD 30,000 small-supplier limit). If you register later, type the rate here, for example 13, and add the HST number below.</p></div>
     <div class="field"><label for="tl">Tax name on the receipt</label>
       <div class="in"><input id="tl" name="tax_label" maxlength="20" value="<?= rrp_h($tax['label']) ?>" /></div></div>
     <div class="field"><label for="tc">Owners in these countries pay the tax</label>
@@ -106,9 +119,11 @@ rrp_admin_shell_start('Pricing', 'pricing');
     <div class="field"><label for="ba">Address</label>
       <div class="in"><input id="ba" name="biz_address" maxlength="200" placeholder="Street, City, Province, Postal code, Country" value="<?= rrp_h((string) rrp_setting('biz_address', '')) ?>" /></div>
       <p class="meta">Separate the lines with commas.</p></div>
-    <div class="field"><label for="bt">Tax registration number (HST)</label>
+    <div class="field"><label for="bc">Business country</label>
+      <div class="in"><input id="bc" name="biz_country" maxlength="40" value="<?= rrp_h((string) rrp_setting('biz_country', 'Canada')) ?>" /></div></div>
+    <div class="field"><label for="bt">Tax registration number (GST/HST), if you have one</label>
       <div class="in"><input id="bt" name="biz_tax_no" maxlength="40" placeholder="123456789 RT0001" value="<?= rrp_h((string) rrp_setting('biz_tax_no', '')) ?>" /></div>
-      <p class="meta">Required on invoices where you charge HST. Leave empty if you have none.</p></div>
+      <p class="meta">Leave empty while you are under the small-supplier limit and charge no tax.</p></div>
     <div class="field"><label for="be">Billing email</label>
       <div class="in"><input id="be" name="biz_email" type="email" maxlength="100" value="<?= rrp_h((string) rrp_setting('biz_email', '')) ?>" /></div></div>
     <button class="ad-btn is-primary" type="submit">Save pricing</button>

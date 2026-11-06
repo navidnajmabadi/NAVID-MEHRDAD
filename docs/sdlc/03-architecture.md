@@ -56,7 +56,7 @@ Older pages move to this shape when they are touched. Every function is prefixed
 1. Apache maps `/dashboard` to `dashboard.php` (clean URLs in `.htaccess`).
 2. `lib/bootstrap.php` runs first: it finds the **config file** (first readable of a fixed list of paths, including `config/sipaw.php` and the legacy `ringringpaw.php`),
    sets the PHP session (own folder `config/sessions`), sends the **form-token cookie** (it must be sent before any output), installs the error handlers, and loads every module.
-3. The page calls `rrp_require_owner()` (or `rrp_require_admin()`); a "remember me" token restores a login when the session is gone.
+3. The page calls `rrp_require_owner()` (or `rrp_require_admin()`); a "remember me" token restores a login when the session is gone. For owners, `lib/access.php` then decides the **access state** (admin, plus, trial, expired, full): an expired owner is sent to Billing (pages) or gets HTTP 402 (APIs) unless the page is on the short allow-list.
 4. The page builds its ViewModel, then prints HTML through `lib/layout.php` (header, side menu, icons, skin).
 5. JavaScript talks to `api/*.php`. Every POST carries the CSRF token; `rrp_api_owner_post()` checks login and token and returns JSON.
 
@@ -80,7 +80,7 @@ Key ideas:
 - **Tools** are real PHP functions; SIPO may only claim an action if the tool ran (a guard rewrites false "Done").
 - **Router** (`lib/sipo/router.php`) offers only the tools and prompt sections a message needs; this cut the per-call prompt from about 11,200 to 6,400 to 8,200 tokens (estimated).
 - **Proactive messages** (`lib/sipo/nudges.php`): cron picks owners at their usual hours (quiet 21:00 to 09:00), takes a **database lock per owner** so overlapping cron runs cannot double-send.
-- **Limits** (cool-down, daily caps) exist but are off during the test period (`sipo.limits_enabled`).
+- **Limits** (cool-down, daily caps) exist but are off during the test period (`sipo.limits_enabled`). The **trial rules** are separate (`lib/access.php`, switch in Admin → Pricing): owners past the trial without Plus cannot chat, and SIPO sends them no messages.
 
 ## NAKI, the red team
 Scores real replies (emails/phones removed first), runs a fixed exam of 6 cases against the live prompt, proposes a small prompt edit every 3 days,
@@ -103,6 +103,7 @@ Older per-job URLs still work but should be removed from the hosting cron list.
 | SIPO | `chat_threads`, `chat_messages`, `sipo_memory`, `sipo_nudges`, `sipo_token_window`, `si_message_secrets`, `si_usage_daily` |
 | NAKI | `si_prompt_versions`, `si_brain_runs`, `si_brain_scores`, `si_eval_cases`, `si_request_log`, `si_clusters`, `si_tests`, `si_kpi_daily`, `naki_proposals` |
 | Lost and scans | `scans`, `lost_alerts`, `lost_alert_recipients`, `lost_sightings`, `geocode_cache`, `owner_activity_hours` |
+| Access | columns on `owners`: `trial_ends_at`, `canceled_at`, `cancel_reason`, `plan`, `plan_expires_at` |
 | Rewards and billing | `sip_ledger`, `reward_weeks`, `referrals`, `subscriptions`, `billing_orders`, `billing_events`, `coupons`, `promo_first`, `app_settings` |
 | Notifications | `notifications`, `push_subscriptions` |
 | Ops | `app_errors`, `site_heartbeats`, `admin_action_logs`, `support_tickets` |

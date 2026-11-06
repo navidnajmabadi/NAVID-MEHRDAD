@@ -104,15 +104,15 @@ function rrp_billing_policy(): array
 }
 
 /**
- * Sales tax added on top of the price (after every discount). Default: 13% (Ontario HST) for owners in Canada.
- * Admin → Pricing sets the rate, the name on the receipt and the countries it applies to (ISO codes, comma separated).
+ * Sales tax added on top of the price (after every discount). Default: none (0%): the business is under the small-supplier limit (CAD 30,000), so no HST is charged.
+ * If that ever changes, Admin → Pricing sets the rate (for example 13), the name on the receipt and the countries it applies to (ISO codes, comma separated).
  * @return array{pct:float, label:string, countries:list<string>}
  */
 function rrp_billing_tax_rule(): array
 {
-    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', '*')))));
+    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', 'CA')))));
     return [
-        'pct' => min(40.0, max(0.0, (float) rrp_setting('tax_pct', '13'))),
+        'pct' => min(40.0, max(0.0, (float) rrp_setting('tax_pct', '0'))),
         'label' => mb_substr(trim((string) rrp_setting('tax_label', 'HST')) ?: 'Tax', 0, 20),
         'countries' => $countries,
     ];
@@ -610,11 +610,53 @@ function rrp_billing_subscribe(array $owner, ?string $token, array $opt): array
     return rrp_billing_charge_saved_card($owner, ['coupon' => (string) ($opt['coupon'] ?? ''), 'use_coins' => $useCoins, 'auto' => false]);
 }
 
+/**
+ * Cancel the subscription the standard way: no more charges, Plus keeps working until the end of the period already paid,
+ * no refund of the current period, the owner can resume at any time, and a confirmation is sent.
+ * @return array{ok:bool, until:?string}
+ */
+function rrp_billing_cancel(array $owner, string $reason = ''): array
+{
+    $ownerId = (int) $owner['id'];
+    $allowed = ['too_expensive', 'not_using', 'missing_feature', 'temporary', 'other'];
+    $reason = in_array($reason, $allowed, true) ? $reason : '';
+    rrp_db()->prepare('UPDATE owners SET auto_renew = 0, canceled_at = UTC_TIMESTAMP(), cancel_reason = ? WHERE id = ?')->execute([$reason !== '' ? $reason : null, $ownerId]);
+    $a = rrp_access($owner);
+    $until = null;
+    try {
+        $st = rrp_db()->prepare('SELECT plan_expires_at FROM owners WHERE id = ?');
+        $st->execute([$ownerId]);
+        $until = ($v = $st->fetchColumn()) ? (string) $v : null;
+    } catch (Throwable $e) {
+    }
+    $when = $until ? (new DateTimeImmutable($until, new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($owner))->format('j M Y') : null;
+    $text = 'Your SIPAW subscription is canceled. You will not be charged again.'
+        . ($when ? " Plus keeps working until {$when}." : '') . ' You can turn it back on any time in Billing.';
+    rrp_notify_owner_inbox($ownerId, 'billing', 'Subscription canceled', $text);
+    $email = trim((string) ($owner['email'] ?? ''));
+    if ($email !== '') {
+        $name = (string) ($owner['nickname'] ?? '') ?: 'there';
+        $mail = [
+            'subject' => 'Your SIPAW subscription is canceled',
+            'text' => "Hi {$name},\n\n{$text}\n\nSIPAW by NAKILAB\n",
+            'html' => rrp_email_layout([
+                'preheader' => 'No more charges. ' . ($when ? "Plus works until {$when}." : ''),
+                'mood' => 'love',
+                'headline' => 'Subscription canceled',
+                'intro' => rrp_email_h("Hi {$name}, " . $text),
+                'button' => ['Open Billing', rrp_email_abs('billing.php')],
+            ]),
+        ];
+        rrp_email_send($email, $mail);
+    }
+    return ['ok' => true, 'until' => $until];
+}
+
 /** Settings on the Plus page after a card is saved. @param 'auto_renew'|'use_coins'|'remove_card' $what */
 function rrp_billing_manage(int $ownerId, string $what, bool $on): void
 {
     if ($what === 'auto_renew') {
-        rrp_db()->prepare('UPDATE owners SET auto_renew = ?, renew_fail_count = 0 WHERE id = ?')->execute([$on ? 1 : 0, $ownerId]);
+        rrp_db()->prepare('UPDATE owners SET auto_renew = ?, renew_fail_count = 0, canceled_at = IF(? = 1, NULL, canceled_at) WHERE id = ?')->execute([$on ? 1 : 0, $on ? 1 : 0, $ownerId]);
     } elseif ($what === 'use_coins') {
         rrp_db()->prepare('UPDATE owners SET use_coins = ? WHERE id = ?')->execute([$on ? 1 : 0, $ownerId]);
     } elseif ($what === 'remove_card') {

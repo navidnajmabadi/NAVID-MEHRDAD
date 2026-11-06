@@ -56,6 +56,7 @@ node --check assets/js/file.js                 # and every JS file
 - `setcookie()` fails once output has started. Cookies the page needs (CSRF) are sent from `lib/bootstrap.php` before any HTML. Do not create a token cookie in the middle of a page.
 - Shared hosting clears the common PHP session folder every ~24 minutes. Sessions live in `config/sessions`; login also has the 60-day remember token.
 - The live config is `sipaw.php` **or** the legacy `ringringpaw.php`; the first readable path wins. Never create a second file. Admin → Pricing shows the one in use.
+- After the 7-day trial an owner without Plus is limited to a short allow-list of pages (`rrp_access_script_allowed()` in `lib/access.php`). **A new page or API that must stay usable after the trial has to be added there**, and any new write action on Health must respect read-only (`rrp_access($owner)['readonly']`).
 - Hostinger has no usable PHP error log; use Admin → Errors (every error has a 6-letter code).
 - iPhone: the keyboard can leave the page pushed up; the chat sizes itself to `visualViewport`. Camera photos can be huge or have no file type; they are redrawn as JPEG before upload.
 - Overlapping cron runs sent duplicate messages; per-owner database locks (`rrp_lock_try`) prevent it. Keep new cron work behind a lock.

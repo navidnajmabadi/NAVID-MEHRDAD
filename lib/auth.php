@@ -50,6 +50,7 @@ function rrp_require_owner(): array
         rrp_redirect('login.php?next=' . rawurlencode($_SERVER['REQUEST_URI'] ?? 'dashboard.php'));
     }
     rrp_onboarding_gate($owner);
+    rrp_access_gate($owner, false);
     return $owner;
 }
 
@@ -158,6 +159,7 @@ function rrp_register_owner(array $data): array
         );
         $stmt->execute([$nickname, $nickname, $email, $hash, $timezone]);
         $id = (int) rrp_db()->lastInsertId();
+        rrp_trial_start($id);
         rrp_auth_start_owner_session($id, true);
         return ['ok' => true, 'owner_id' => $id];
     } catch (Throwable $e) {

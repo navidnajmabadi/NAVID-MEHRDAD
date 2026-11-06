@@ -5,6 +5,10 @@ require_once dirname(__DIR__, 2) . '/lib/bootstrap.php';
 /** Plus settings: auto-renew on/off, use coins on/off, remove the saved card. */
 [$owner, $data] = rrp_api_owner_post();
 $what = (string) ($data['what'] ?? '');
+if ($what === 'cancel') {
+    $r = rrp_billing_cancel($owner, (string) ($data['reason'] ?? ''));
+    rrp_json(['ok' => true, 'until' => $r['until'], 'profile' => rrp_billing_profile((int) $owner['id'])]);
+}
 if (!in_array($what, ['auto_renew', 'use_coins', 'remove_card'], true)) {
     rrp_json(['ok' => false, 'error' => 'Unknown setting.'], 400);
 }

@@ -9,6 +9,7 @@ function rrp_api_owner(): array
     if (!$owner) {
         rrp_json(['ok' => false, 'error' => 'Not logged in'], 401);
     }
+    rrp_access_gate($owner, true);
     return $owner;
 }
 

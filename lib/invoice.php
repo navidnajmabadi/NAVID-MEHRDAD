@@ -183,6 +183,10 @@ function rrp_invoice_pdf(array $inv): string
     $y = 164.0;
     $seller = $inv['seller'];
     $addr = array_values(array_filter(array_map('trim', explode(',', $seller['address'])), static fn($s) => $s !== ''));
+    $country = trim((string) rrp_setting('biz_country', 'Canada'));
+    if ($country !== '' && !preg_grep('/' . preg_quote($country, '/') . '/i', $addr)) {
+        $addr[] = $country;
+    }
     $addrLines = $addr ? [array_shift($addr), ...($addr ? [implode(', ', $addr)] : [])] : []; // street, then the rest on one line
     $from = array_values(array_filter([$seller['name'], ...$addrLines, $seller['tax_no'] !== '' ? 'Tax no. ' . $seller['tax_no'] : '', $seller['email']], static fn($s) => $s !== ''));
     foreach ($from as $line) {
@@ -213,10 +217,15 @@ function rrp_invoice_pdf(array $inv): string
     $pdf->text($L + 10, $y + 4, 'Subtotal', 10, 'r', $grey);
     $pdf->textRight($R - 10, $y + 4, rrp_invoice_amount($inv['subtotal'], $cur), 10);
     $y += 22;
-    $taxText = $inv['tax'] > 0 ? $inv['tax_label'] . ' ' . rtrim(rtrim(number_format($inv['tax_pct'], 2), '0'), '.') . '%' : 'Tax';
-    $pdf->text($L + 10, $y, $taxText, 10, 'r', $grey);
-    $pdf->textRight($R - 10, $y, rrp_invoice_amount($inv['tax'], $cur), 10);
-    $y += 14;
+    if ($inv['tax'] > 0) {
+        $taxText = $inv['tax_label'] . ' ' . rtrim(rtrim(number_format($inv['tax_pct'], 2), '0'), '.') . '%';
+        $pdf->text($L + 10, $y, $taxText, 10, 'r', $grey);
+        $pdf->textRight($R - 10, $y, rrp_invoice_amount($inv['tax'], $cur), 10);
+        $y += 14;
+    } else {
+        $pdf->text($L + 10, $y, 'No GST/HST charged (small supplier)', 9, 'r', $grey);
+        $y += 14;
+    }
     $pdf->line($L + 260, $y + 6, $R, $y + 6, 1.0, [0.2, 0.22, 0.28]);
     $y += 18;
     $pdf->text($L + 260, $y, 'Total paid', 13, 'b', $ink);

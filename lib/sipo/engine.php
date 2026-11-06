@@ -664,6 +664,9 @@ function rrp_sipo_static_welcome(array $owner, array $thread): string
 
 function rrp_sipo_greet_if_due(array $owner, array $thread): ?array
 {
+    if (rrp_access_expired($owner)) {
+        return null;
+    }
     // Two requests opening the chat together (page load + a retry) must not both greet.
     $lock = 'sipo_greet_' . (int) $thread['id'];
     if (!rrp_lock_try($lock)) {

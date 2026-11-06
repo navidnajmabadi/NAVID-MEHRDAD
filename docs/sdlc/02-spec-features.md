@@ -11,6 +11,8 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Safer login | 5 wrong tries per email+IP in 15 minutes, open-redirect fix, password reset by email link | `lib/auth.php`, `lib/password_reset.php` |
 | Welcome flow | SIPO says hello, asks name and country, then the chat adds the pet; photo and profile steps are plain code, not model whim | `welcome.php`, `lib/onboarding.php` |
 | Settings | Profile, appearance (Friendly default, Clean), time zone, weekly email, password, delete account | `settings.php`, `account*.php` |
+| **7-day free trial** | Every new account gets a trial (7 days by default; Admin → Pricing changes the default and **Admin → Accounts changes it per account**: set N days from today, add N days, end now). Existing accounts got 7 days from the day this shipped. Admin accounts never have a trial | `lib/access.php` |
+| **After the trial (no Plus)** | **Health stays visible but read-only.** Billing opens. SIPO, Home, Routines, Daily, Expenses are locked: the menu and the floating "Ask SIPO" button open the Billing page instead, and SIPO stops sending messages. Kept open on purpose: Lost-pet alerts and finder chat, Settings, logout and account deletion | `lib/access.php`, `care.php`, `lib/layout.php` |
 | Units by country | US: lb, miles, °F, mph. Everyone else: kg, km, °C, km/h. Stored data is always kg and km | `lib/units.php` |
 
 ## B. SIPO, the companion (chat)
@@ -70,15 +72,17 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 |---------|---------|------------|
 | Plan | Free = 1 pet; Plus = up to 3 pets. Limits are off for everyone during the test period (`sipo.limits_enabled`) | `lib/plan.php` |
 | Billing page | Menu, Billing: pay, saved card, auto-renew, "use my coins", payment history, invoices | `billing.php`, `assets/js/plus-checkout.js` |
-| Price build-up | List price, then coupon, perfect weeks, paw coins (value and cap set by admin), then tax (HST 13%, countries set by admin) | `lib/payments/billing.php` |
+| Price build-up | List price, then coupon, perfect weeks, paw coins (value and cap set by admin), then tax. **Tax is 0% by default** (small supplier, no HST); the admin can set a rate and countries later | `lib/payments/billing.php` |
+| Cancel subscription | Standard flow: cancel any time in Billing, optional reason, no more charges, Plus works until the end of the paid period, no refund of the current period, confirmation by notification and email, "turn auto-renew back on" any time. Owners with auto-renew off are asked if they want it on | `billing.php`, `api/billing/manage.php` |
+| Admin accounts | Never subscribe or pay: Billing says so and shows no payment form | `lib/access.php` |
 | Card payment | Square Web Payments SDK form; card saved on file; real charge in CAD. **Needs keys** | `api/billing/subscribe.php` |
 | Auto-renew | Cron charges the saved card shortly before Plus ends; 3 daily tries; coins spent only on success; referral free month used first | `lib/payments/billing.php` (`rrp_billing_auto_tick`) |
-| Coupons | Percent, fixed amount or free month; typed on the Billing page | `admin/coupons.php`, `lib/coupons.php` |
+| Coupons | Percent, fixed amount or free month; typed on the Billing page. Admin can **create, edit (value, type, limit, last day), disable and delete** | `admin/coupons.php`, `lib/coupons.php` |
 | Invoices | Number `SIPAW-year-000123`; PDF with logo, seller, discounts, tax line; download or email | `invoice.php`, `lib/invoice.php`, `lib/pdf.php` |
 | Old payment links | Still handled: signed webhook marks the order paid | `api/square/webhook.php` |
 
 ## H. Admin console (`/admin`)
-Overview (SIPO health), Insights and Map, Accounts (tokens per message, filters), Tickets, **Pricing** (price, coin value, cap, tax, invoice seller details,
+Overview (SIPO health), Insights and Map, Accounts (tokens per message, filters, **Access column, per-account trial control, remove subscription**), Tickets, **Pricing** (price, coin value, cap, tax, invoice seller details,
 Square connection check), Coupons, Emails (preview templates), **NAKI brain**, **Brain graph**, **Test lab**, SIPO check, **Site health**, **Errors**, Logs, Moderation (when Pack is on).
 
 ## I. Quality and operations

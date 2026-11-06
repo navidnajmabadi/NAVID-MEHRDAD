@@ -25,7 +25,7 @@ signature key into `webhook_signature_key`. Card payments from the Plus page do 
 
 ## 2. What the customer sees
 
-- Price, then every discount on its own line: coupon code, perfect care weeks, paw coins, then tax, then the total.
+- Price, then every discount on its own line: coupon code, perfect care weeks, paw coins, then (only if tax is set) tax, then the total.
 - Tick boxes: **Use my paw coins** (on by default) and **Renew automatically every month** (on by default).
 - The card is saved with Square (customer + card on file). Settings on the same page: auto-renew on/off,
   use coins on/off, remove card.
@@ -42,7 +42,7 @@ Order: price → coupon → perfect care weeks → paw coins → tax.
   A "Free month" coupon is the exception.
 - Coins used are **spent**: they are taken off the balance when the payment succeeds (not when it fails), so
   the next payment's coin discount starts from the new balance.
-- Tax (default 13% HST) is added after the discounts, for owners in the listed countries (default `CA`).
+- **No tax is charged by default (0%)**: the business is under the CAD 30,000 small-supplier limit, so no GST/HST. If that changes, set the rate in Admin → Pricing (it is added after the discounts, for owners in the listed countries, default `CA`), enter the HST number in Invoice details, and invoices will show the tax line.
 
 ## 3b. Billing page and invoices
 
