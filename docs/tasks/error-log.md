@@ -18,3 +18,4 @@ Branch: `cursor/claude-error-log`
 | 12 | Three "Good evening" messages in the same minute (walk, tooth brushing, tooth brushing) | Check live | Cause: two cron URLs firing together each saw "nothing sent yet". One run at a time per owner now (database lock); greeting locked per chat. Reminder wording: "overdue" only for an earlier day; no repeated questions |
 | 13 | Sent 7 photos but only 4 shown; want the text on top and a horizontal carousel | Done | All photos shown in one swipeable row under the text |
 | 14 | Remove old per-job cron URLs in hPanel (only tick.php should remain) | Pending | Needs you: Hostinger → Cron jobs |
+| 15 | Red dot on the menu (hamburger) button, always shown, unclear what it means | Done | Removed. It only meant "you have unread notifications", which the bell already shows with its number, and the notification center keeps them |

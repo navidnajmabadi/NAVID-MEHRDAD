@@ -212,7 +212,7 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
     $mascot = rrp_asset('assets/mascot/v2/idle-s.webp');
     ?>
 <button type="button" class="menu-btn" id="menuBtn" aria-label="Menu" aria-controls="sideMenu" aria-expanded="false">
-  <span></span><span></span><span></span><?php if ($unread > 0): ?><i class="menu-dot" aria-hidden="true"></i><?php endif; ?>
+  <span></span><span></span><span></span>
 </button>
 <div class="side-backdrop" id="sideBackdrop" hidden></div>
 <nav class="side-menu" id="sideMenu" aria-label="Menu" data-csrf="<?= rrp_h(rrp_csrf_token()) ?>" hidden>

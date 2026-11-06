@@ -215,7 +215,6 @@
 /* Left side menu (hamburger) */
 .menu-btn{position:fixed;top:10px;left:10px;z-index:60;width:40px;height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;background:var(--bg);border:0;cursor:pointer;padding:0}
 .menu-btn span{display:block;width:20px;height:2px;background:var(--text)}
-.menu-dot{position:absolute;top:8px;right:6px;width:8px;height:8px;border-radius:50%;background:#e5484d}
 .app-main.has-tab>.topbar,.app-main.has-tab>.homehead{padding-left:58px}
 .app-main.has-tab .sipo-top{padding-left:58px}
 .side-backdrop{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.55)}
