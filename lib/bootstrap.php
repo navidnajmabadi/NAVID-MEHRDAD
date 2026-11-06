@@ -36,6 +36,17 @@ function rrp_config_paths(): array
     ];
 }
 
+/** The config file the app is really reading (first readable one in rrp_config_paths), or null. */
+function rrp_config_file(): ?string
+{
+    foreach (rrp_config_paths() as $path) {
+        if (is_readable($path)) {
+            return $path;
+        }
+    }
+    return null;
+}
+
 function rrp_config_ready(): bool
 {
     foreach (rrp_config_paths() as $path) {
@@ -373,6 +384,8 @@ require_once __DIR__ . '/email.php';
 require_once __DIR__ . '/report.php';
 require_once __DIR__ . '/onboarding.php';
 require_once __DIR__ . '/units.php';
+require_once __DIR__ . '/pdf.php';
+require_once __DIR__ . '/invoice.php';
 require_once __DIR__ . '/sipo/knowledge.php';
 require_once __DIR__ . '/sipo/choices.php';
 require_once __DIR__ . '/sipo/driver.php';

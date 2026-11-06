@@ -36,6 +36,30 @@
     });
   }
 
+  // ---- Payment history: email an invoice PDF ----
+  var hist = $("billHistory");
+  if (hist) {
+    hist.addEventListener("click", function (e) {
+      var b = e.target.closest && e.target.closest("[data-email-invoice]");
+      if (!b) return;
+      var f = hist.querySelector('[data-mail-form="' + b.getAttribute("data-email-invoice") + '"]');
+      if (f) { f.hidden = !f.hidden; if (!f.hidden) { var i = f.querySelector("input"); i && i.focus(); } }
+    });
+    hist.addEventListener("submit", function (e) {
+      var f = e.target.closest && e.target.closest("[data-mail-form]");
+      if (!f) return;
+      e.preventDefault();
+      var msgEl = f.querySelector("[data-mail-msg]"), btn = f.querySelector("button[type=submit]");
+      btn.disabled = true; msgEl.style.color = ""; msgEl.textContent = "Sending…";
+      post("api/billing/invoice-email.php", { csrf: hist.getAttribute("data-csrf"), order_id: f.getAttribute("data-mail-form"), to: f.querySelector("input").value.trim() })
+        .then(function (j) {
+          btn.disabled = false;
+          if (j.ok) { msgEl.textContent = "Sent to " + j.to + " ✓"; }
+          else { msgEl.style.color = "var(--red)"; msgEl.textContent = j.error || "Could not send it."; }
+        }).catch(function () { btn.disabled = false; msgEl.style.color = "var(--red)"; msgEl.textContent = "Could not reach the server."; });
+    });
+  }
+
   if (!box || box.getAttribute("data-ready") !== "1") return;
   var csrf = box.getAttribute("data-csrf");
   var hasCard = box.getAttribute("data-has-card") === "1";
@@ -107,7 +131,7 @@
     var body = { csrf: csrf, coupon: coupon, use_coins: $("ppCoins").checked ? 1 : 0, auto_renew: $("ppAuto").checked ? 1 : 0 };
     var go = function () {
       return post("api/billing/subscribe.php", body).then(function (j) {
-        if (j.ok) { setMsg("Payment received. Welcome to Plus! 🎉"); location.href = "plus.php?paid=" + encodeURIComponent(j.order_id || ""); return; }
+        if (j.ok) { setMsg("Payment received. Welcome to Plus! 🎉"); location.href = "billing.php?paid=" + encodeURIComponent(j.order_id || ""); return; }
         busy = false; setMsg(j.error || "The payment could not be completed.", true); render();
       });
     };

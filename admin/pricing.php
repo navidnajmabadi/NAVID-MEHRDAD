@@ -27,13 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
     } elseif ($tax < 0 || $tax > 40) {
         $error = 'Tax must be between 0 and 40 percent.';
     } else {
+        foreach (['biz_name' => 60, 'biz_address' => 200, 'biz_tax_no' => 40, 'biz_email' => 100] as $k => $max) {
+            rrp_setting_set($k, mb_substr(trim((string) ($_POST[$k] ?? '')), 0, $max));
+        }
         rrp_setting_set('price_monthly_cents', (string) (int) round($price * 100));
         rrp_setting_set('currency', $cur);
         rrp_setting_set('coin_value_cents', (string) $coin);
         rrp_setting_set('max_total_pct', (string) $max);
         rrp_setting_set('tax_pct', rtrim(rtrim(number_format($tax, 2, '.', ''), '0'), '.') ?: '0');
         rrp_setting_set('tax_label', mb_substr($taxLabel, 0, 20) ?: 'Tax');
-        rrp_setting_set('tax_countries', $countries !== '' ? $countries : 'CA');
+        rrp_setting_set('tax_countries', $countries !== '' ? $countries : '*');
         rrp_admin_log((int) $admin['id'], 'pricing_update', 'app_settings', 0, "price=$price $cur coin={$coin}c max={$max}% tax={$tax}%");
         rrp_flash_set('ok', 'Pricing saved. It applies to the next payment straight away.');
         rrp_redirect('pricing.php');
@@ -44,6 +47,7 @@ $prices = rrp_billing_prices();
 $pol = rrp_billing_policy();
 $tax = rrp_billing_tax_rule();
 $sq = rrp_square_cfg();
+$cfgFile = rrp_config_file();
 $stat = ['plus' => 0, 'auto' => 0, 'paid30' => 0, 'rev30' => 0];
 try {
     $db = rrp_db();
@@ -95,7 +99,18 @@ rrp_admin_shell_start('Pricing', 'pricing');
       <div class="in"><input id="tl" name="tax_label" maxlength="20" value="<?= rrp_h($tax['label']) ?>" /></div></div>
     <div class="field"><label for="tc">Owners in these countries pay the tax</label>
       <div class="in"><input id="tc" name="tax_countries" value="<?= rrp_h(implode(',', $tax['countries'])) ?>" /></div>
-      <p class="meta">Two-letter codes separated by commas, for example <b>CA</b> or <b>CA,US</b>. Use <b>*</b> for everyone. Owners without a country are not taxed. Ask your accountant which customers owe tax.</p></div>
+      <p class="meta">Two-letter codes separated by commas, for example <b>CA</b> or <b>CA,US</b>. Use <b>*</b> for everyone (the default). With a list, owners without a country, or from another country, are not taxed. Ask your accountant which customers owe tax.</p></div>
+    <h2 style="margin:22px 0 4px">Invoice details (printed on every invoice)</h2>
+    <div class="field"><label for="bn">Business name</label>
+      <div class="in"><input id="bn" name="biz_name" maxlength="60" value="<?= rrp_h((string) rrp_setting('biz_name', 'NAKILAB')) ?>" /></div></div>
+    <div class="field"><label for="ba">Address</label>
+      <div class="in"><input id="ba" name="biz_address" maxlength="200" placeholder="Street, City, Province, Postal code, Country" value="<?= rrp_h((string) rrp_setting('biz_address', '')) ?>" /></div>
+      <p class="meta">Separate the lines with commas.</p></div>
+    <div class="field"><label for="bt">Tax registration number (HST)</label>
+      <div class="in"><input id="bt" name="biz_tax_no" maxlength="40" placeholder="123456789 RT0001" value="<?= rrp_h((string) rrp_setting('biz_tax_no', '')) ?>" /></div>
+      <p class="meta">Required on invoices where you charge HST. Leave empty if you have none.</p></div>
+    <div class="field"><label for="be">Billing email</label>
+      <div class="in"><input id="be" name="biz_email" type="email" maxlength="100" value="<?= rrp_h((string) rrp_setting('biz_email', '')) ?>" /></div></div>
     <button class="ad-btn is-primary" type="submit">Save pricing</button>
   </form>
 
@@ -111,8 +126,9 @@ rrp_admin_shell_start('Pricing', 'pricing');
   <section class="dash-card" style="margin-top:14px;max-width:640px">
     <h2>Square connection</h2>
     <ul style="list-style:none;margin:0;padding:0">
-      <?php foreach ($check as $label => $ok): ?><li><?= $ok ? '✅' : '❌' ?> <?= rrp_h($label) ?> <span class="meta"><?= $ok ? 'set' : 'missing in config/sipaw.php' ?></span></li><?php endforeach; ?>
+      <?php foreach ($check as $label => $ok): ?><li><?= $ok ? '✅' : '❌' ?> <?= rrp_h($label) ?> <span class="meta"><?= $ok ? 'set' : 'missing in the file below' ?></span></li><?php endforeach; ?>
     </ul>
-    <p class="meta"><?= rrp_square_cards_ready() ? 'Card payments are on.' : 'Card payments stay off ("Payments open soon") until all three are set.' ?> The keys go only in the server's <code>config/sipaw.php</code>, never here. Steps: <code>docs/SQUARE.md</code>.</p>
+    <p class="meta"><?= rrp_square_cards_ready() ? 'Card payments are on.' : 'Card payments stay off ("Payments open soon") until all three are set.' ?> The keys go only in the server's config file, never here. Steps: <code>docs/SQUARE.md</code>.</p>
+    <p class="meta"><b>The app is reading this file:</b><br /><code style="word-break:break-all"><?= rrp_h($cfgFile ?? 'none found') ?></code><br />Add the <code>'square' =&gt; [ ... ]</code> block inside this file, above the last line <code>];</code>. Editing any other copy changes nothing.</p>
   </section>
 <?php rrp_admin_shell_end(); ?>

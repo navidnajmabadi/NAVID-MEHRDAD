@@ -110,7 +110,7 @@ function rrp_billing_policy(): array
  */
 function rrp_billing_tax_rule(): array
 {
-    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', 'CA')))));
+    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', '*')))));
     return [
         'pct' => min(40.0, max(0.0, (float) rrp_setting('tax_pct', '13'))),
         'label' => mb_substr(trim((string) rrp_setting('tax_label', 'HST')) ?: 'Tax', 0, 20),
@@ -259,7 +259,7 @@ function rrp_billing_checkout(array $owner, string $plan): array
                 'base_price_money' => ['amount' => $q['amount'], 'currency' => $q['currency']],
             ]],
         ],
-        'checkout_options' => ['redirect_url' => rrp_app_url('plus.php?paid=' . $orderId)],
+        'checkout_options' => ['redirect_url' => rrp_app_url('billing.php?paid=' . $orderId)],
         'pre_populated_data' => ['buyer_email' => (string) ($owner['email'] ?? '')],
     ]);
     $link = $res['data']['payment_link'] ?? null;
@@ -445,7 +445,7 @@ function rrp_billing_renewal_tick(): array
         $text = 'Your Plus ends on ' . (new DateTimeImmutable((string) $o['plan_expires_at'], new DateTimeZone('UTC')))->setTimezone(rrp_sipo_owner_tz($o))->format('j M')
             . '. Renew on the Plus page' . ($pct ? " — you've earned {$pct}% off with your care weeks 🌟" : '') . '.';
         rrp_notify_owner_inbox((int) $o['id'], 'billing', 'Plus is ending soon', $text);
-        rrp_try_web_push((int) $o['id'], 'SIPAW', $text, rrp_app_url('plus.php'));
+        rrp_try_web_push((int) $o['id'], 'SIPAW', $text, rrp_app_url('billing.php'));
         $stats['reminded']++;
     }
     return $stats;
@@ -544,20 +544,17 @@ function rrp_billing_charge_saved_card(array $owner, array $opt = []): array
     }
     $pdo = rrp_db();
     $pdo->prepare(
-        "INSERT INTO billing_orders (owner_id, plan_code, months, list_cents, discount_cents, amount_cents, currency, discount_json, provider, coupon_code, coins_used, coin_discount_cents, auto_renewal, tax_cents, tax_pct)
-         VALUES (?, 'plus_monthly', 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO billing_orders (owner_id, plan_code, months, list_cents, discount_cents, amount_cents, currency, discount_json, provider, coupon_code, coins_used, coin_discount_cents, auto_renewal, tax_cents, tax_pct, card_brand, card_last4, tax_label)
+         VALUES (?, 'plus_monthly', 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )->execute([$ownerId, $q['list'], $q['discount'], $q['amount'], $q['currency'],
-        json_encode(['perfect_weeks' => $q['weeks'], 'week_pct' => $q['week_pct'], 'coins' => $q['coins_used']]),
+        json_encode(['perfect_weeks' => $q['weeks'], 'week_pct' => $q['week_pct'], 'coins' => $q['coins_used'],
+            'coupon_cents' => $q['coupon_discount'], 'week_cents' => $q['week_discount'], 'coin_cents' => $q['coin_discount']]),
         $q['amount'] > 0 ? 'square' : 'manual', $q['coupon']['code'] ?? null, $q['coins_used'], $q['coin_discount'], !empty($opt['auto']) ? 1 : 0,
-        $q['tax'], $q['tax_pct']]);
+        $q['tax'], $q['tax_pct'], $profile['card_brand'] ?: null, $profile['card_last4'] ?: null, $q['tax_label']]);
     $orderId = (int) $pdo->lastInsertId();
     if ($q['amount'] === 0) {
         rrp_billing_mark_paid($orderId); // a 100% coupon: nothing to charge
         return ['ok' => true, 'order_id' => $orderId, 'amount' => 0, 'quote' => $q];
-    }
-    if ($q['amount'] < 100) {
-        $pdo->prepare("UPDATE billing_orders SET status = 'failed' WHERE id = ?")->execute([$orderId]);
-        return ['ok' => false, 'error' => 'The amount is too small to charge. Please contact support.'];
     }
     $c = rrp_square_cfg();
     $res = rrp_square_request('POST', '/v2/payments', [
@@ -678,7 +675,7 @@ function rrp_billing_auto_tick(int $max = 20): array
                 $text = 'Plus renewed for another month: ' . rrp_money((int) $r['amount'], $q['currency'])
                     . ($q['coins_used'] ? ', with ' . $q['coins_used'] . ' paw coins used (' . rrp_money($q['coin_discount'], $q['currency']) . ' off)' : '') . '. Thank you 💙';
                 rrp_notify_owner_inbox($ownerId, 'billing', 'Plus renewed', $text);
-                rrp_try_web_push($ownerId, 'SIPAW', $text, rrp_app_url('plus.php'));
+                rrp_try_web_push($ownerId, 'SIPAW', $text, rrp_app_url('billing.php'));
             } else {
                 $out['failed']++;
                 rrp_db()->prepare('UPDATE owners SET renew_fail_count = renew_fail_count + 1 WHERE id = ?')->execute([$ownerId]);
@@ -689,7 +686,7 @@ function rrp_billing_auto_tick(int $max = 20): array
                 $text = 'We could not renew Plus with your card (' . ($r['error'] ?? 'declined') . ').'
                     . ($fails >= 3 ? ' Auto-renew is now off. Open the Plus page to add a new card.' : ' We will try again tomorrow. You can update your card on the Plus page.');
                 rrp_notify_owner_inbox($ownerId, 'billing', 'Plus payment did not go through', $text);
-                rrp_try_web_push($ownerId, 'SIPAW', $text, rrp_app_url('plus.php'));
+                rrp_try_web_push($ownerId, 'SIPAW', $text, rrp_app_url('billing.php'));
             }
         } finally {
             rrp_lock_release($lock);

@@ -11,8 +11,9 @@ never reach SIPAW's server. Everything is **live** (no sandbox): the first real 
    - **Application ID** (starts with `sq0idp-`)
    - **Access token** (starts with `EAAA`). Treat it like a password.
 4. In the left menu of the dashboard open **Locations** and copy the **Location ID** of the shop that takes the money.
-5. Put the three values in the server file `config/sipaw.php`, in the `square` block (see `config.example.php`). Hostinger:
-   File Manager → the app folder → `config/sipaw.php`. **Never** paste them into chat, git or a screenshot.
+5. Put the three values in the server file `config/sipaw.php`, in the `square` block (see `config.example.php`). The file can be named `sipaw.php` or the older `ringringpaw.php`: **Admin → Pricing → Square connection shows the exact path the app reads**, edit that one.
+   Hostinger:
+   File Manager → that path. **Never** paste them into chat, git or a screenshot.
    Square's receipts and payouts then work as for any other payment.
 6. Make sure the Square account currency is **CAD** (Admin → Pricing → Currency must match it).
 7. Open **Admin → Pricing**: the "Square connection" box shows three green ticks when all is set.
@@ -42,6 +43,13 @@ Order: price → coupon → perfect care weeks → paw coins → tax.
 - Coins used are **spent**: they are taken off the balance when the payment succeeds (not when it fails), so
   the next payment's coin discount starts from the new balance.
 - Tax (default 13% HST) is added after the discounts, for owners in the listed countries (default `CA`).
+
+## 3b. Billing page and invoices
+
+- Menu, Billing (also Settings, Plus and billing) is where owners pay, see the saved card and auto-renew, and read their payment history.
+- Each paid payment has an invoice number (SIPAW-year-000123), a PDF to download, and an Email PDF button (to their own address or another one).
+- The seller details printed on invoices (business name, address, HST number, billing email) are set in Admin, Pricing, Invoice details. Email sending uses the SMTP settings in the config file.
+- The old /plus.php link redirects to billing.php.
 
 ## 4. Check list after deploy
 

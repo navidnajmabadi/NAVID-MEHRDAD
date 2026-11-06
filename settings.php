@@ -127,7 +127,7 @@ rrp_app_start(['nav' => 'settings']);
     <ul class="set-list">
       <li><a href="alerts.php"><span>🔔</span><span><b>Notifications</b><small class="meta"><?= $nav['unread'] ? (int) $nav['unread'] . ' unread' : 'All caught up' ?></small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="area.php"><span>📍</span><span><b>Home area</b><small class="meta">Used for nearby Lost mode alerts</small></span><i aria-hidden="true">›</i></a></li>
-      <li><a href="plus.php"><span>⭐</span><span><b><?= $plan === 'plus' ? 'Plus' : 'Free plan' ?></b><small class="meta"><?= $plan === 'plus' ? 'Plan details' : 'See Plus' ?></small></span><i aria-hidden="true">›</i></a></li>
+      <li><a href="billing.php"><span>⭐</span><span><b><?= $plan === 'plus' ? 'Plus and billing' : 'Plus and billing' ?></b><small class="meta"><?= $plan === 'plus' ? 'Card, payments and invoices' : 'See Plus, pay, invoices' ?></small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="rewards.php"><span>🐾</span><span><b>Rewards</b><small class="meta">Paw coins and invite friends</small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="dashboard.php"><span>🏠</span><span><b>Home overview</b><small class="meta">All pets on one screen</small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="welcome.php?again=1"><span>👋</span><span><b>Start the welcome again</b><small class="meta">Meet SIPO again, then add or finish a pet profile step by step</small></span><i aria-hidden="true">›</i></a></li>
