@@ -30,8 +30,8 @@ rrp_app_start(['nav' => false]);
 <div class="pad stack walk-panel">
   <div class="walk-stats" aria-live="polite">
     <div><b class="data" id="wTime">0:00</b><small>time</small></div>
-    <div><b class="data" id="wKm">0.00</b><small>km</small></div>
-    <div><b class="data" id="wPace">–</b><small>min/km</small></div>
+    <div><b class="data" id="wKm">0.00</b><small><?= rrp_h(rrp_units()['distance']) ?></small></div>
+    <div><b class="data" id="wPace">–</b><small><?= rrp_h(rrp_units()['pace']) ?></small></div>
   </div>
   <p class="meta" id="wNote">Keep SIPAW open on screen while you walk — phones pause GPS for web apps in the background.</p>
   <button class="btn primary" id="wStart" type="button">Start walk</button>
@@ -47,6 +47,7 @@ rrp_app_start(['nav' => false]);
   var line = L.polyline([], {color:'#2E6AFF', weight:5}).addTo(map);
   var dot = null, pts = [], meters = 0, startMs = 0, watch = null, tick = null, lock = null;
   var $ = function(id){ return document.getElementById(id); };
+  var UNIT = <?= rrp_units()['imperial'] ? '0.621371192' : '1' ?>; // km → what the owner sees (miles in the US)
 
   function hav(a, b){
     var R = 6371000, r = Math.PI / 180;
@@ -57,8 +58,9 @@ rrp_app_start(['nav' => false]);
   function render(){
     var s = Math.floor((Date.now() - startMs) / 1000);
     $('wTime').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-    $('wKm').textContent = (meters / 1000).toFixed(2);
-    $('wPace').textContent = meters > 150 ? ((s / 60) / (meters / 1000)).toFixed(1) : '–';
+    var dist = meters / 1000 * UNIT;
+    $('wKm').textContent = dist.toFixed(2);
+    $('wPace').textContent = meters > 150 ? ((s / 60) / dist).toFixed(1) : '–';
   }
   function onPos(p){
     var c = p.coords;

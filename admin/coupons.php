@@ -32,7 +32,7 @@ $coupons = rrp_coupons_list();
 rrp_admin_shell_start('Coupons', 'coupons');
 ?>
   <h1>Coupons</h1>
-  <p class="lede">Issue codes now; checkout redemption comes with paid seats.</p>
+  <p class="lede">Customers type a code on the Plus page. It is checked and applied before the paid-weeks and coin discounts. Percent takes a share off the price, Fixed takes that amount off, Free month makes the month free.</p>
   <?php rrp_render_flash(); ?>
   <?php if ($error): ?><div class="flash flash-error"><?= rrp_h($error) ?></div><?php endif; ?>
 

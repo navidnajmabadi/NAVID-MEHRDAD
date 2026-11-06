@@ -70,7 +70,7 @@ function rrp_vm_pet_panel(array $pet): array
         'Breed' => $pet['breed'] ?? null,
         'Sex' => ($pet['sex'] ?? 'unknown') !== 'unknown' ? ucfirst((string) $pet['sex']) : null,
         'Age' => !empty($pet['age_years']) ? rtrim(rtrim((string) $pet['age_years'], '0'), '.') . ' y' : null,
-        'Weight' => !empty($pet['weight_kg']) ? rtrim(rtrim((string) $pet['weight_kg'], '0'), '.') . ' kg' : null,
+        'Weight' => !empty($pet['weight_kg']) ? rrp_fmt_weight((float) $pet['weight_kg']) : null,
     ] as $k => $v) {
         $profile[] = ['label' => $k, 'value' => $v];
     }

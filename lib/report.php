@@ -159,6 +159,7 @@ function rrp_report_build(array $owner, ?DateTimeImmutable $now = null): array
         'pets' => $pets,
         'spend' => $spend,
         'has_activity' => $any,
+        'units' => rrp_units($owner),
     ];
 }
 

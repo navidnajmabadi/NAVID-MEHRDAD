@@ -33,7 +33,7 @@ function rrp_admin_nav(string $active = 'home'): void
 {
     $groups = [
         'Overview' => [['home', 'index.php', 'Overview', 'home'], ['insights', 'insights.php', 'Insights', 'chart'], ['geo', 'geo.php', 'Map and cities', 'map']],
-        'People' => [['accounts', 'accounts.php', 'Accounts', 'users'], ['tickets', 'tickets.php', 'Tickets', 'ticket'], ['coupons', 'coupons.php', 'Coupons', 'tag'], ['emails', 'emails.php', 'Emails', 'mail']],
+        'People' => [['accounts', 'accounts.php', 'Accounts', 'users'], ['tickets', 'tickets.php', 'Tickets', 'ticket'], ['pricing', 'pricing.php', 'Pricing', 'tag'], ['coupons', 'coupons.php', 'Coupons', 'tag'], ['emails', 'emails.php', 'Emails', 'mail']],
         'SIPO brain' => [['brain', 'naki.php', 'NAKI brain', 'brain'], ['graph', 'graph.php', 'Brain graph', 'graph'], ['lab', 'lab.php', 'Test lab', 'flask'], ['sipo', 'sipo-check.php', 'SIPO check', 'check']],
         'System' => [['site', 'site.php', 'Site health', 'pulse'], ['errors', 'errors.php', 'Errors', 'alert'], ['logs', 'logs.php', 'Logs', 'list']],
     ];

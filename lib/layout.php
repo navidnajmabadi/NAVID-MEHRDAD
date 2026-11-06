@@ -406,7 +406,7 @@ function rrp_layout_foot(array $opts = []): void
 <script src="<?= rrp_h(rrp_asset('assets/js/bell.js', true)) ?>" defer></script>
 <script src="<?= rrp_h(rrp_asset('assets/js/error-report.js', true)) ?>" defer></script>
 <?php foreach ($scripts as $src): ?>
-<script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src, true)) ?>"<?= str_contains($src, 'cdn') ? ' crossorigin="anonymous"' : '' ?>></script>
+<script src="<?= rrp_h(str_starts_with($src, 'http') || str_starts_with($src, '//') ? $src : rrp_asset($src, true)) ?>"<?= str_contains($src, 'cdn') && !str_contains($src, 'squarecdn') ? ' crossorigin="anonymous"' : '' ?>></script>
 <?php endforeach; ?>
 </body>
 </html>

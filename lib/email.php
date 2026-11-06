@@ -114,8 +114,10 @@ function rrp_email_stat(string $value, string $label): string
 }
 
 /** Weight trend as horizontal bars (works in every mail app, no images). */
-function rrp_email_weight_block(array $series, string $trend): string
+function rrp_email_weight_block(array $series, string $trend, array $units = []): string
 {
+    $lb = !empty($units['imperial']);
+    $show = static fn(float $kg): float => $lb ? $kg * RRP_KG_TO_LB : $kg;
     if (count($series) < 1) {
         return '';
     }
@@ -127,7 +129,7 @@ function rrp_email_weight_block(array $series, string $trend): string
         $pct = $max > $min ? 35 + (int) round(($pt['kg'] - $min) / ($max - $min) * 65) : 70;
         $rows .= '<tr><td width="58" style="padding:3px 8px 3px 0;font:400 12px/1.4 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:' . RRP_EMAIL_MUTED . '">' . rrp_email_h(date('M j', strtotime($pt['date'] . ' UTC'))) . '</td>'
             . '<td style="padding:3px 0"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="' . $pct . '%"><tr><td height="14" bgcolor="' . RRP_EMAIL_BLUE . '" style="border-radius:7px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>'
-            . '<td width="62" align="right" style="padding:3px 0 3px 8px;font:600 13px/1.4 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:' . RRP_EMAIL_INK . '">' . rrp_email_h(rtrim(rtrim(number_format($pt['kg'], 2, '.', ''), '0'), '.')) . ' kg</td></tr>';
+            . '<td width="62" align="right" style="padding:3px 0 3px 8px;font:600 13px/1.4 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:' . RRP_EMAIL_INK . '">' . rrp_email_h(rtrim(rtrim(number_format($show($pt['kg']), $lb ? 1 : 2, '.', ''), '0'), '.')) . ($lb ? ' lb' : ' kg') . '</td></tr>';
     }
     $badge = $trend === 'up' ? rrp_email_pill('Going up', 'amber') : ($trend === 'down' ? rrp_email_pill('Going down', 'amber') : rrp_email_pill('Steady', 'green'));
     return '<div style="margin:18px 0 6px;font:600 14px/1.4 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:' . RRP_EMAIL_INK . '">Weight trend &nbsp;' . (count($series) > 1 ? $badge : '') . '</div>'
@@ -161,9 +163,9 @@ function rrp_email_weekly_report(array $r, ?string $manageUrl = null): array
         $text .= "\n== {$p['name']} ==\nWalks: {$p['walks']} ({$p['walk_minutes']} min), potty logs: {$p['bathroom']}, check-ins: {$p['checkins']}\n";
 
         if ($p['weight']) {
-            $c .= rrp_email_weight_block($p['weight'], $p['weight_trend']);
+            $c .= rrp_email_weight_block($p['weight'], $p['weight_trend'], (array) ($r['units'] ?? []));
             $last = end($p['weight']);
-            $text .= "Weight: {$last['kg']} kg (" . $p['weight_trend'] . ")\n";
+            $text .= 'Weight: ' . (!empty($r['units']['imperial']) ? rrp_units_num($last['kg'] * RRP_KG_TO_LB) . ' lb' : $last['kg'] . ' kg') . ' (' . $p['weight_trend'] . ")\n";
         }
         if ($p['due']) {
             $c .= rrp_email_section_title('Vaccines and check-ups');

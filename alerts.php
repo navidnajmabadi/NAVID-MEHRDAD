@@ -58,7 +58,7 @@ rrp_app_start(['nav' => 'alerts']);
         <span class="d red"></span>
         <div>
           <b>Lost nearby: <?= rrp_h($la['pet_name']) ?></b>
-          <small>~<?= rrp_h((string) $la['distance_km']) ?> km · <?= rrp_h($la['magic_word'] ?: 'no magic word') ?></small>
+          <small>~<?= rrp_h(rrp_fmt_distance((float) $la['distance_km'])) ?> · <?= rrp_h($la['magic_word'] ?: 'no magic word') ?></small>
         </div>
         <time>LOST</time>
       </a>

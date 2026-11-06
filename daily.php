@@ -70,7 +70,7 @@ rrp_app_start(['nav' => 'health']);
     <h3 class="label">Walks</h3>
     <?php if ($vm['window']): ?><p class="daily-window">☀ <?= rrp_h($vm['window']['text']) ?></p><?php endif; ?>
     <div class="daily-walk-top">
-      <div><b class="data daily-big"><?= (int) $w['today_minutes'] ?></b> min today<?= $w['goal'] ? ' of ' . (int) $w['goal'] : '' ?> · <b class="data"><?= rrp_h((string) $w['today_km']) ?></b> km</div>
+      <div><b class="data daily-big"><?= (int) $w['today_minutes'] ?></b> min today<?= $w['goal'] ? ' of ' . (int) $w['goal'] : '' ?> · <b class="data"><?= rrp_h(rrp_units_num(rrp_distance_show((float) $w['today_km']))) ?></b> <?= rrp_h(rrp_units()['distance']) ?></div>
       <a class="btn primary" href="walk.php">Start walk</a>
     </div>
     <?php if ($w['goal']): ?>
@@ -84,16 +84,16 @@ rrp_app_start(['nav' => 'health']);
         <span><i style="height:<?= round(100 * $d['minutes'] / $wm) ?>%" class="<?= $w['goal'] && $d['minutes'] >= $w['goal'] ? 'is-goal' : '' ?>"></i><small><?= rrp_h(substr($d['dow'], 0, 2)) ?></small></span>
       <?php endforeach; ?>
     </div>
-    <p class="meta">This week <?= (int) $w['week_minutes'] ?> min · <?= rrp_h((string) $w['week_km']) ?> km<?= $w['streak'] ? ' · 🔥 ' . (int) $w['streak'] . '-day streak' : '' ?></p>
+    <p class="meta">This week <?= (int) $w['week_minutes'] ?> min · <?= rrp_h(rrp_fmt_distance((float) $w['week_km'])) ?><?= $w['streak'] ? ' · 🔥 ' . (int) $w['streak'] . '-day streak' : '' ?></p>
     <p class="label" style="margin:16px 0 0">Log a walk by hand</p>
     <form class="daily-manual" id="walkManual">
       <input type="number" name="minutes" min="1" max="600" placeholder="Minutes" inputmode="numeric" required aria-label="Minutes" />
-      <input type="number" name="km" min="0" max="60" step="0.1" placeholder="km (optional)" inputmode="decimal" aria-label="Kilometres" />
+      <input type="number" name="km" min="0" max="60" step="0.1" placeholder="<?= rrp_h(rrp_units()['distance']) ?> (optional)" inputmode="decimal" aria-label="<?= rrp_units()['imperial'] ? 'Miles' : 'Kilometres' ?>" />
       <button class="btn outline" type="submit">Save</button>
     </form>
     <?php if (!empty($w['last']['route'])): ?>
       <div id="lastRoute" class="daily-map" data-route="<?= rrp_h(json_encode($w['last']['route'])) ?>" aria-label="Last walk route"></div>
-      <p class="meta">Last walk: <?= (int) $w['last']['minutes'] ?> min<?= $w['last']['distance_m'] ? ', ' . round($w['last']['distance_m'] / 1000, 2) . ' km' : '' ?></p>
+      <p class="meta">Last walk: <?= (int) $w['last']['minutes'] ?> min<?= $w['last']['distance_m'] ? ', ' . rrp_fmt_distance($w['last']['distance_m'] / 1000, null, 2) : '' ?></p>
     <?php endif; ?>
   </section>
   <?php endif; ?>
@@ -132,7 +132,7 @@ rrp_app_start(['nav' => 'health']);
   var f = document.getElementById('walkManual');
   f && f.addEventListener('submit', function(e){
     e.preventDefault();
-    post({what:'walk', minutes: Number(f.minutes.value), km: f.km.value === '' ? null : Number(f.km.value)}).then(function(j){
+    post({what:'walk', minutes: Number(f.minutes.value), km: f.km.value === '' ? null : Number(f.km.value) / <?= rrp_units()['imperial'] ? '0.621371192' : '1' ?>}).then(function(j){
       if (j.ok) location.reload(); else alert(j.error || 'Could not save.');
     });
   });

@@ -320,3 +320,26 @@
 .rw-coins div{min-width:0;display:flex;flex-direction:column;gap:2px}
 .rw-coins b{font-size:15px;line-height:1.3}
 .rw-coins small{color:var(--sub);font-size:12px}
+
+/* Plus checkout */
+.pp-row{margin-top:10px}
+.pp-lab{margin:10px 0 6px;font-size:13px;font-weight:600;color:var(--sub)}
+.pp-coupon{display:flex;gap:8px}
+.pp-coupon input{flex:1;min-width:0;min-height:46px;padding:0 14px;border:1px solid var(--edge,var(--line));background:var(--panel);color:var(--text);border-radius:var(--r-md,12px);font:inherit;text-transform:uppercase}
+.pp-coupon .btn{width:auto;min-width:92px;padding:0 16px;height:46px}
+.care-card .pp-check{display:flex;flex-direction:row;gap:12px;align-items:flex-start;margin:14px 0 0;cursor:pointer;width:100%}
+.pp-check input{width:22px;height:22px;margin-top:1px;flex:none;accent-color:var(--blue)}
+.care-card .pp-check > span{display:flex;flex-direction:column;gap:3px;line-height:1.35;min-width:0;flex:1}
+.care-card .pp-check small{display:block}
+.pp-lines{margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md,12px);background:var(--bg)}
+.pp-lines div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14px}
+.pp-lines dt{margin:0;color:var(--sub)}
+.pp-lines dd{margin:0;font-variant-numeric:tabular-nums}
+.pp-lines .pp-minus dd{color:var(--good,#1F9D6B);font-weight:600}
+.pp-lines .pp-total{margin-top:6px;padding-top:10px;border-top:1px solid var(--line);font-size:16px;font-weight:800}
+.pp-lines .pp-total dt{color:var(--text)}
+.pp-card{margin:14px 0 0;font-weight:600}
+.pp-card .link{margin-left:8px;font-weight:500}
+.pp-sq{min-height:92px}
+.care-card .pp-check b{font-size:15px;font-weight:700;line-height:1.3}
+.care-card .pp-check small{font-size:13px}

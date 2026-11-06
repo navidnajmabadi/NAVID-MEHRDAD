@@ -372,6 +372,7 @@ require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/email.php';
 require_once __DIR__ . '/report.php';
 require_once __DIR__ . '/onboarding.php';
+require_once __DIR__ . '/units.php';
 require_once __DIR__ . '/sipo/knowledge.php';
 require_once __DIR__ . '/sipo/choices.php';
 require_once __DIR__ . '/sipo/driver.php';

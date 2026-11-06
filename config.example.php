@@ -95,16 +95,17 @@ return [
     // Square Developer Dashboard → your app → Credentials (access token, location) and Webhooks
     // (subscribe to payment.created + payment.updated, URL below, copy the signature key).
     'square' => [
-        'environment' => 'sandbox',           // 'production' when live
-        'access_token' => '',
-        'location_id' => '',
-        'webhook_signature_key' => '',
+        'application_id' => '',               // Square Developer Dashboard → your app → Production → Application ID (sq0idp-...)
+        'access_token' => '',                 // same page → Production → Access token
+        'location_id' => '',                  // same dashboard → Locations → your location → Location ID
+        'webhook_signature_key' => '',        // optional (only for the old payment links)
         'webhook_url' => 'https://sipaw.nakilab.com/api/square/webhook.php',
     ],
+    // Fallback only: the price, currency, coin value and tax are set in Admin → Pricing.
     'billing' => [
-        'monthly_cents' => 1999,              // USD 19.99 (v1 decision); change any time
-        'yearly_cents' => null,               // set to show a yearly option
-        'currency' => 'USD',
+        'monthly_cents' => 1999,              // 19.99
+        'yearly_cents' => null,
+        'currency' => 'CAD',                  // must match the Square account's currency
     ],
     // Insights: groups smaller than this show as "<N" in dashboards and CSV reports.
     'insights' => ['min_group' => 5],
