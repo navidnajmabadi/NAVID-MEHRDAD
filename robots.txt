@@ -1,5 +1,72 @@
-User-agent: *
-Allow: /
+# SIPAW (https://sipaw.nakilab.com)
+# Public: the home page, the blog, sign-up and the legal pages. Everything else is a signed-in screen or a
+# private page (a pet's scan page shows the owner's contact details, so it is never crawled).
+#
+# Search engines and AI assistants are welcome to read the public pages. The names below share ONE set of rules
+# (a bot with its own separate block would ignore the private-page rules), so nobody is let into private pages.
+# A plain-language summary for assistants is at /llms.txt, the full text of the blog at /llms-full.txt.
+#
+# Only Disallow lines are used: anything not listed is allowed (this works the same for every kind of crawler,
+# including simple ones that stop at the first rule that matches).
 
-# Public scan pages are intentional; noindex optional on app chrome via meta tags.
-Sitemap:
+User-agent: *
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: CCBot
+Disallow: /admin/
+Disallow: /api/
+Disallow: /cron/
+Disallow: /config/
+Disallow: /scripts/
+Disallow: /sql/
+Disallow: /uploads/pets/
+Disallow: /tag.php
+Disallow: /lost-alert.php
+Disallow: /rescued.php
+Disallow: /finder-chat.php
+Disallow: /vet.php
+Disallow: /tour.php
+Disallow: /tour-demo.php
+Disallow: /login.php
+Disallow: /logout.php
+Disallow: /forgot-password.php
+Disallow: /reset-password.php
+Disallow: /welcome.php
+Disallow: /dashboard.php
+Disallow: /si-chat.php
+Disallow: /care.php
+Disallow: /health-care.php
+Disallow: /daily.php
+Disallow: /walk.php
+Disallow: /routines.php
+Disallow: /finance.php
+Disallow: /billing.php
+Disallow: /invoice.php
+Disallow: /settings.php
+Disallow: /account.php
+Disallow: /account-delete.php
+Disallow: /alerts.php
+Disallow: /rewards.php
+Disallow: /plus.php
+Disallow: /area.php
+Disallow: /pet-form.php
+Disallow: /pet-profile.php
+Disallow: /pet-register.php
+Disallow: /pet.php
+Disallow: /pet
+Disallow: /reminders.php
+Disallow: /support.php
+Disallow: /dev-tools.php
+
+Sitemap: https://sipaw.nakilab.com/sitemap.xml

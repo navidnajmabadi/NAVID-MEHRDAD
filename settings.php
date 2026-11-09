@@ -130,7 +130,7 @@ rrp_app_start(['nav' => 'settings']);
       <li><a href="billing.php"><span>⭐</span><span><b><?= $plan === 'plus' ? 'Plus and billing' : 'Plus and billing' ?></b><small class="meta"><?= $plan === 'plus' ? 'Card, payments and invoices' : 'See Plus, pay, invoices' ?></small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="rewards.php"><span>🐾</span><span><b>Rewards</b><small class="meta">Paw coins and invite friends</small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="dashboard.php"><span>🏠</span><span><b>Home overview</b><small class="meta">All pets on one screen</small></span><i aria-hidden="true">›</i></a></li>
-      <li><a href="welcome.php?again=1"><span>👋</span><span><b>Start the welcome again</b><small class="meta">Meet SIPO again, then add or finish a pet profile step by step</small></span><i aria-hidden="true">›</i></a></li>
+      <li><a href="tour.php"><span>👋</span><span><b>Take the tour</b><small class="meta">See what SIPAW can do. Nothing on your account is changed</small></span><i aria-hidden="true">›</i></a></li>
       <li><a href="support.php"><span>💬</span><span><b>Help and support</b><small class="meta">Your tickets and replies · we reply within 7 days</small></span><i aria-hidden="true">›</i></a></li>
       <?php if (rrp_is_super_owner($owner)): ?><li><a href="<?= rrp_h(rrp_asset('admin/')) ?>"><span>🛠️</span><span><b>Admin</b></span><i aria-hidden="true">›</i></a></li><?php endif; ?>
     </ul>

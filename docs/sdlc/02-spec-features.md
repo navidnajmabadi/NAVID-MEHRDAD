@@ -9,7 +9,8 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Sign up, log in, log out | Email + password; asks only what SIPO should call you, email, password, terms. Google sign-in when keys are set | `signup.php`, `login.php`, `lib/auth.php`, `lib/google_sso.php`, `oauth/` |
 | Stay logged in | 60-day "keep me logged in" token (hashed, rotated). Sessions live in their own folder; form token also lives in a cookie so open pages survive | `lib/auth.php`, `lib/bootstrap.php` |
 | Safer login | 5 wrong tries per email+IP in 15 minutes, open-redirect fix, password reset by email link | `lib/auth.php`, `lib/password_reset.php` |
-| Welcome flow | SIPO says hello, asks name and country, then the chat adds the pet; photo and profile steps are plain code, not model whim | `welcome.php`, `lib/onboarding.php` |
+| Welcome flow | SIPO says hello, asks name and country, then the tour, then the chat adds the pet; photo and profile steps are plain code, not model whim | `welcome.php`, `lib/onboarding.php` |
+| Guided tour | 10 steps (intro, Health with lab upload, Vet link, SIPO chat, Routines, Lost pet, Money, Walks, Coins, finish). Each step has an animated demo on sample data about Milo, a beagle, drawn by the real Health dashboard code. Skippable; first sign-in goes `welcome` then `tour.php?first=1`; any time from Menu → Take the tour or Settings. **Read-only: it never creates, changes or deletes pets, chats, memory or reminders** (the live lab upload on the Health step only runs if the owner picks a file). Open to expired trials | `tour.php`, `tour-demo.php`, `lib/tour.php`, `assets/js/tour.js`, `assets/js/tour-demo.js`, `assets/css/tour.css` |
 | Settings | Profile, appearance (Friendly default, Clean), time zone, weekly email, password, delete account | `settings.php`, `account*.php` |
 | **7-day free trial** | Every new account gets a trial (7 days by default; Admin → Pricing changes the default and **Admin → Accounts changes it per account**: set N days from today, add N days, end now). Existing accounts got 7 days from the day this shipped. Admin accounts never have a trial | `lib/access.php` |
 | **After the trial (no Plus)** | **Health stays visible but read-only.** Billing opens. SIPO, Home, Routines, Daily, Expenses are locked: the menu and the floating "Ask SIPO" button open the Billing page instead, and SIPO stops sending messages. Kept open on purpose: Lost-pet alerts and finder chat, Settings, logout and account deletion | `lib/access.php`, `care.php`, `lib/layout.php` |
@@ -56,7 +57,7 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Collar QR | Per-pet QR (PNG/PDF) and lost poster download | `lib/pets.php`, `assets/js/poster.js` |
 | Public scan | A finder sees the pet and the owner's contact, can share location | `tag.php`, `scan` API, `lib/scans.php` |
 | Finder chat | Per-scan chat between finder and owner, with push | `finder-chat.php`, `lib/chat.php` |
-| LOST HELP ME | Alert centered on the last-seen spot, nearby owners notified within about 25 km, escalation at start, +1 h, +3 h, +8 h, sightings, "Found" ends it with a rescued page | `lost.php`, `lib/lost.php`, `lib/lost/playbook.php`, `cron/lost-escalate.php` |
+| LOST HELP ME | Alert centered on the last-seen spot, nearby owners notified within the alert radius (20 km by default, `lost_radius_km`), escalation at start, +1 h, +3 h, +8 h, sightings, "Found" ends it with a rescued page | `lost.php`, `lib/lost.php`, `lib/lost/playbook.php`, `cron/lost-escalate.php` |
 | Search playbook | Advice by species (for example most lost dogs are found within about 1.5 km) | `lib/lost/playbook.php` |
 
 ## F. Rewards and growth
@@ -81,8 +82,20 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Invoices | Number `SIPAW-year-000123`; PDF with logo, seller, discounts, tax line; download or email | `invoice.php`, `lib/invoice.php`, `lib/pdf.php` |
 | Old payment links | Still handled: signed webhook marks the order paid | `api/square/webhook.php` |
 
+## G2. Blog and being found by search engines and assistants
+| Feature | Details | Main files |
+|---------|---------|------------|
+| Blog posts in the database | Written in **Admin → Blog**: title, address, summary, cover picture, the text, author, optional publish date. Draft or published; hide and delete; **preview a draft before publishing**; a future date keeps it hidden until then | `admin/blog.php`, `lib/blog.php`, `sql/030_blog.sql` |
+| Upload a file | A .md, .txt or .html file fills the editor (read in the browser, checked and edited before saving). Simple formatting: headings, bold, italic, links, lists, quotes, pictures. HTML typed in is shown as text, never run | `admin/blog.php`, `rrp_blog_render()` |
+| Landing page | Light theme built on the SIPAW element tile: a periodic-table hero (one tile per part of the system, with Milo, SIPO and Luna plush pets), how it works, one chapter per part with the same demos as the tour (loaded when scrolled into view), meet the pack, blog block, call to action | `index.php`, `lib/tour.php` |
+| Public blog | `/blog` lists published posts (cover, date, summary); `/blog/<address>` shows one. The landing page has a "From the blog" block with the latest three | `blog.php`, `blog-post.php`, `index.php` |
+| Search tags | Each post has a title, description, canonical address, social-share tags and structured data (BlogPosting). App screens carry `noindex` | `lib/marketing_chrome.php`, `lib/layout.php` |
+| `sitemap.xml` | Home, blog, sign-up, legal pages and every published post, built live | `sitemap.php` |
+| `robots.txt` | Search engines and AI assistants (Google, Bing, OpenAI, Anthropic, Perplexity, Apple, Common Crawl…) may read the public pages; signed-in screens, admin, API and the pet pages (which show owner contact details) are blocked for everyone | `robots.txt` |
+| `llms.txt` and `llms-full.txt` | A plain-language guide to the site for assistants, plus the full text of all published posts | `llms.php` |
+
 ## H. Admin console (`/admin`)
-Overview (SIPO health), Insights and Map, Accounts (tokens per message, filters, **Access column, per-account trial control, remove subscription**), Tickets, **Pricing** (price, coin value, cap, tax, invoice seller details,
+Overview (SIPO health), Insights and Map, **Blog**, Accounts (tokens per message, filters, **Access column, per-account trial control, remove subscription**), Tickets, **Pricing** (price, coin value, cap, tax, invoice seller details,
 Square connection check), Coupons, Emails (preview templates), **NAKI brain**, **Brain graph**, **Test lab**, SIPO check, **Site health**, **Errors**, Logs, Moderation (when Pack is on).
 
 ## I. Quality and operations

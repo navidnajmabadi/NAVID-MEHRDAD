@@ -15,7 +15,7 @@ const RRP_SOCIAL_TARGET_BYTES = 350 * 1024;
  * @param array $file one $_FILES entry
  * @return array{ok:bool, error?:string, path?:string, w?:int, h?:int, bytes?:int, jpeg?:string}
  */
-function rrp_social_compress_photo(array $file): array
+function rrp_social_compress_photo(array $file, string $folder = 'social'): array
 {
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
         return ['ok' => false, 'error' => 'No photo.'];
@@ -31,14 +31,15 @@ function rrp_social_compress_photo(array $file): array
     if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
         return ['ok' => false, 'error' => 'Use a JPG, PNG or WebP photo. On iPhone choose "Most Compatible".'];
     }
-    $res = rrp_social_compress_path((string) $file['tmp_name']);
+    $res = rrp_social_compress_path((string) $file['tmp_name'], $folder);
     @unlink((string) $file['tmp_name']);
     return $res;
 }
 
 /** @return array{ok:bool, error?:string, path?:string, w?:int, h?:int, bytes?:int, jpeg?:string} */
-function rrp_social_compress_path(string $path): array
+function rrp_social_compress_path(string $path, string $folder = 'social'): array
 {
+    $folder = in_array($folder, ['social', 'blog'], true) ? $folder : 'social';
     $src = @imagecreatefromstring((string) file_get_contents($path));
     if (!$src) {
         return ['ok' => false, 'error' => 'That photo could not be read.'];
@@ -64,7 +65,7 @@ function rrp_social_compress_path(string $path): array
             break;
         }
     }
-    $dir = dirname(__DIR__, 2) . '/uploads/social/' . gmdate('Y/m');
+    $dir = dirname(__DIR__, 2) . '/uploads/' . $folder . '/' . gmdate('Y/m');
     if (!is_dir($dir) && !@mkdir($dir, 0755, true)) {
         return ['ok' => false, 'error' => 'Could not save the photo.'];
     }
@@ -72,12 +73,12 @@ function rrp_social_compress_path(string $path): array
     if (@file_put_contents($dir . '/' . $name, $jpeg) === false) {
         return ['ok' => false, 'error' => 'Could not save the photo.'];
     }
-    return ['ok' => true, 'path' => 'uploads/social/' . gmdate('Y/m') . '/' . $name, 'w' => $nw, 'h' => $nh, 'bytes' => strlen($jpeg), 'jpeg' => $jpeg];
+    return ['ok' => true, 'path' => 'uploads/' . $folder . '/' . gmdate('Y/m') . '/' . $name, 'w' => $nw, 'h' => $nh, 'bytes' => strlen($jpeg), 'jpeg' => $jpeg];
 }
 
 function rrp_social_delete_photo(?string $rel): void
 {
-    if (!$rel || !str_starts_with($rel, 'uploads/social/')) {
+    if (!$rel || !(str_starts_with($rel, 'uploads/social/') || str_starts_with($rel, 'uploads/blog/')) || str_contains($rel, '..')) {
         return;
     }
     $abs = dirname(__DIR__, 2) . '/' . $rel;

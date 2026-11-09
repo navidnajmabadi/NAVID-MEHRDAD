@@ -19,6 +19,10 @@ RedirectMatch 404 /\.git
   RewriteEngine On
   RewriteRule ^uploads/.*\.(?i:php|phtml|phar)$ - [F,L]
   RewriteRule ^config(/|$) - [F,L]
+  # For search engines and AI assistants
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+  RewriteRule ^llms\.txt$ llms.php [L]
+  RewriteRule ^llms-full\.txt$ llms.php?full=1 [L]
   # Pretty blog URLs → PHP handlers
   RewriteRule ^blog/?$ blog.php [L,QSA]
   RewriteRule ^blog/([a-z0-9\-]+)/?$ blog-post.php?slug=$1 [L,QSA]

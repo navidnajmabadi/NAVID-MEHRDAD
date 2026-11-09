@@ -34,6 +34,7 @@ Why so plain: shared hosting cannot run workers or websockets, so the design is 
 │  ├─ viewmodels/    One plain array per screen
 │  └─ views/         Shared HTML fragments
 ├─ assets/           css/, js/, img/ (logos, mascot), mascot sprites
+├─ blog.php, blog-post.php, sitemap.php, llms.php, robots.txt   Public blog and the files for search engines and assistants (rewrites for /blog, /sitemap.xml, /llms.txt in `.htaccess`)
 ├─ cron/             tick.php (the one job) and the older per-job URLs
 ├─ scripts/          Command-line tools: migrate.php, create-admin.php, generate-vapid.php, …
 ├─ sql/              Numbered migrations 001 to 028
@@ -103,6 +104,7 @@ Older per-job URLs still work but should be removed from the hosting cron list.
 | SIPO | `chat_threads`, `chat_messages`, `sipo_memory`, `sipo_nudges`, `sipo_token_window`, `si_message_secrets`, `si_usage_daily` |
 | NAKI | `si_prompt_versions`, `si_brain_runs`, `si_brain_scores`, `si_eval_cases`, `si_request_log`, `si_clusters`, `si_tests`, `si_kpi_daily`, `naki_proposals` |
 | Lost and scans | `scans`, `lost_alerts`, `lost_alert_recipients`, `lost_sightings`, `geocode_cache`, `owner_activity_hours` |
+| Content | `blog_posts` (slug, title, summary, markdown-lite body, cover, status, publish date) |
 | Access | columns on `owners`: `trial_ends_at`, `canceled_at`, `cancel_reason`, `plan`, `plan_expires_at` |
 | Rewards and billing | `sip_ledger`, `reward_weeks`, `referrals`, `subscriptions`, `billing_orders`, `billing_events`, `coupons`, `promo_first`, `app_settings` |
 | Notifications | `notifications`, `push_subscriptions` |
@@ -132,3 +134,6 @@ Stored units are always kg and km. Times are stored in UTC; each owner has a tim
 - **Uploads:** PHP files are blocked in `uploads/`; photos from the camera are shrunk in the browser; files sent to SIPO are read and then deleted.
 - **Headers:** HSTS, nosniff, frame protection (`.htaccess`).
 - **Known gap:** the two super-owner email addresses are written in `lib/plan.php` as defaults; move them to the config file (see the plan).
+
+## Tour and demo pages
+`lib/tour.php` holds the step texts (one source for `tour.php` and the landing page), the sample Milo data shaped like `rrp_vm_health()` and eight demo scenes. `tour-demo.php?d=<scene>` is a public, noindex page that plays one scene (sample data, no database reads or writes) and is shown in an iframe laid out at 390 x 706 and scaled to its frame. Scenes are timed in `assets/js/tour-demo.js` and loop; `prefers-reduced-motion` shows the final state. The tour page loads a demo only while its step is on screen.

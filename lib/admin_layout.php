@@ -20,6 +20,7 @@ function rrp_admin_icon(string $name): string
         'shield' => 'M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6zM9 12l2 2 4-4',
         'alert' => 'M12 3 2 20h20L12 3zM12 10v5M12 18h.01',
         'list' => 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+        'doc' => 'M6 2.5h8l4.5 4.5v14.5H6zM14 2.5V7h4.5M9 13h6.5M9 17h6.5',
         'logout' => 'M10 4H5v16h5M15 8l4 4-4 4M19 12H9',
         'menu' => 'M4 7h16M4 12h16M4 17h16',
         'dots' => 'M5 12h.01M12 12h.01M19 12h.01',
@@ -34,6 +35,7 @@ function rrp_admin_nav(string $active = 'home'): void
     $groups = [
         'Overview' => [['home', 'index.php', 'Overview', 'home'], ['insights', 'insights.php', 'Insights', 'chart'], ['geo', 'geo.php', 'Map and cities', 'map']],
         'People' => [['accounts', 'accounts.php', 'Accounts', 'users'], ['tickets', 'tickets.php', 'Tickets', 'ticket'], ['pricing', 'pricing.php', 'Pricing', 'tag'], ['coupons', 'coupons.php', 'Coupons', 'tag'], ['emails', 'emails.php', 'Emails', 'mail']],
+        'Content' => [['blog', 'blog.php', 'Blog', 'doc']],
         'SIPO brain' => [['brain', 'naki.php', 'NAKI brain', 'brain'], ['graph', 'graph.php', 'Brain graph', 'graph'], ['lab', 'lab.php', 'Test lab', 'flask'], ['sipo', 'sipo-check.php', 'SIPO check', 'check']],
         'System' => [['site', 'site.php', 'Site health', 'pulse'], ['errors', 'errors.php', 'Errors', 'alert'], ['logs', 'logs.php', 'Logs', 'list']],
     ];

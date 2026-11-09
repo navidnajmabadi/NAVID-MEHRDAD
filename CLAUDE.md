@@ -57,6 +57,10 @@ node --check assets/js/file.js                 # and every JS file
 - Shared hosting clears the common PHP session folder every ~24 minutes. Sessions live in `config/sessions`; login also has the 60-day remember token.
 - The live config is `sipaw.php` **or** the legacy `ringringpaw.php`; the first readable path wins. Never create a second file. Admin → Pricing shows the one in use.
 - After the 7-day trial an owner without Plus is limited to a short allow-list of pages (`rrp_access_script_allowed()` in `lib/access.php`). **A new page or API that must stay usable after the trial has to be added there**, and any new write action on Health must respect read-only (`rrp_access($owner)['readonly']`).
+- The migration runner splits a file on **every `;`** (even inside quotes) and drops lines that start with `--`. Never put a semicolon or a line starting with `--` inside a text value in a migration.
+- `robots.txt`: use only `Disallow` lines and one shared `User-agent` group. A crawler with its own block ignores the `*` block, and simple crawlers stop at the first matching rule, so an early `Allow: /` unblocks everything for them. Check with Python's `urllib.robotparser` before changing it.
+- Blog text is stored as markdown-lite and rendered by `rrp_blog_render()` (HTML is escaped, never run). Do not output a post body any other way.
+- In zsh, `echo` turns `\u003C` into `<`, which can fake an XSS finding when you test JSON output; read the raw file instead.
 - Hostinger has no usable PHP error log; use Admin → Errors (every error has a 6-letter code).
 - iPhone: the keyboard can leave the page pushed up; the chat sizes itself to `visualViewport`. Camera photos can be huge or have no file type; they are redrawn as JPEG before upload.
 - Overlapping cron runs sent duplicate messages; per-owner database locks (`rrp_lock_try`) prevent it. Keep new cron work behind a lock.

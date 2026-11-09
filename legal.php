@@ -12,7 +12,7 @@ if (!isset($titles[$doc])) {
     $doc = 'terms';
 }
 
-rrp_layout_head($titles[$doc] . ' — SIPAW');
+rrp_layout_head($titles[$doc] . ' — SIPAW', ['index' => true]);
 rrp_app_start(['nav' => false]);
 ?>
 <div class="pad stack" style="gap:16px;max-width:640px;margin:0 auto;padding-top:32px">

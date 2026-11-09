@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/lib/bootstrap.php';
+require_once __DIR__ . '/lib/layout.php';   // rrp_flash_set()
 require_once __DIR__ . '/lib/devtools.php';
 
 // Super-owner only: sample data / reset to a new user (from the side menu).
@@ -25,8 +26,13 @@ if ($act === 'remove_samples') {
     rrp_redirect('settings.php');
 }
 if ($act === 'reset') {
+    // Destroys every pet, chat and memory on this account: only with the typed word, never by one stray tap.
+    if (trim((string) ($_POST['confirm_text'] ?? '')) !== 'DELETE') {
+        rrp_flash_set('error', 'Nothing was deleted. Type DELETE in the box to confirm.');
+        rrp_redirect('settings.php');
+    }
     rrp_dev_reset_owner((int) $owner['id']);
-    rrp_flash_set('ok', 'Fresh start 🧹 SIPO has forgotten everything. Say hi like a new user.');
+    rrp_flash_set('ok', 'Account data deleted. SIPO has forgotten everything. Say hi like a new user.');
     rrp_redirect('si-chat.php?new=1');
 }
 http_response_code(400);
