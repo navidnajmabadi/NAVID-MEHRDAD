@@ -261,6 +261,7 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
         ['finance.php', 'Expenses', 'What you spend on your pets', 'i-doc'],
         ['billing.php', 'Billing', 'Plan, card, payments and invoices', 'i-card'],
         ['settings.php', 'Settings', 'Profile, password, account', 'i-gear'],
+        ['tour.php', 'Take the tour', 'See what SIPAW can do. Nothing is changed.', 'i-play'],
     ];
     if (rrp_social_enabled()) {
         array_splice($items, 4, 0, [['forum.php', 'Pack', 'Posts from pets near and far', 'i-social']]);
@@ -346,9 +347,15 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
       <form method="post" action="dev-tools.php" data-confirm="Remove all sample pets (Rocky, Mochi) and their data? Your real pets stay.">
         <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="remove_samples" />
         <button type="submit">🧽 Remove sample pets</button></form>
-      <form method="post" action="dev-tools.php" data-confirm="Clear SIPO memory and start as a new user? Your pets, chats and data on this account are removed.">
-        <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="reset" />
-        <button type="submit">🧹 Clear SIPO memory (start as new user)</button></form>
+      <details class="side-danger">
+        <summary>⚠ Delete this account's data</summary>
+        <form method="post" action="dev-tools.php">
+          <p class="meta">Testing only. This removes ALL pets, chats, SIPO memory, reminders and expenses on THIS account and cannot be undone. It is not the tour (Take the tour changes nothing).</p>
+          <input type="hidden" name="csrf" value="<?= rrp_h(rrp_csrf_token()) ?>" /><input type="hidden" name="act" value="reset" />
+          <input type="text" name="confirm_text" placeholder="Type DELETE to confirm" autocomplete="off" autocapitalize="characters" required pattern="DELETE" aria-label="Type DELETE to confirm" />
+          <button type="submit">Delete everything</button>
+        </form>
+      </details>
     </div>
   <?php endif; ?>
 </nav>

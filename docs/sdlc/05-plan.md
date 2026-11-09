@@ -39,6 +39,7 @@ Just built, **waiting for the first real payment**: Square card payments, auto-r
 ## Decisions already made
 | Decision | Why |
 |----------|-----|
+| The tour never writes to the account; the admin reset needs the typed word DELETE | Starting or restarting the tour must never clear SIPO's memory or pets |
 | PHP + MariaDB on shared hosting, no framework | Cheap, simple to run, fits the team |
 | One chat per pet, SIPO speaks first, quiet hours 21:00 to 09:00 | Habit without waking people |
 | Models never act without a tool; guards fix false "Done" | Trust: the app must never claim something it did not do |

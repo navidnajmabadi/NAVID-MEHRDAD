@@ -134,3 +134,6 @@ Stored units are always kg and km. Times are stored in UTC; each owner has a tim
 - **Uploads:** PHP files are blocked in `uploads/`; photos from the camera are shrunk in the browser; files sent to SIPO are read and then deleted.
 - **Headers:** HSTS, nosniff, frame protection (`.htaccess`).
 - **Known gap:** the two super-owner email addresses are written in `lib/plan.php` as defaults; move them to the config file (see the plan).
+
+## Tour and demo pages
+`lib/tour.php` holds the step texts (one source for `tour.php` and the landing page), the sample Milo data shaped like `rrp_vm_health()` and eight demo scenes. `tour-demo.php?d=<scene>` is a public, noindex page that plays one scene (sample data, no database reads or writes) and is shown in an iframe laid out at 390 x 706 and scaled to its frame. Scenes are timed in `assets/js/tour-demo.js` and loop; `prefers-reduced-motion` shows the final state. The tour page loads a demo only while its step is on screen.

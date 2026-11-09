@@ -185,6 +185,7 @@ function rrp_access_script_allowed(string $script): bool
         'lost.php', 'lost-alert.php', 'rescued.php', 'chat.php',  // a lost pet must never be locked behind a payment
         'settings.php', 'account.php', 'account-delete.php', 'logout.php', 'legal.php',  // account basics
         'me.php', 'client-error.php', 'notifications.php', 'lost.php',
+        'tour.php',                                     // the tour only shows sample data and changes nothing
     ], true);
 }
 

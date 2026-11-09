@@ -478,3 +478,8 @@ body.pcrop-open{overflow:hidden}
 .sipo-fab:focus{outline:none}
 .sipo-fab:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 .bell-head{gap:14px}.bell-head b{margin-right:auto}
+.side-danger{border:1px dashed var(--red,#E5252A);padding:0}
+.side-danger summary{cursor:pointer;padding:10px 8px;font-size:13px;color:var(--red,#E5252A)}
+.side-danger form{display:flex;flex-direction:column;gap:6px;padding:0 8px 10px}
+.side-danger input{padding:9px 8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit;font-size:13px}
+.side-danger button{border-color:var(--red,#E5252A);color:var(--red,#E5252A)}

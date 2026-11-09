@@ -4,7 +4,7 @@ require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/layout.php';
 
 // First sign-in only: SIPO says hello, explains SIPAW, asks the owner's name and country, then
-// hands over to the SIPO chat where the pet is added.
+// hands over to the tour (tour.php), which ends at the SIPO chat where the pet is added.
 $owner = rrp_require_owner();
 if (!empty($owner['onboarded_at']) && !isset($_GET['again'])) {
     rrp_redirect('dashboard.php');
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $r = rrp_onb_save_profile($owner, $_POST, true);
         if (!empty($r['ok'])) {
-            rrp_redirect('si-chat.php?new=1');
+            rrp_redirect('tour.php?first=1');
         }
         $error = $r['error'] ?? 'Could not save that.';
     }

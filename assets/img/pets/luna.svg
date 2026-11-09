@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="Luna, a plush tabby cat">
+  <defs>
+    <radialGradient id="lHead" cx="38%" cy="28%" r="80%"><stop offset="0" stop-color="#E6E3F0"/><stop offset=".55" stop-color="#C5C1D6"/><stop offset="1" stop-color="#9E99B5"/></radialGradient>
+    <radialGradient id="lMuzzle" cx="45%" cy="30%" r="75%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#ECE9F4"/></radialGradient>
+    <radialGradient id="lBlush" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FF9FB4" stop-opacity=".85"/><stop offset="1" stop-color="#FF9FB4" stop-opacity="0"/></radialGradient>
+    <radialGradient id="lIris" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#9FD3A0"/><stop offset="1" stop-color="#3F7C4E"/></radialGradient>
+    <linearGradient id="lCollar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B8DFF"/><stop offset="1" stop-color="#2E6AFF"/></linearGradient>
+    <radialGradient id="lShadow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+  </defs>
+  <ellipse cx="120" cy="226" rx="78" ry="9" fill="url(#lShadow)"/>
+  <!-- ears -->
+  <path d="M44 30c-4 4-14 36-8 66 22-6 40-18 52-34C74 44 58 32 44 30z" fill="url(#lHead)"/>
+  <path d="M196 30c4 4 14 36 8 66-22-6-40-18-52-34 14-18 30-30 44-32z" fill="url(#lHead)"/>
+  <path d="M50 46c-2 3-8 22-5 40 12-4 22-10 30-20-8-10-16-17-25-20z" fill="#F6B5C4"/>
+  <path d="M190 46c2 3 8 22 5 40-12-4-22-10-30-20 8-10 16-17 25-20z" fill="#F6B5C4"/>
+  <!-- body hint and collar -->
+  <path d="M70 232c0-34 20-56 50-56s50 22 50 56z" fill="url(#lHead)"/>
+  <path d="M110 232c0-22 4-36 10-36s10 14 10 36z" fill="url(#lMuzzle)"/>
+  <path d="M74 188c30 14 62 14 92 0l6 16c-33 17-71 17-104 0z" fill="url(#lCollar)"/>
+  <circle cx="120" cy="212" r="9" fill="#fff"/><circle cx="120" cy="212" r="9" fill="none" stroke="#2E6AFF" stroke-width="3"/>
+  <!-- head -->
+  <ellipse cx="120" cy="118" rx="86" ry="72" fill="url(#lHead)"/>
+  <!-- tabby stripes -->
+  <path d="M92 60c6 10 9 20 7 30M120 54v34M148 60c-6 10-9 20-7 30" stroke="#8C86A6" stroke-width="6" fill="none" stroke-linecap="round" opacity=".75"/>
+  <path d="M40 120c8 2 14 6 18 12M200 120c-8 2-14 6-18 12" stroke="#8C86A6" stroke-width="5" fill="none" stroke-linecap="round" opacity=".6"/>
+  <ellipse cx="120" cy="146" rx="42" ry="30" fill="url(#lMuzzle)"/>
+  <!-- stitched seam -->
+  <path d="M168 62c14 12 22 32 22 54" stroke="#fff" stroke-opacity=".8" stroke-width="2.2" stroke-dasharray="4 4" fill="none" stroke-linecap="round"/>
+  <!-- cheeks -->
+  <circle cx="72" cy="148" r="17" fill="url(#lBlush)"/><circle cx="168" cy="148" r="17" fill="url(#lBlush)"/>
+  <!-- eyes -->
+  <g><circle cx="88" cy="116" r="18" fill="#22302A"/><circle cx="88" cy="116" r="14" fill="url(#lIris)"/><ellipse cx="88" cy="117" rx="5" ry="9" fill="#0D1511"/>
+    <circle cx="82" cy="109" r="5.2" fill="#fff"/><circle cx="94" cy="124" r="2.4" fill="#fff" opacity=".9"/></g>
+  <g><circle cx="152" cy="116" r="18" fill="#22302A"/><circle cx="152" cy="116" r="14" fill="url(#lIris)"/><ellipse cx="152" cy="117" rx="5" ry="9" fill="#0D1511"/>
+    <circle cx="146" cy="109" r="5.2" fill="#fff"/><circle cx="158" cy="124" r="2.4" fill="#fff" opacity=".9"/></g>
+  <!-- nose, mouth, whiskers -->
+  <path d="M112 140h16l-8 9z" fill="#F08AA0"/><ellipse cx="117" cy="141.5" rx="3" ry="1.6" fill="#fff" opacity=".55"/>
+  <path d="M120 149v6M108 158c6 6 18 6 24 0" stroke="#5B4B66" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M62 146l-30-6M62 156l-30 8M178 146l30-6M178 156l30 8" stroke="#fff" stroke-width="2" opacity=".8" stroke-linecap="round"/>
+</svg>

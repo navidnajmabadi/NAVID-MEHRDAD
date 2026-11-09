@@ -36,6 +36,8 @@ Disallow: /lost-alert.php
 Disallow: /rescued.php
 Disallow: /finder-chat.php
 Disallow: /vet.php
+Disallow: /tour.php
+Disallow: /tour-demo.php
 Disallow: /login.php
 Disallow: /logout.php
 Disallow: /forgot-password.php
