@@ -79,6 +79,12 @@ Check: Admin → Site health → "Last cron check-in" should be minutes old.
 | Key leaked | Rotate it at the provider (OpenAI, Square token "Replace", SMTP password), update the server config file, never commit it |
 | Add a new admin | `php scripts/create-admin.php "Name" email 'password'` on the server, or `admin/setup.php` while fewer than 2 admins exist |
 
+## Being found (search engines and assistants)
+- `https://sipaw.nakilab.com/robots.txt`, `/sitemap.xml`, `/llms.txt` and `/llms-full.txt` are served by the app (the last three are built live, so new posts appear at once).
+- After the first deploy: add the site in **Google Search Console** and **Bing Webmaster Tools**, then submit `https://sipaw.nakilab.com/sitemap.xml`. Both need a short ownership check (a DNS record or a file) that only you can do.
+- A new blog post reaches the sitemap and `llms.txt` the moment it is published (Admin → Blog). Search engines pick it up on their next visit.
+- `robots.txt` keeps the pet pages, admin, API and signed-in screens out for every crawler (only `Disallow` lines are used so simple crawlers cannot misread it).
+
 ## Backups
 Not documented in the code. To confirm: Hostinger's automatic backups for files and the database, and how long they are kept. Until confirmed, treat the database as the one irreplaceable asset
 (owners, pets, health records, invoices) and take a manual export from phpMyAdmin before any risky change.

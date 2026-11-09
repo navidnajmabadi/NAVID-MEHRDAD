@@ -6,10 +6,14 @@ declare(strict_types=1);
  * Landing (index.php) stays self-contained; this mirrors its nav/footer rules.
  */
 
-function rrp_marketing_head(string $title, string $description = ''): void
+/**
+ * @param array{canonical?:string, og_type?:string, og_image?:string, json_ld?:array, noindex?:bool, published?:string, modified?:string} $opts
+ */
+function rrp_marketing_head(string $title, string $description = '', array $opts = []): void
 {
-    $canonical = rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/';
+    $canonical = (string) ($opts['canonical'] ?? (rrp_config_ready() ? rrp_app_url() : 'https://sipaw.nakilab.com/'));
     $desc = $description !== '' ? $description : 'siPaw by Nakilab. Chat with SIPO, get reminders on time, and ask other owners.';
+    $ogImage = (string) ($opts['og_image'] ?? rrp_app_url('assets/icons/sipaw-tile-192.png'));
     ?>
 <!doctype html>
 <html lang="en">
@@ -18,10 +22,21 @@ function rrp_marketing_head(string $title, string $description = ''): void
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title><?= rrp_h($title) ?></title>
 <meta name="description" content="<?= rrp_h($desc) ?>">
+<?php if (!empty($opts['noindex'])): ?><meta name="robots" content="noindex,nofollow">
+<?php else: ?><meta name="robots" content="index,follow,max-image-preview:large">
+<?php endif; ?>
+<meta property="og:type" content="<?= rrp_h((string) ($opts['og_type'] ?? 'website')) ?>">
 <meta property="og:title" content="<?= rrp_h($title) ?>">
+<meta property="og:description" content="<?= rrp_h($desc) ?>">
+<meta property="og:url" content="<?= rrp_h($canonical) ?>">
+<meta property="og:image" content="<?= rrp_h($ogImage) ?>">
 <meta property="og:site_name" content="SIPAW">
+<meta name="twitter:card" content="<?= !empty($opts['og_image']) ? 'summary_large_image' : 'summary' ?>">
+<?php if (!empty($opts['published'])): ?><meta property="article:published_time" content="<?= rrp_h((string) $opts['published']) ?>">
+<?php endif; ?>
 <meta name="theme-color" content="#000000">
 <link rel="canonical" href="<?= rrp_h($canonical) ?>">
+<link rel="alternate" type="text/plain" title="llms.txt" href="<?= rrp_h(rrp_app_url('llms.txt')) ?>">
 <link rel="manifest" href="<?= rrp_h(rrp_asset('manifest.webmanifest')) ?>">
 <link rel="icon" type="image/png" href="<?= rrp_h(rrp_asset('assets/icons/sipaw-tile-192.png')) ?>">
 <link rel="apple-touch-icon" href="<?= rrp_h(rrp_asset('assets/icons/apple-touch-icon.png')) ?>">
@@ -30,6 +45,8 @@ function rrp_marketing_head(string $title, string $description = ''): void
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= rrp_h(rrp_asset('assets/css/marketing-site.css', true)) ?>">
+<?php if (!empty($opts['json_ld'])): ?><script type="application/ld+json"><?= json_encode($opts['json_ld'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+<?php endif; ?>
 </head>
 <body>
 <?php

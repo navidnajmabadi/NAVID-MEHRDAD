@@ -56,7 +56,7 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Collar QR | Per-pet QR (PNG/PDF) and lost poster download | `lib/pets.php`, `assets/js/poster.js` |
 | Public scan | A finder sees the pet and the owner's contact, can share location | `tag.php`, `scan` API, `lib/scans.php` |
 | Finder chat | Per-scan chat between finder and owner, with push | `finder-chat.php`, `lib/chat.php` |
-| LOST HELP ME | Alert centered on the last-seen spot, nearby owners notified within about 25 km, escalation at start, +1 h, +3 h, +8 h, sightings, "Found" ends it with a rescued page | `lost.php`, `lib/lost.php`, `lib/lost/playbook.php`, `cron/lost-escalate.php` |
+| LOST HELP ME | Alert centered on the last-seen spot, nearby owners notified within the alert radius (20 km by default, `lost_radius_km`), escalation at start, +1 h, +3 h, +8 h, sightings, "Found" ends it with a rescued page | `lost.php`, `lib/lost.php`, `lib/lost/playbook.php`, `cron/lost-escalate.php` |
 | Search playbook | Advice by species (for example most lost dogs are found within about 1.5 km) | `lib/lost/playbook.php` |
 
 ## F. Rewards and growth
@@ -81,8 +81,19 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Invoices | Number `SIPAW-year-000123`; PDF with logo, seller, discounts, tax line; download or email | `invoice.php`, `lib/invoice.php`, `lib/pdf.php` |
 | Old payment links | Still handled: signed webhook marks the order paid | `api/square/webhook.php` |
 
+## G2. Blog and being found by search engines and assistants
+| Feature | Details | Main files |
+|---------|---------|------------|
+| Blog posts in the database | Written in **Admin → Blog**: title, address, summary, cover picture, the text, author, optional publish date. Draft or published; hide and delete; **preview a draft before publishing**; a future date keeps it hidden until then | `admin/blog.php`, `lib/blog.php`, `sql/030_blog.sql` |
+| Upload a file | A .md, .txt or .html file fills the editor (read in the browser, checked and edited before saving). Simple formatting: headings, bold, italic, links, lists, quotes, pictures. HTML typed in is shown as text, never run | `admin/blog.php`, `rrp_blog_render()` |
+| Public blog | `/blog` lists published posts (cover, date, summary); `/blog/<address>` shows one. The landing page has a "From the blog" block with the latest three | `blog.php`, `blog-post.php`, `index.php` |
+| Search tags | Each post has a title, description, canonical address, social-share tags and structured data (BlogPosting). App screens carry `noindex` | `lib/marketing_chrome.php`, `lib/layout.php` |
+| `sitemap.xml` | Home, blog, sign-up, legal pages and every published post, built live | `sitemap.php` |
+| `robots.txt` | Search engines and AI assistants (Google, Bing, OpenAI, Anthropic, Perplexity, Apple, Common Crawl…) may read the public pages; signed-in screens, admin, API and the pet pages (which show owner contact details) are blocked for everyone | `robots.txt` |
+| `llms.txt` and `llms-full.txt` | A plain-language guide to the site for assistants, plus the full text of all published posts | `llms.php` |
+
 ## H. Admin console (`/admin`)
-Overview (SIPO health), Insights and Map, Accounts (tokens per message, filters, **Access column, per-account trial control, remove subscription**), Tickets, **Pricing** (price, coin value, cap, tax, invoice seller details,
+Overview (SIPO health), Insights and Map, **Blog**, Accounts (tokens per message, filters, **Access column, per-account trial control, remove subscription**), Tickets, **Pricing** (price, coin value, cap, tax, invoice seller details,
 Square connection check), Coupons, Emails (preview templates), **NAKI brain**, **Brain graph**, **Test lab**, SIPO check, **Site health**, **Errors**, Logs, Moderation (when Pack is on).
 
 ## I. Quality and operations

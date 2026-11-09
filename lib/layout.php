@@ -89,6 +89,8 @@ function rrp_layout_head(string $title, array $opts = []): void
 <html lang="en" data-theme="<?= rrp_h((string) $theme) ?>"<?= $skin !== 'studio' ? ' data-skin="' . rrp_h($skin) . '"' : '' ?>>
 <head>
 <meta charset="utf-8" />
+<?php if (empty($opts['index'])): ?><meta name="robots" content="noindex,nofollow" />
+<?php endif; ?>
 <style>html{background:<?= ['friendly' => '#FFF8EF', 'clean' => '#F4F6FA'][$skin] ?? '#000000' ?>;color-scheme:<?= $skin === 'studio' ? 'dark' : 'light' ?>}@view-transition{navigation:auto}</style>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="description" content="<?= rrp_h($desc) ?>" />

@@ -13,7 +13,8 @@ Just built, **waiting for the first real payment**: Square card payments, auto-r
 | 4 | Remove the old per-job cron URLs in Hostinger; confirm "Last cron check-in" is recent | Auto-renew and nudges depend on the one job | Navid |
 | 5 | Watch the CAD 30,000 small-supplier limit (GST/HST registration is required once taxable sales pass it, over four consecutive quarters, to confirm with the accountant). If you register: set the rate and HST number in Admin → Pricing | No HST is charged today | Navid |
 | 6 | Verify on a real iPhone: chat position after the keyboard closes, camera photo upload, home-screen icon | Fixed from the code and a desktop browser only | Navid, then assistant |
-| 7 | Confirm Hostinger backups (files and database) and write the restore steps into `04-operations.md` | Not documented | Navid |
+| 7 | Add the site to Google Search Console and Bing Webmaster Tools and submit `sitemap.xml`; write the first real blog posts in Admin → Blog | Needed for the blog to be found | Navid |
+| 8 | Confirm Hostinger backups (files and database) and write the restore steps into `04-operations.md` | Not documented | Navid |
 
 ## Backlog (approved ideas, not built)
 - Daily health check card, weight trend chart on Health, vaccine/drops course reminder, one private doctor link for the pet's whole health folder.

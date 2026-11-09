@@ -72,6 +72,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 h1,h2,h3{font-family:var(--f-display);font-weight:600;text-transform:uppercase;letter-spacing:.02em;line-height:.98;text-wrap:balance}
 .wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 .label{font:500 13px/1 var(--f-display);letter-spacing:.24em;text-transform:uppercase;color:var(--sub)}
+.home-blog{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0;border-top:1px solid var(--line)}
+.home-post{display:flex;flex-direction:column;gap:8px;padding:22px 20px 22px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text)}
+.home-post:hover strong{color:var(--blue)}
+.home-post-date{font:500 12px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--meta)}
+.home-post strong{font-size:19px;line-height:1.3}
+.home-post-ex{color:var(--sub);font-size:15px;line-height:1.5}
 .data{font-family:var(--f-data);font-size:12px;font-weight:500;letter-spacing:.04em;font-variant-numeric:tabular-nums}
 .skip{position:absolute;left:-999px;top:8px;background:var(--solid);color:var(--on-solid);padding:10px 14px;z-index:100}
 .skip:focus{left:8px}
@@ -521,6 +527,25 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
     </div>
   </section>
 
+<?php $latest = rrp_blog_posts(3); if ($latest): ?>
+  <section class="block" id="blog" aria-labelledby="b-title">
+    <div class="wrap">
+      <p class="label">Blog</p>
+      <h2 id="b-title" style="margin:14px 0 22px">From the blog</h2>
+      <div class="home-blog">
+<?php foreach ($latest as $bp): ?>
+        <a class="home-post" href="<?= rrp_h(rrp_asset('blog/' . $bp['slug'])) ?>">
+          <span class="home-post-date"><?= rrp_h(rrp_blog_format_date((string) $bp['date'])) ?></span>
+          <strong><?= rrp_h((string) $bp['title']) ?></strong>
+          <span class="home-post-ex"><?= rrp_h((string) $bp['excerpt']) ?></span>
+        </a>
+<?php endforeach; ?>
+      </div>
+      <p style="margin-top:18px"><a class="btn" href="<?= rrp_h(rrp_asset('blog')) ?>">All posts</a></p>
+    </div>
+  </section>
+<?php endif; ?>
+
   <section class="block final" id="cta" aria-labelledby="c-title">
     <div class="wrap">
       <div><h2 id="c-title"><?= $owner ? 'Your pets are waiting.' : 'Add your first pet.' ?></h2><p><?= $owner ? 'Pick up where you left off.' : 'Two minutes. SIPO takes it from there.' ?></p></div>
@@ -575,7 +600,7 @@ footer .foot-bar p{color:var(--meta);font-size:12px;margin:0}
       </div>
       <div class="foot-col">
         <p class="foot-h">Blog</p>
-        <a href="blog.php">Blog</a>
+        <a href="blog">Blog</a>
       </div>
     </div>
     <div class="foot-bar">

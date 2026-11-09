@@ -13,7 +13,7 @@ unwell or lost. Existing pet apps are forms and lists the owner must keep fillin
 |------|------|
 | **Pet owner** (main user; dogs and cats first, up to 3 pets on Plus, 1 on Free) | One place that knows the pet, speaks first, reminds, and keeps health, food, walks and spending |
 | **A stranger who finds a pet** | Scan the collar QR, see the pet and reach the owner, optionally share live location |
-| **Nearby owners** | Hear about a lost pet within about 25 km and report a sighting |
+| **Nearby owners** | Hear about a lost pet nearby (20 km by default) and report a sighting |
 | **Admins** (Navid, Mehrdad) | See growth, accounts, errors, money and the quality of SIPO's answers |
 
 ## Core idea

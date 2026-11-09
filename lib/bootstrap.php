@@ -410,6 +410,7 @@ function rrp_social_enabled(): bool
 }
 
 require_once __DIR__ . '/social/photos.php';
+require_once __DIR__ . '/blog.php';
 require_once __DIR__ . '/social/moderation.php';
 require_once __DIR__ . '/rewards/coins.php';
 require_once __DIR__ . '/rewards/program.php';
