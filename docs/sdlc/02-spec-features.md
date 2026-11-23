@@ -79,6 +79,7 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Card payment | Square Web Payments SDK form; card saved on file; real charge in CAD. **Needs keys** | `api/billing/subscribe.php` |
 | Auto-renew | Cron charges the saved card shortly before Plus ends; 3 daily tries; coins spent only on success; referral free month used first | `lib/payments/billing.php` (`rrp_billing_auto_tick`) |
 | Coupons | Percent, fixed amount or free month; typed on the Billing page. Admin can **create, edit (value, type, limit, last day), disable and delete** | `admin/coupons.php`, `lib/coupons.php` |
+| iPhone app | Native SwiftUI app in `ios/` (SIPO chat, web Home/Health/Routines, More). Plus is bought with Apple In-App Purchase; the server checks Apple's signed transaction and follows Apple's renewal notices. The website payment is hidden in the app | `ios/`, `lib/apple.php`, `api/apple/*`, `api/auth/login.php` |
 | Receipts | Simple receipt, not a tax invoice. Number `SIPAW-year-000123`; PDF with logo, seller name and email, the discounts, total paid, how it was paid; download or email | `invoice.php`, `lib/invoice.php`, `lib/pdf.php` |
 | Old payment links | Still handled: signed webhook marks the order paid | `api/square/webhook.php` |
 

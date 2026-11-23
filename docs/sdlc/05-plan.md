@@ -49,6 +49,7 @@ Just built, **waiting for the first real payment**: Square card payments, auto-r
 | Discounts: coupon, then perfect weeks, then coins, capped at 50% in total; coins spent only on a successful payment | Predictable price, no double discount |
 | Square live only, card typed in Square's form, our own scheduler for renewals | No card data on our server; price can change each month |
 | No tax is charged to anyone, and the payment document is a simple receipt (no tax invoice) | Under CAD 30,000 small-supplier limit; confirm with the accountant |
+| Plus is bought in the iPhone app with Apple In-App Purchase; the website keeps Square card and Apple Pay | Apple's rules: digital subscriptions in an app must use In-App Purchase (15% to 30% fee) |
 | Customers abroad pay in CAD (Square takes one currency); we show an estimate in their currency | Square cannot charge in other currencies; the bank converts |
 | 7-day free trial per account (admin can change each one); after it, Health is read-only and SIPO is locked until Plus | Gives a real try, then a clear reason to subscribe; Lost-pet alerts stay open because a lost pet must never wait for a payment |
 | Cancel subscription the standard way (access until the end of the paid period, no refund of the current period, easy to resume) | Fair and expected by customers and card networks |

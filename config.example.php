@@ -101,7 +101,13 @@ return [
         'webhook_signature_key' => '',        // optional (only for the old payment links)
         'webhook_url' => 'https://sipaw.nakilab.com/api/square/webhook.php',
     ],
-    // Fallback only: the price, currency, coin value and tax are set in Admin → Pricing.
+    // Plus bought inside the iPhone app (Apple In-App Purchase). The defaults are right unless you pick other ids in App Store Connect.
+    'apple' => [
+        'bundle_id' => 'com.nakilab.sipaw',
+        'product_ids' => ['com.nakilab.sipaw.plus.monthly'],
+        // 'account_secret' => '',            // optional: any long random text; falls back to cron_secret
+    ],
+    // Fallback only: the price, currency and coin value are set in Admin → Pricing (no tax is charged).
     'billing' => [
         'monthly_cents' => 1999,              // 19.99
         'yearly_cents' => null,

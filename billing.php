@@ -102,7 +102,16 @@ rrp_app_start(['nav' => 'billing']);
     </form>
   <?php endif; ?>
 
-  <?php if ($monthly && !$isAdmin): ?>
+  <?php if (!empty($owner['apple_original_tx']) && $profile['card_id'] === '' && $plusUntil): ?>
+  <section class="care-card" id="appleManaged">
+    <h3 class="label">Plus from the iPhone app</h3>
+    <p class="sub">You bought Plus in the SIPAW iPhone app. Apple renews and bills it. To cancel or change it, open <b>Settings, your name, Subscriptions</b> on your iPhone. Plus works until <?= rrp_h((string) $plusUntil) ?> and extends by itself each time Apple renews.</p>
+  </section>
+  <?php endif; ?>
+
+  <?php if (rrp_is_ios_app()): ?>
+  <section class="care-card"><h3 class="label">Plus</h3><p class="sub">Manage Plus in the <b>Plus</b> tab of the app (the last tab, then Plus).</p></section>
+  <?php elseif ($monthly && !$isAdmin): ?>
   <section class="care-card" id="plusPay"
     data-csrf="<?= rrp_h($csrf) ?>" data-app-id="<?= rrp_h($sq['application_id']) ?>" data-location-id="<?= rrp_h($sq['location_id']) ?>"
     data-has-card="<?= $profile['card_id'] !== '' ? '1' : '0' ?>" data-ready="<?= $cardsReady ? '1' : '0' ?>">
@@ -143,7 +152,7 @@ rrp_app_start(['nav' => 'billing']);
   </section>
   <?php endif; ?>
 
-  <?php if ($profile['card_id'] !== ''): ?>
+  <?php if ($profile['card_id'] !== '' && !rrp_is_ios_app()): ?>
   <section class="care-card" id="plusManage" data-csrf="<?= rrp_h($csrf) ?>">
     <h3 class="label">Your subscription</h3>
     <p class="sub">💳 <?= rrp_h(ucwords(strtolower(str_replace('_', ' ', $profile['card_brand'] ?: 'Card')))) ?> ending <?= rrp_h($profile['card_last4']) ?></p>
