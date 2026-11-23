@@ -2,16 +2,16 @@
 
 ## Where we are (2026-11-07)
 Live and in daily use by the founders: accounts, SIPO, health, daily life, reminders, Lost mode, rewards, admin console, NAKI, error log.
-Just built, **waiting for the first real payment**: Square card payments, auto-renew, coupons, tax, invoices (`docs/tasks/square-setup.md`).
+Just built, **waiting for the first real payment**: Square card payments, auto-renew, coupons, receipts, no tax (`docs/tasks/square-setup.md`).
 
 ## Next, in order
 | # | Item | Why | Owner |
 |---|------|-----|-------|
 | 1 | **Make the repository private**, after the server has a read-only deploy key (see operations) | Source, SIPO prompts and server details are public today | Navid |
-| 2 | Put the Square Application ID, Access token and Location ID in the server config; make one real 2 cent payment; check the invoice PDF and email | Payments are only tested against a stand-in | Navid |
-| 3 | Fill Admin → Pricing → Invoice details (name, address, HST number, billing email) | Invoices need the seller's details | Navid |
+| 2 | Put the Square Application ID, Access token and Location ID in the server config; make one real 2 cent payment; check the receipt PDF and email | Payments are only tested against a stand-in | Navid |
+| 3 | Fill Admin → Pricing → Receipt details (name and billing email) | The receipt shows who it is from | Navid |
 | 4 | Remove the old per-job cron URLs in Hostinger; confirm "Last cron check-in" is recent | Auto-renew and nudges depend on the one job | Navid |
-| 5 | Watch the CAD 30,000 small-supplier limit (GST/HST registration is required once taxable sales pass it, over four consecutive quarters, to confirm with the accountant). If you register: set the rate and HST number in Admin → Pricing | No HST is charged today | Navid |
+| 5 | Watch the CAD 30,000 small-supplier limit (GST/HST registration is required once taxable sales pass it, over four consecutive quarters, to confirm with the accountant). If you register, tax has to be switched back on in the code (the Admin tax fields were removed) | No HST is charged today | Navid |
 | 6 | Verify on a real iPhone: chat position after the keyboard closes, camera photo upload, home-screen icon | Fixed from the code and a desktop browser only | Navid, then assistant |
 | 7 | Add the site to Google Search Console and Bing Webmaster Tools and submit `sitemap.xml`; write the first real blog posts in Admin → Blog | Needed for the blog to be found | Navid |
 | 8 | Confirm Hostinger backups (files and database) and write the restore steps into `04-operations.md` | Not documented | Navid |
@@ -48,7 +48,8 @@ Just built, **waiting for the first real payment**: Square card payments, auto-r
 | Coins have no cash price by default (1 cent each, set in Admin) | Reward without making coins a currency |
 | Discounts: coupon, then perfect weeks, then coins, capped at 50% in total; coins spent only on a successful payment | Predictable price, no double discount |
 | Square live only, card typed in Square's form, our own scheduler for renewals | No card data on our server; price can change each month |
-| No tax charged now (small supplier, under CAD 30,000); the admin can switch tax on later | Simplest and correct while under the limit; confirm with the accountant |
+| No tax is charged to anyone, and the payment document is a simple receipt (no tax invoice) | Under CAD 30,000 small-supplier limit; confirm with the accountant |
+| Customers abroad pay in CAD (Square takes one currency); we show an estimate in their currency | Square cannot charge in other currencies; the bank converts |
 | 7-day free trial per account (admin can change each one); after it, Health is read-only and SIPO is locked until Plus | Gives a real try, then a clear reason to subscribe; Lost-pet alerts stay open because a lost pet must never wait for a payment |
 | Cancel subscription the standard way (access until the end of the paid period, no refund of the current period, easy to resume) | Fair and expected by customers and card networks |
 | Friendly (default) and Clean looks, saved on the account; Studio removed | Consistent look across devices |

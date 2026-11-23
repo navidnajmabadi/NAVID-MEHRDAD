@@ -66,6 +66,14 @@ function rrp_sipo_preferred_hours(int $ownerId): array
             $hours[] = $h;
         }
     }
+    // Every owner gets one morning slot (09–11), so the dog walk nudge can go out in the morning even when
+    // they usually open the app later in the day.
+    if (!array_filter($hours, static fn($h) => $h >= 9 && $h <= 11)) {
+        if (count($hours) >= 3) {
+            array_pop($hours);   // the least busy hour makes room
+        }
+        $hours[] = 9;
+    }
     sort($hours);
     return $hours;
 }
@@ -128,7 +136,7 @@ function rrp_sipo_pick_nudge(int $ownerId): ?array
         return ['thread' => $thread, 'kind' => 'reminder'];
     }
     $pet = rrp_pet_by_id($petId, $ownerId);
-    // Dogs: no walk yet today and the day isn't over → suggest a good walk time.
+    // Dogs: no walk yet today → suggest a walk, in the MORNING only (before noon), never in the evening.
     if ($pet && ($pet['type'] ?? '') === 'dog') {
         $owner = rrp_db()->query('SELECT * FROM owners WHERE id = ' . $ownerId)->fetch() ?: [];
         $local = rrp_sipo_local_now($owner);
@@ -137,7 +145,7 @@ function rrp_sipo_pick_nudge(int $ownerId): ?array
             $walked->execute([$petId, $local->format('Y-m-d')]);
             $asked = rrp_db()->prepare("SELECT COUNT(*) FROM sipo_nudges WHERE pet_id = ? AND kind = 'walk' AND local_day = ?");
             $asked->execute([$petId, $local->format('Y-m-d')]);
-            if ((int) $walked->fetchColumn() === 0 && (int) $asked->fetchColumn() === 0 && (int) $local->format('G') <= 17) {
+            if ((int) $walked->fetchColumn() === 0 && (int) $asked->fetchColumn() === 0 && (int) $local->format('G') <= 11) {
                 return ['thread' => $thread, 'kind' => 'walk'];
             }
         } catch (Throwable $e) {

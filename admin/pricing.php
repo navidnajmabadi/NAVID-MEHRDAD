@@ -4,7 +4,7 @@ require_once dirname(__DIR__) . '/lib/bootstrap.php';
 require_once dirname(__DIR__) . '/lib/layout.php';
 require_once dirname(__DIR__) . '/lib/admin_layout.php';
 
-// Price, currency, paw-coin value, discount limit and tax for Plus. Everything the Plus page charges comes from here.
+// Price, currency, paw-coin value and discount limit for Plus (no tax is charged). Everything the Plus page charges comes from here.
 $admin = rrp_require_admin();
 $error = null;
 
@@ -13,10 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
     $cur = strtoupper(trim((string) ($_POST['currency'] ?? 'CAD')));
     $coin = (int) ($_POST['coin_value_cents'] ?? 1);
     $max = (int) ($_POST['max_total_pct'] ?? 50);
-    $tax = (float) str_replace(',', '.', (string) ($_POST['tax_pct'] ?? '0'));
-    $taxLabel = trim((string) ($_POST['tax_label'] ?? 'HST'));
     $trialDays = (int) ($_POST['trial_days'] ?? 7);
-    $countries = strtoupper(preg_replace('/[^A-Za-z,*]/', '', (string) ($_POST['tax_countries'] ?? '')) ?? '');
     if ($price < 1 || $price > 500) {
         $error = 'The monthly price must be between 1 and 500.';
     } elseif (!preg_match('/^[A-Z]{3}$/', $cur)) {
@@ -27,11 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         $error = 'The maximum discount must be between 0 and 90 percent.';
     } elseif ($trialDays < 0 || $trialDays > 365) {
         $error = 'The trial can be 0 to 365 days.';
-    } elseif ($tax < 0 || $tax > 40) {
-        $error = 'Tax must be between 0 and 40 percent.';
     } else {
-        foreach (['biz_name' => 60, 'biz_address' => 200, 'biz_country' => 40, 'biz_tax_no' => 40, 'biz_email' => 100] as $k => $max) {
-            rrp_setting_set($k, mb_substr(trim((string) ($_POST[$k] ?? '')), 0, $max));
+        foreach (['biz_name' => 60, 'biz_email' => 100] as $k => $len) {   // ($len, not $max: $max is the discount limit saved below)
+            rrp_setting_set($k, mb_substr(trim((string) ($_POST[$k] ?? '')), 0, $len));
         }
         rrp_setting_set('trial_days', (string) $trialDays);
         rrp_setting_set('trial_enforced', !empty($_POST['trial_enforced']) ? '1' : '0');
@@ -39,10 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
         rrp_setting_set('currency', $cur);
         rrp_setting_set('coin_value_cents', (string) $coin);
         rrp_setting_set('max_total_pct', (string) $max);
-        rrp_setting_set('tax_pct', rtrim(rtrim(number_format($tax, 2, '.', ''), '0'), '.') ?: '0');
-        rrp_setting_set('tax_label', mb_substr($taxLabel, 0, 20) ?: 'Tax');
-        rrp_setting_set('tax_countries', $countries !== '' ? $countries : '*');
-        rrp_admin_log((int) $admin['id'], 'pricing_update', 'app_settings', 0, "price=$price $cur coin={$coin}c max={$max}% tax={$tax}%");
+        rrp_admin_log((int) $admin['id'], 'pricing_update', 'app_settings', 0, "price=$price $cur coin={$coin}c max={$max}%");
         rrp_flash_set('ok', 'Pricing saved. It applies to the next payment straight away.');
         rrp_redirect('pricing.php');
     }
@@ -50,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rrp_verify_csrf($_POST['csrf'] ?? n
 
 $prices = rrp_billing_prices();
 $pol = rrp_billing_policy();
-$tax = rrp_billing_tax_rule();
 $sq = rrp_square_cfg();
 $cfgFile = rrp_config_file();
 $stat = ['plus' => 0, 'auto' => 0, 'paid30' => 0, 'rev30' => 0];
@@ -74,7 +65,7 @@ $csrf = rrp_csrf_token();
 rrp_admin_shell_start('Pricing', 'pricing');
 ?>
   <h1>Pricing</h1>
-  <p class="lede">The Plus price, what a paw coin is worth, the discount limit and the tax. Customers see changes on their next payment. Coupon codes are on the <a class="link" href="coupons.php">Coupons</a> page.</p>
+  <p class="lede">The Plus price, what a paw coin is worth and the discount limit. No tax is charged. Customers see changes on their next payment. Coupon codes are on the <a class="link" href="coupons.php">Coupons</a> page.</p>
   <?php rrp_render_flash(); ?>
   <?php if ($error): ?><div class="flash flash-error" role="alert"><?= rrp_h($error) ?></div><?php endif; ?>
 
@@ -82,7 +73,7 @@ rrp_admin_shell_start('Pricing', 'pricing');
     <div class="kpi"><b><?= $stat['plus'] ?></b><span>On Plus now</span></div>
     <div class="kpi"><b><?= $stat['auto'] ?></b><span>Auto-renew on</span></div>
     <div class="kpi"><b><?= $stat['paid30'] ?></b><span>Payments, 30 days</span></div>
-    <div class="kpi"><b><?= rrp_h(rrp_money($stat['rev30'], $cur)) ?></b><span>Taken, 30 days (with tax)</span></div>
+    <div class="kpi"><b><?= rrp_h(rrp_money($stat['rev30'], $cur)) ?></b><span>Taken, 30 days </span></div>
   </div>
 
   <form method="post" class="dash-card" style="margin-top:14px;max-width:640px">
@@ -95,35 +86,19 @@ rrp_admin_shell_start('Pricing', 'pricing');
       <span><b>Trial rules on</b><br /><small class="meta">Untick to open everything for everyone again (a safety switch).</small></span></label>
 
     <h2 style="margin:0 0 4px">Price</h2>
-    <div class="field"><label for="pr">Monthly price (before tax)</label>
+    <div class="field"><label for="pr">Monthly price</label>
       <div class="in"><input id="pr" name="price" inputmode="decimal" required value="<?= rrp_h(number_format($prices['monthly'] / 100, 2, '.', '')) ?>" /></div></div>
     <div class="field"><label for="cu">Currency</label>
       <div class="in"><input id="cu" name="currency" maxlength="3" required value="<?= rrp_h($cur) ?>" /></div>
-      <p class="meta">Must be the same currency as your Square account.</p></div>
+      <p class="meta">Must be the same currency as your Square account. Square can only take payments in that one currency.</p></div>
     <div class="field"><label for="cv">One paw coin is worth (cents)</label>
       <div class="in"><input id="cv" name="coin_value_cents" inputmode="numeric" required value="<?= (int) $pol['coin_value_cents'] ?>" /></div>
       <p class="meta">1 = 100 coins are worth 1.00. 0 turns coin discounts off.</p></div>
     <div class="field"><label for="mx">Most the coins and care weeks can take off one payment (%)</label>
       <div class="in"><input id="mx" name="max_total_pct" inputmode="numeric" required value="<?= (int) $pol['max_total_pct'] ?>" /></div></div>
-    <div class="field"><label for="tp">Tax added to the price (%)</label>
-      <div class="in"><input id="tp" name="tax_pct" inputmode="decimal" required value="<?= rrp_h((string) (+$tax['pct'])) ?>" /></div>
-      <p class="meta">0 = no tax (you are under the CAD 30,000 small-supplier limit). If you register later, type the rate here, for example 13, and add the HST number below.</p></div>
-    <div class="field"><label for="tl">Tax name on the receipt</label>
-      <div class="in"><input id="tl" name="tax_label" maxlength="20" value="<?= rrp_h($tax['label']) ?>" /></div></div>
-    <div class="field"><label for="tc">Owners in these countries pay the tax</label>
-      <div class="in"><input id="tc" name="tax_countries" value="<?= rrp_h(implode(',', $tax['countries'])) ?>" /></div>
-      <p class="meta">Two-letter codes separated by commas, for example <b>CA</b> or <b>CA,US</b>. Use <b>*</b> for everyone (the default). With a list, owners without a country, or from another country, are not taxed. Ask your accountant which customers owe tax.</p></div>
-    <h2 style="margin:22px 0 4px">Invoice details (printed on every invoice)</h2>
+    <h2 style="margin:22px 0 4px">Receipt details (printed on every receipt)</h2>
     <div class="field"><label for="bn">Business name</label>
       <div class="in"><input id="bn" name="biz_name" maxlength="60" value="<?= rrp_h((string) rrp_setting('biz_name', 'NAKILAB')) ?>" /></div></div>
-    <div class="field"><label for="ba">Address</label>
-      <div class="in"><input id="ba" name="biz_address" maxlength="200" placeholder="Street, City, Province, Postal code, Country" value="<?= rrp_h((string) rrp_setting('biz_address', '')) ?>" /></div>
-      <p class="meta">Separate the lines with commas.</p></div>
-    <div class="field"><label for="bc">Business country</label>
-      <div class="in"><input id="bc" name="biz_country" maxlength="40" value="<?= rrp_h((string) rrp_setting('biz_country', 'Canada')) ?>" /></div></div>
-    <div class="field"><label for="bt">Tax registration number (GST/HST), if you have one</label>
-      <div class="in"><input id="bt" name="biz_tax_no" maxlength="40" placeholder="123456789 RT0001" value="<?= rrp_h((string) rrp_setting('biz_tax_no', '')) ?>" /></div>
-      <p class="meta">Leave empty while you are under the small-supplier limit and charge no tax.</p></div>
     <div class="field"><label for="be">Billing email</label>
       <div class="in"><input id="be" name="biz_email" type="email" maxlength="100" value="<?= rrp_h((string) rrp_setting('biz_email', '')) ?>" /></div></div>
     <button class="ad-btn is-primary" type="submit">Save pricing</button>
@@ -131,8 +106,7 @@ rrp_admin_shell_start('Pricing', 'pricing');
 
   <section class="dash-card" style="margin-top:14px;max-width:640px">
     <h2>What this means today</h2>
-    <p>Price <b><?= rrp_h(rrp_money($prices['monthly'], $cur)) ?></b> before tax.
-      With tax at <?= rrp_h((string) (+$tax['pct'])) ?>% (<?= rrp_h(implode(', ', $tax['countries'])) ?>): <b><?= rrp_h(rrp_money((int) round($prices['monthly'] * (1 + $tax['pct'] / 100)), $cur)) ?></b> with no discount.</p>
+    <p>Price <b><?= rrp_h(rrp_money($prices['monthly'], $cur)) ?></b> a month, no tax added. Customers in other countries are always charged in <b><?= rrp_h($cur) ?></b>; the Plus page also shows them an estimate in their own currency, and their bank converts it.</p>
     <p><?= $coinExample ?> coins = <b><?= rrp_h(rrp_money($exDisc, $cur)) ?></b> off
       (<?= $prices['monthly'] > 0 ? rrp_h((string) round($exDisc * 100 / $prices['monthly'], 1)) : '0' ?>% of the price)<?= $exDisc < $coinExample * $pol['coin_value_cents'] ? ', held back by the ' . (int) $pol['max_total_pct'] . '% limit' : '' ?>.
       A full price month would take <?= $pol['coin_value_cents'] > 0 ? number_format((int) ceil($prices['monthly'] / $pol['coin_value_cents'])) : '–' ?> coins, but the limit stops it at <?= (int) $pol['max_total_pct'] ?>% off.</p>

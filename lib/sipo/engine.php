@@ -642,8 +642,8 @@ function rrp_sipo_proactive_instruction(string $kind, bool $hasPet, ?array $owne
         'reminder' => 'Follow up on ONE reminder that is not done yet: ask if it happened. Say "overdue" only when it was due on an earlier day; '
             . 'a reminder that was due earlier today is "this morning\'s" or "today\'s" (use its real time of day, never guess). '
             . 'Offer to find a vet only when a health problem is mentioned, not for a routine like tooth brushing.',
-        'walk' => 'No walk logged yet today. Suggest a good time from the walk window and weather in Daily life, '
-            . 'warmly, and mention the walk tracker on the Daily page.',
+        'walk' => 'No walk logged yet today. It is morning: suggest a walk THIS MORNING (before noon), warmly, using the weather in Daily life '
+            . '(if the morning looks wet or too hot, say so and suggest the best morning hour). Never suggest an evening walk. Mention the walk tracker on the Daily page.',
         default => 'Say hello and ask how the pet is.',
     };
 }

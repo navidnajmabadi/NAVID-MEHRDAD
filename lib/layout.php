@@ -259,7 +259,7 @@ function rrp_side_menu(string $active, int $unread, bool $lostActive): void
         ['routines.php', 'Routines', 'What is scheduled and due', 'i-routine'],
         ['lost.php', $lostActive ? 'Lost mode is on' : 'Lost pet', $lostActive ? 'Open the search' : 'How it works, one tap to start', 'i-lost'],
         ['finance.php', 'Expenses', 'What you spend on your pets', 'i-doc'],
-        ['billing.php', 'Billing', 'Plan, card, payments and invoices', 'i-card'],
+        ['billing.php', 'Billing', 'Plan, card, payments and receipts', 'i-card'],
         ['settings.php', 'Settings', 'Profile, password, account', 'i-gear'],
         ['tour.php', 'Take the tour', 'See what SIPAW can do. Nothing is changed.', 'i-play'],
     ];

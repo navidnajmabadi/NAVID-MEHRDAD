@@ -88,7 +88,7 @@
   var hasCard = box.getAttribute("data-has-card") === "1";
   var useSaved = hasCard;
   var payBtn = $("ppPay"), msg = $("ppMsg"), lines = $("ppLines");
-  var coupon = "", quote = null, busy = false, card = null, cardInit = null;
+  var coupon = "", quote = null, local = null, busy = false, card = null, cardInit = null;
 
   function setMsg(t, bad) { msg.textContent = t || ""; msg.style.color = bad ? "var(--red)" : ""; }
 
@@ -99,9 +99,8 @@
     if (q.coupon_discount > 0) lines.appendChild(row("Coupon " + (q.coupon ? q.coupon.code : ""), "−" + money(q.coupon_discount, cur).replace(cur + " ", ""), "pp-minus"));
     if (q.week_discount > 0) lines.appendChild(row("Perfect care weeks (" + q.week_pct + "%)", "−" + money(q.week_discount, cur).replace(cur + " ", ""), "pp-minus"));
     if (q.coin_discount > 0) lines.appendChild(row("Paw coins (" + q.coins_used + " used)", "−" + money(q.coin_discount, cur).replace(cur + " ", ""), "pp-minus"));
-    if (q.tax > 0 || q.discount > 0) lines.appendChild(row("Price after discounts", money(q.subtotal, cur)));
-    if (q.tax > 0) lines.appendChild(row(q.tax_label + " " + (+q.tax_pct) + "%", "+" + money(q.tax, cur).replace(cur + " ", "")));
     lines.appendChild(row("Total today", money(q.amount, cur), "pp-total"));
+    if (local && q.amount > 0) lines.appendChild(row("About, in " + local.code, local.text.replace(local.code + " ", ""), "pp-local"));
     var hint = $("ppCoinsHint");
     if (q.coins_balance <= 0) hint.textContent = "You have no coins yet. Caring for your pet earns them.";
     else if (!$("ppCoins").checked) hint.textContent = "You have " + q.coins_balance + " coins. Tick this to use them.";
@@ -115,6 +114,7 @@
     return post("api/billing/quote.php", { csrf: csrf, coupon: coupon, use_coins: $("ppCoins").checked ? 1 : 0 }).then(function (j) {
       if (!j.ok) { setMsg(j.error || "Could not get the price.", true); return; }
       quote = j.quote;
+      local = j.local || null;
       var cm = $("ppCouponMsg");
       if (coupon && j.coupon_ok) cm.textContent = "Code applied ✓";
       else if (coupon) cm.textContent = j.coupon_error || "That code is not valid.";

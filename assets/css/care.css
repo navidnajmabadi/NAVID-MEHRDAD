@@ -338,6 +338,7 @@
 .pp-lines .pp-minus dd{color:var(--good,#1F9D6B);font-weight:600}
 .pp-lines .pp-total{margin-top:6px;padding-top:10px;border-top:1px solid var(--line);font-size:16px;font-weight:800}
 .pp-lines .pp-total dt{color:var(--text)}
+.pp-lines .pp-local{font-size:13px;color:var(--sub)}
 .pp-card{margin:14px 0 0;font-weight:600}
 .pp-card .link{margin-left:8px;font-weight:500}
 .pp-sq{min-height:92px}

@@ -104,29 +104,19 @@ function rrp_billing_policy(): array
 }
 
 /**
- * Sales tax added on top of the price (after every discount). Default: none (0%): the business is under the small-supplier limit (CAD 30,000), so no HST is charged.
- * If that ever changes, Admin → Pricing sets the rate (for example 13), the name on the receipt and the countries it applies to (ISO codes, comma separated).
+ * No tax is charged (the business is under the small-supplier limit, CAD 30,000). The quote and the order rows still carry
+ * tax fields so old orders and the database keep working; they are always 0.
  * @return array{pct:float, label:string, countries:list<string>}
  */
 function rrp_billing_tax_rule(): array
 {
-    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', 'CA')))));
-    return [
-        'pct' => min(40.0, max(0.0, (float) rrp_setting('tax_pct', '0'))),
-        'label' => mb_substr(trim((string) rrp_setting('tax_label', 'HST')) ?: 'Tax', 0, 20),
-        'countries' => $countries,
-    ];
+    return ['pct' => 0.0, 'label' => 'Tax', 'countries' => []];
 }
 
-/** Tax percentage for this owner (0 when their country is not on the admin's list). */
+/** Always 0: no tax is charged to anyone. */
 function rrp_billing_tax_pct_for(array $owner): float
 {
-    $rule = rrp_billing_tax_rule();
-    $code = function_exists('rrp_onb_country_code') ? rrp_onb_country_code((string) ($owner['country'] ?? '')) : '';
-    if (in_array('*', $rule['countries'], true)) {
-        return $rule['pct'];
-    }
-    return $code !== '' && in_array($code, $rule['countries'], true) ? $rule['pct'] : 0.0;
+    return 0.0;
 }
 
 /**
