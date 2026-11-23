@@ -12,8 +12,9 @@ $r = rrp_billing_subscribe($owner, $token, [
     'coupon' => (string) ($data['coupon'] ?? ''),
     'use_coins' => !empty($data['use_coins']),
     'auto_renew' => !empty($data['auto_renew']),
+    'wallet' => !empty($data['wallet']),   // Apple Pay
 ]);
 if (empty($r['ok'])) {
     rrp_json(['ok' => false, 'error' => $r['error'] ?? 'The payment could not be completed.']);
 }
-rrp_json(['ok' => true, 'order_id' => $r['order_id'] ?? null, 'amount' => $r['amount'] ?? null]);
+rrp_json(['ok' => true, 'order_id' => $r['order_id'] ?? null, 'amount' => $r['amount'] ?? null, 'note' => $r['note'] ?? null]);

@@ -72,7 +72,7 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Feature | Details | Main files |
 |---------|---------|------------|
 | Plan | Free = 1 pet; Plus = up to 3 pets. Limits are off for everyone during the test period (`sipo.limits_enabled`) | `lib/plan.php` |
-| Billing page | Menu, Billing: pay, saved card, auto-renew, "use my coins", payment history, receipts; estimate of the price in the owner's own currency | `billing.php`, `assets/js/plus-checkout.js` |
+| Billing page | Menu, Billing: pay by card or Apple Pay, saved card, auto-renew, "use my coins", payment history, receipts; estimate of the price in the owner's own currency | `billing.php`, `assets/js/plus-checkout.js` |
 | Price build-up | List price, then coupon, perfect weeks, paw coins (value and cap set by admin), then nothing else: **no tax is charged** (small supplier, no HST; the code always uses 0%). Always charged in the Square account currency (CAD); `lib/currency.php` shows an estimate in the owner's currency (daily ECB rates, 12 h cache) and the bank converts | `lib/payments/billing.php`, `lib/currency.php` |
 | Cancel subscription | Standard flow: cancel any time in Billing, optional reason, no more charges, Plus works until the end of the paid period, no refund of the current period, confirmation by notification and email, "turn auto-renew back on" any time. Owners with auto-renew off are asked if they want it on | `billing.php`, `api/billing/manage.php` |
 | Admin accounts | Never subscribe or pay: Billing says so and shows no payment form | `lib/access.php` |

@@ -57,3 +57,12 @@ Order: price → coupon → perfect care weeks → paw coins → tax.
 - Admin → Pricing: set price, currency, coin value, discount limit, tax; confirm the three Square ticks.
 - Plus page: pay with a real card, see "Payment received", see the coins drop on Rewards.
 - Cron: Admin → Site health shows the last check-in; renewals appear in notifications.
+
+## Apple Pay on the website (one-time setup)
+The Plus page shows an Apple Pay button on iPhone, iPad and Mac Safari once the domain is verified. Without this the button simply stays hidden; card payments keep working.
+1. Square Developer Console, your application, **Apple Pay** (Web), **Add domain**: `sipaw.nakilab.com`.
+2. Square gives you a file named `apple-developer-merchantid-domain-association`. Upload it to the server at `.well-known/apple-developer-merchantid-domain-association` (inside the site folder, so the address is `https://sipaw.nakilab.com/.well-known/apple-developer-merchantid-domain-association`). Create the `.well-known` folder if it does not exist. Do not rename the file or add an extension.
+3. Back in Square press **Verify**.
+4. Open Billing on an iPhone that has a card in Wallet. The black Apple Pay button appears under the card button.
+
+How it pays: Square turns the Apple Pay payment into a one-time token. The server first tries to keep it on file (so auto-renew works). If Square will not keep it, the server takes this month's payment straight from the token and switches auto-renew off for that account; the page tells the customer to pay with a card to turn auto-renew on.

@@ -525,8 +525,14 @@ function rrp_billing_charge_saved_card(array $owner, array $opt = []): array
 {
     $ownerId = (int) $owner['id'];
     $profile = rrp_billing_profile($ownerId);
-    if ($profile['card_id'] === '' || $profile['customer_id'] === '') {
+    // 'source_token': a one-time wallet token (Apple Pay) that could not be kept on file: pay this one month straight from it.
+    $tok = (string) ($opt['source_token'] ?? '');
+    if ($tok === '' && ($profile['card_id'] === '' || $profile['customer_id'] === '')) {
         return ['ok' => false, 'error' => 'No card is saved yet.'];
+    }
+    if ($tok !== '') {
+        $profile['card_brand'] = 'Apple Pay';
+        $profile['card_last4'] = '';
     }
     $q = rrp_billing_quote($owner, 'plus_monthly', $opt);
     if (!$q) {
@@ -549,15 +555,14 @@ function rrp_billing_charge_saved_card(array $owner, array $opt = []): array
     $c = rrp_square_cfg();
     $res = rrp_square_request('POST', '/v2/payments', [
         'idempotency_key' => 'sipaw-ord-' . $orderId,
-        'source_id' => $profile['card_id'],
-        'customer_id' => $profile['customer_id'],
+        'source_id' => $tok !== '' ? $tok : $profile['card_id'],
         'location_id' => $c['location_id'],
         'amount_money' => ['amount' => $q['amount'], 'currency' => $q['currency']],
         'autocomplete' => true,
         'reference_id' => 'SIPAW-' . $orderId,
         'note' => 'SIPAW Plus, 1 month' . ($q['tax'] > 0 ? ' incl. ' . $q['tax_label'] . ' ' . rtrim(rtrim(number_format($q['tax_pct'], 2), '0'), '.') . '%' : '') . (!empty($opt['auto']) ? ' (auto-renewal)' : ''),
         'buyer_email_address' => (string) ($owner['email'] ?? ''),
-    ]);
+    ] + ($tok === '' ? ['customer_id' => $profile['customer_id']] : []));
     $pay = $res['data']['payment'] ?? null;
     if (empty($res['ok']) || !$pay || ($pay['status'] ?? '') !== 'COMPLETED') {
         $pdo->prepare("UPDATE billing_orders SET status = 'failed' WHERE id = ?")->execute([$orderId]);
@@ -589,7 +594,17 @@ function rrp_billing_subscribe(array $owner, ?string $token, array $opt): array
     if ($token !== null) {
         $saved = rrp_billing_save_card($owner, $token);
         if (empty($saved['ok'])) {
-            return $saved;
+            if (empty($opt['wallet'])) {
+                return $saved;
+            }
+            // Apple Pay token that Square would not keep on file: take this month's payment from it, without auto-renew.
+            $useCoins = !empty($opt['use_coins']);
+            rrp_db()->prepare('UPDATE owners SET use_coins = ?, auto_renew = 0 WHERE id = ?')->execute([$useCoins ? 1 : 0, $ownerId]);
+            $r = rrp_billing_charge_saved_card($owner, ['coupon' => (string) ($opt['coupon'] ?? ''), 'use_coins' => $useCoins, 'auto' => false, 'source_token' => $token]);
+            if (!empty($r['ok'])) {
+                $r['note'] = 'Paid with Apple Pay. This payment does not renew by itself: pay with a card to turn on auto-renew.';
+            }
+            return $r;
         }
     } elseif (rrp_billing_profile($ownerId)['card_id'] === '') {
         return ['ok' => false, 'error' => 'No card is saved yet.'];

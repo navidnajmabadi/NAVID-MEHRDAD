@@ -84,7 +84,7 @@ function rrp_invoice_data(array $order, array $owner): array
         'tax_pct' => (float) ($order['tax_pct'] ?? 0),
         'tax' => $tax,
         'total' => $total,
-        'method' => $order['card_last4'] ? ($brand !== '' ? $brand : 'Card') . ' ending ' . $order['card_last4'] : 'Card',
+        'method' => $order['card_last4'] ? ($brand !== '' ? $brand : 'Card') . ' ending ' . $order['card_last4'] : ($brand !== '' ? $brand : 'Card'),
         'payment_id' => (string) ($order['provider_payment_id'] ?? ''),
         'seller' => rrp_invoice_seller(),
         'auto' => !empty($order['auto_renewal']),

@@ -374,3 +374,7 @@
 .cancel-form label{font-size:13px;font-weight:600;color:var(--sub)}
 .cancel-form select{min-height:46px;padding:0 12px;border:1px solid var(--edge,var(--line));background:var(--panel);color:var(--text);border-radius:var(--r-md,12px);font:inherit}
 .lock-note{border:1px solid var(--soft-blue,#DCE7FF)}
+
+/* Apple Pay (shown only where the browser supports it) */
+.pp-apple{display:block;width:100%;height:50px;margin-top:10px;border:0;cursor:pointer;-webkit-appearance:-apple-pay-button;appearance:-apple-pay-button;-apple-pay-button-type:subscribe;-apple-pay-button-style:black;border-radius:0}
+.pp-apple[hidden]{display:none}

@@ -135,6 +135,7 @@ rrp_app_start(['nav' => 'billing']);
         <span><b>Renew automatically every month</b><small class="meta">You can switch this off at any time. We remind you 3 days before.</small></span></label>
 
       <button class="btn primary" type="button" id="ppPay" style="margin-top:12px" disabled>Loading…</button>
+      <button type="button" class="pp-apple" id="ppApple" hidden aria-label="Pay with Apple Pay"></button>
       <p class="meta" id="ppMsg" role="status" aria-live="polite"></p>
       <p class="meta">No tax is added. You are charged in <b><?= rrp_h((string) $monthly['currency']) ?></b>. If your card is in another currency, your bank converts it at its own rate, and the estimate above shows roughly what that is.</p>
       <p class="meta">Secure payment by Square. Your card number is typed into Square's own form and never reaches SIPAW.</p>
