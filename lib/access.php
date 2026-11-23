@@ -176,7 +176,7 @@ function rrp_access_expired(array $owner): bool
 function rrp_access_script_allowed(string $script): bool
 {
     $script = str_replace('\\', '/', $script);
-    if (str_contains($script, '/api/billing/')) {
+    if (str_contains($script, '/api/billing/') || str_contains($script, '/api/apple/')) {   // paying (website card, or Apple in the iPhone app)
         return true;
     }
     return in_array(basename($script), [

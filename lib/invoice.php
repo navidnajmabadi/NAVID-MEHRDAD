@@ -2,9 +2,9 @@
 declare(strict_types=1);
 
 /**
- * Invoices for paid Plus orders: the data, the PDF and the email. One invoice per paid order, numbered
- * SIPAW-<year>-<order id, 6 digits> (the order id never repeats, so the number never does).
- * Seller details (name, address, tax number) come from Admin → Pricing.
+ * Simple receipts for paid Plus orders (not tax invoices: no tax is charged): the data, the PDF and the email. One receipt per paid
+ * order, numbered SIPAW-<year>-<order id, 6 digits> (the order id never repeats, so the number never does).
+ * Seller name and email come from Admin → Pricing. Function names keep "invoice" so nothing else had to change.
  */
 
 function rrp_invoice_number(array $order): string
@@ -19,8 +19,8 @@ function rrp_invoice_seller(): array
     $cfg = rrp_config_ready() ? rrp_load_config() : [];
     return [
         'name' => (string) rrp_setting('biz_name', 'NAKILAB'),
-        'address' => (string) rrp_setting('biz_address', ''),
-        'tax_no' => (string) rrp_setting('biz_tax_no', ''),
+        'address' => '',
+        'tax_no' => '',
         'email' => (string) rrp_setting('biz_email', (string) ($cfg['mail_from'] ?? '')),
     ];
 }
@@ -84,7 +84,7 @@ function rrp_invoice_data(array $order, array $owner): array
         'tax_pct' => (float) ($order['tax_pct'] ?? 0),
         'tax' => $tax,
         'total' => $total,
-        'method' => $order['card_last4'] ? ($brand !== '' ? $brand : 'Card') . ' ending ' . $order['card_last4'] : 'Card',
+        'method' => $order['card_last4'] ? ($brand !== '' ? $brand : 'Card') . ' ending ' . $order['card_last4'] : ($brand !== '' ? $brand : 'Card'),
         'payment_id' => (string) ($order['provider_payment_id'] ?? ''),
         'seller' => rrp_invoice_seller(),
         'auto' => !empty($order['auto_renewal']),
@@ -158,7 +158,7 @@ function rrp_invoice_amount(int $cents, string $currency): string
     return ($cents < 0 ? '-' : '') . $currency . ' ' . number_format(abs($cents) / 100, 2);
 }
 
-/** The invoice as a PDF file (string). */
+/** The receipt as a PDF file (string). */
 function rrp_invoice_pdf(array $inv): string
 {
     $blue = [0.18, 0.416, 1.0];
@@ -173,8 +173,8 @@ function rrp_invoice_pdf(array $inv): string
         $pdf->text($L, 48, 'SIPAW', 28, 'b', $blue); // logo files missing: write the name instead
         $pdf->text($L, 80, 'by NAKILAB', 9, 'r', $grey);
     }
-    $pdf->text(330, 52, 'INVOICE', 22, 'b', $ink);
-    $pdf->text(330, 82, 'Invoice no.  ' . $inv['number'], 10, 'r', $ink);
+    $pdf->text(330, 52, 'RECEIPT', 22, 'b', $ink);
+    $pdf->text(330, 82, 'Receipt no.  ' . $inv['number'], 10, 'r', $ink);
     $pdf->text(330, 97, 'Date  ' . $inv['date'], 10, 'r', $ink);
     $pdf->text(330, 112, 'Status  PAID', 10, 'b', [0.1, 0.55, 0.35]);
 
@@ -182,13 +182,7 @@ function rrp_invoice_pdf(array $inv): string
     $pdf->text($L, 150, 'FROM', 8, 'b', $grey);
     $y = 164.0;
     $seller = $inv['seller'];
-    $addr = array_values(array_filter(array_map('trim', explode(',', $seller['address'])), static fn($s) => $s !== ''));
-    $country = trim((string) rrp_setting('biz_country', 'Canada'));
-    if ($country !== '' && !preg_grep('/' . preg_quote($country, '/') . '/i', $addr)) {
-        $addr[] = $country;
-    }
-    $addrLines = $addr ? [array_shift($addr), ...($addr ? [implode(', ', $addr)] : [])] : []; // street, then the rest on one line
-    $from = array_values(array_filter([$seller['name'], ...$addrLines, $seller['tax_no'] !== '' ? 'Tax no. ' . $seller['tax_no'] : '', $seller['email']], static fn($s) => $s !== ''));
+    $from = array_values(array_filter([$seller['name'], $seller['email']], static fn($s) => $s !== ''));
     foreach ($from as $line) {
         $pdf->text($L, $y, $line, 10, 'r', $ink);
         $y += 14;
@@ -214,18 +208,7 @@ function rrp_invoice_pdf(array $inv): string
         $y += 22;
     }
     $pdf->line($L, $y - 6, $R, $y - 6);
-    $pdf->text($L + 10, $y + 4, 'Subtotal', 10, 'r', $grey);
-    $pdf->textRight($R - 10, $y + 4, rrp_invoice_amount($inv['subtotal'], $cur), 10);
-    $y += 22;
-    if ($inv['tax'] > 0) {
-        $taxText = $inv['tax_label'] . ' ' . rtrim(rtrim(number_format($inv['tax_pct'], 2), '0'), '.') . '%';
-        $pdf->text($L + 10, $y, $taxText, 10, 'r', $grey);
-        $pdf->textRight($R - 10, $y, rrp_invoice_amount($inv['tax'], $cur), 10);
-        $y += 14;
-    } else {
-        $pdf->text($L + 10, $y, 'No GST/HST charged (small supplier)', 9, 'r', $grey);
-        $y += 14;
-    }
+    $y += 8;
     $pdf->line($L + 260, $y + 6, $R, $y + 6, 1.0, [0.2, 0.22, 0.28]);
     $y += 18;
     $pdf->text($L + 260, $y, 'Total paid', 13, 'b', $ink);
@@ -240,12 +223,12 @@ function rrp_invoice_pdf(array $inv): string
     }
     $pdf->line($L, 770, $R, 770);
     $pdf->text($L, 780, 'Thank you for looking after your pet with SIPAW.', 9, 'r', $grey);
-    $pdf->text($L, 794, 'Questions about this invoice? Reply to the email it came with or write to ' . ($seller['email'] !== '' ? $seller['email'] : 'support') . '.', 9, 'r', $grey);
-    return $pdf->output('Invoice ' . $inv['number']);
+    $pdf->text($L, 794, 'Questions about this receipt? Reply to the email it came with or write to ' . ($seller['email'] !== '' ? $seller['email'] : 'support') . '.', 9, 'r', $grey);
+    return $pdf->output('Receipt ' . $inv['number']);
 }
 
 /**
- * Email the invoice PDF. @return array{ok:bool, error?:string}
+ * Email the receipt PDF. @return array{ok:bool, error?:string}
  */
 function rrp_invoice_email(array $owner, array $order, string $to): array
 {
@@ -254,18 +237,18 @@ function rrp_invoice_email(array $owner, array $order, string $to): array
     $name = (string) ($owner['nickname'] ?? '') ?: 'there';
     $amount = rrp_invoice_amount($inv['total'], $inv['currency']);
     $mail = [
-        'subject' => 'Your SIPAW invoice ' . $inv['number'],
-        'text' => "Hi {$name},\n\nYour invoice {$inv['number']} for {$amount} (paid {$inv['date']}) is attached as a PDF.\n\nThank you for looking after your pet with SIPAW.\nSIPAW by NAKILAB\n",
+        'subject' => 'Your SIPAW receipt ' . $inv['number'],
+        'text' => "Hi {$name},\n\nYour receipt {$inv['number']} for {$amount} (paid {$inv['date']}) is attached as a PDF. No tax is added to the price.\n\nThank you for looking after your pet with SIPAW.\nSIPAW by NAKILAB\n",
         'html' => rrp_email_layout([
-            'preheader' => 'Invoice ' . $inv['number'] . ', ' . $amount,
+            'preheader' => 'Receipt ' . $inv['number'] . ', ' . $amount,
             'mood' => 'happy',
-            'headline' => 'Your invoice is ready',
-            'intro' => 'Hi ' . rrp_email_h($name) . ', invoice <strong>' . rrp_email_h($inv['number']) . '</strong> for <strong>' . rrp_email_h($amount) . '</strong> (paid ' . rrp_email_h($inv['date']) . ') is attached as a PDF.',
+            'headline' => 'Your receipt is ready',
+            'intro' => 'Hi ' . rrp_email_h($name) . ', receipt <strong>' . rrp_email_h($inv['number']) . '</strong> for <strong>' . rrp_email_h($amount) . '</strong> (paid ' . rrp_email_h($inv['date']) . ') is attached as a PDF.',
             'button' => ['Open Billing', rrp_email_abs('billing.php')],
-            'note' => 'You can download any invoice again from Menu, Billing.',
+            'note' => 'You can download any receipt again from Menu, Billing.',
         ]),
     ];
-    $r = rrp_email_send($to, $mail, [['name' => 'Invoice-' . $inv['number'] . '.pdf', 'type' => 'application/pdf', 'data' => $pdf]]);
+    $r = rrp_email_send($to, $mail, [['name' => 'Receipt-' . $inv['number'] . '.pdf', 'type' => 'application/pdf', 'data' => $pdf]]);
     if (!empty($r['ok'])) {
         rrp_db()->prepare('UPDATE billing_orders SET invoice_sent_at = UTC_TIMESTAMP() WHERE id = ?')->execute([(int) $order['id']]);
     }

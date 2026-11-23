@@ -88,7 +88,8 @@
   var hasCard = box.getAttribute("data-has-card") === "1";
   var useSaved = hasCard;
   var payBtn = $("ppPay"), msg = $("ppMsg"), lines = $("ppLines");
-  var coupon = "", quote = null, busy = false, card = null, cardInit = null;
+  var coupon = "", quote = null, local = null, busy = false, card = null, cardInit = null;
+  var apple = null, appleReq = null, appleBtn = $("ppApple");
 
   function setMsg(t, bad) { msg.textContent = t || ""; msg.style.color = bad ? "var(--red)" : ""; }
 
@@ -99,15 +100,16 @@
     if (q.coupon_discount > 0) lines.appendChild(row("Coupon " + (q.coupon ? q.coupon.code : ""), "−" + money(q.coupon_discount, cur).replace(cur + " ", ""), "pp-minus"));
     if (q.week_discount > 0) lines.appendChild(row("Perfect care weeks (" + q.week_pct + "%)", "−" + money(q.week_discount, cur).replace(cur + " ", ""), "pp-minus"));
     if (q.coin_discount > 0) lines.appendChild(row("Paw coins (" + q.coins_used + " used)", "−" + money(q.coin_discount, cur).replace(cur + " ", ""), "pp-minus"));
-    if (q.tax > 0 || q.discount > 0) lines.appendChild(row("Price after discounts", money(q.subtotal, cur)));
-    if (q.tax > 0) lines.appendChild(row(q.tax_label + " " + (+q.tax_pct) + "%", "+" + money(q.tax, cur).replace(cur + " ", "")));
     lines.appendChild(row("Total today", money(q.amount, cur), "pp-total"));
+    if (local && q.amount > 0) lines.appendChild(row("About, in " + local.code, local.text.replace(local.code + " ", ""), "pp-local"));
     var hint = $("ppCoinsHint");
     if (q.coins_balance <= 0) hint.textContent = "You have no coins yet. Caring for your pet earns them.";
     else if (!$("ppCoins").checked) hint.textContent = "You have " + q.coins_balance + " coins. Tick this to use them.";
     else if (q.coins_used > 0) hint.textContent = q.coins_used + " of your " + q.coins_balance + " coins give " + money(q.coin_discount, cur) + " off. They are spent when you pay.";
     else hint.textContent = "You have " + q.coins_balance + " coins, but the discount limit is already reached.";
     payBtn.disabled = busy;
+    if (appleBtn) appleBtn.hidden = !apple || q.amount === 0;
+    if (appleReq) { try { appleReq.update({ total: { amount: (q.amount / 100).toFixed(2), label: "SIPAW Plus" } }); } catch (e) { } }
     payBtn.textContent = q.amount === 0 ? "Start Plus (free)" : (useSaved ? "Pay " + money(q.amount, cur) + " with saved card" : "Pay " + money(q.amount, cur));
   }
 
@@ -115,6 +117,8 @@
     return post("api/billing/quote.php", { csrf: csrf, coupon: coupon, use_coins: $("ppCoins").checked ? 1 : 0 }).then(function (j) {
       if (!j.ok) { setMsg(j.error || "Could not get the price.", true); return; }
       quote = j.quote;
+      local = j.local || null;
+      initApple();
       var cm = $("ppCouponMsg");
       if (coupon && j.coupon_ok) cm.textContent = "Code applied ✓";
       else if (coupon) cm.textContent = j.coupon_error || "That code is not valid.";
@@ -153,6 +157,28 @@
     }
     return cardInit;
   }
+
+  /* Apple Pay (Square Web Payments SDK). Only appears where Safari/iPhone offers it and the domain is verified in Square. */
+  function initApple() {
+    if (apple || appleReq || !appleBtn || !window.Square || !quote) return;
+    try {
+      var payments = window.Square.payments(box.getAttribute("data-app-id"), box.getAttribute("data-location-id"));
+      appleReq = payments.paymentRequest({ countryCode: "CA", currencyCode: quote.currency, total: { amount: (quote.amount / 100).toFixed(2), label: "SIPAW Plus" } });
+      payments.applePay(appleReq).then(function (a) { apple = a; render(); }).catch(function () { appleReq = null; });
+    } catch (e) { appleReq = null; }
+  }
+  if (appleBtn) appleBtn.addEventListener("click", function () {
+    if (busy || !quote || !apple) return;
+    busy = true; payBtn.disabled = true; setMsg("Opening Apple Pay…");
+    apple.tokenize().then(function (r) {
+      if (!r || r.status !== "OK") { busy = false; render(); setMsg(r && r.status === "Cancel" ? "" : "Apple Pay did not complete. You were not charged.", r && r.status !== "Cancel"); return; }
+      setMsg("Processing your payment…");
+      return post("api/billing/subscribe.php", { csrf: csrf, coupon: coupon, use_coins: $("ppCoins").checked ? 1 : 0, auto_renew: $("ppAuto").checked ? 1 : 0, token: r.token, wallet: 1 }).then(function (j) {
+        if (j.ok) { setMsg(j.note || "Payment received. Welcome to Plus! 🎉"); setTimeout(function () { location.href = "billing.php?paid=" + encodeURIComponent(j.order_id || ""); }, j.note ? 3000 : 0); return; }
+        busy = false; setMsg(j.error || "The payment could not be completed.", true); render();
+      });
+    }).catch(function () { busy = false; render(); setMsg("Apple Pay did not complete. You were not charged.", true); });
+  });
 
   payBtn.addEventListener("click", function () {
     if (busy || !quote) return;

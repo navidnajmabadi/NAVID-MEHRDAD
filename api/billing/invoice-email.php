@@ -2,11 +2,11 @@
 declare(strict_types=1);
 require_once dirname(__DIR__, 2) . '/lib/bootstrap.php';
 
-/** Email one invoice PDF to the owner (or another address they type). At most 6 a hour. */
+/** Email one receipt PDF to the owner (or another address they type). At most 6 a hour. */
 [$owner, $data] = rrp_api_owner_post();
 $order = rrp_invoice_order((int) ($data['order_id'] ?? 0), (int) $owner['id']);
 if (!$order) {
-    rrp_json(['ok' => false, 'error' => 'Invoice not found.'], 404);
+    rrp_json(['ok' => false, 'error' => 'Receipt not found.'], 404);
 }
 $to = trim((string) ($data['to'] ?? ''));
 if ($to === '') {

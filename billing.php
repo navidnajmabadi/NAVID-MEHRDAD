@@ -3,7 +3,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/lib/bootstrap.php';
 require_once __DIR__ . '/lib/layout.php';
 
-// Billing: pay for Plus (coupon, care weeks, paw coins, tax), the saved card and auto-renew, payment history and invoices (PDF).
+// Billing: pay for Plus (coupon, care weeks, paw coins), the saved card and auto-renew, payment history and receipts (PDF).
 $owner = rrp_require_owner();
 $nav = rrp_owner_nav_context((int) $owner['id']);
 $error = null;
@@ -102,7 +102,16 @@ rrp_app_start(['nav' => 'billing']);
     </form>
   <?php endif; ?>
 
-  <?php if ($monthly && !$isAdmin): ?>
+  <?php if (!empty($owner['apple_original_tx']) && $profile['card_id'] === '' && $plusUntil): ?>
+  <section class="care-card" id="appleManaged">
+    <h3 class="label">Plus from the iPhone app</h3>
+    <p class="sub">You bought Plus in the SIPAW iPhone app. Apple renews and bills it. To cancel or change it, open <b>Settings, your name, Subscriptions</b> on your iPhone. Plus works until <?= rrp_h((string) $plusUntil) ?> and extends by itself each time Apple renews.</p>
+  </section>
+  <?php endif; ?>
+
+  <?php if (rrp_is_ios_app()): ?>
+  <section class="care-card"><h3 class="label">Plus</h3><p class="sub">Manage Plus in the <b>Plus</b> tab of the app (the last tab, then Plus).</p></section>
+  <?php elseif ($monthly && !$isAdmin): ?>
   <section class="care-card" id="plusPay"
     data-csrf="<?= rrp_h($csrf) ?>" data-app-id="<?= rrp_h($sq['application_id']) ?>" data-location-id="<?= rrp_h($sq['location_id']) ?>"
     data-has-card="<?= $profile['card_id'] !== '' ? '1' : '0' ?>" data-ready="<?= $cardsReady ? '1' : '0' ?>">
@@ -135,13 +144,15 @@ rrp_app_start(['nav' => 'billing']);
         <span><b>Renew automatically every month</b><small class="meta">You can switch this off at any time. We remind you 3 days before.</small></span></label>
 
       <button class="btn primary" type="button" id="ppPay" style="margin-top:12px" disabled>Loading…</button>
+      <button type="button" class="pp-apple" id="ppApple" hidden aria-label="Pay with Apple Pay"></button>
       <p class="meta" id="ppMsg" role="status" aria-live="polite"></p>
+      <p class="meta">No tax is added. You are charged in <b><?= rrp_h((string) $monthly['currency']) ?></b>. If your card is in another currency, your bank converts it at its own rate, and the estimate above shows roughly what that is.</p>
       <p class="meta">Secure payment by Square. Your card number is typed into Square's own form and never reaches SIPAW.</p>
     <?php endif; ?>
   </section>
   <?php endif; ?>
 
-  <?php if ($profile['card_id'] !== ''): ?>
+  <?php if ($profile['card_id'] !== '' && !rrp_is_ios_app()): ?>
   <section class="care-card" id="plusManage" data-csrf="<?= rrp_h($csrf) ?>">
     <h3 class="label">Your subscription</h3>
     <p class="sub">💳 <?= rrp_h(ucwords(strtolower(str_replace('_', ' ', $profile['card_brand'] ?: 'Card')))) ?> ending <?= rrp_h($profile['card_last4']) ?></p>
@@ -195,9 +206,9 @@ rrp_app_start(['nav' => 'billing']);
   <?php endif; ?>
 
   <section class="care-card" id="billHistory" data-csrf="<?= rrp_h($csrf) ?>" data-email="<?= rrp_h((string) ($owner['email'] ?? '')) ?>">
-    <h3 class="label">Payments and invoices</h3>
+    <h3 class="label">Payments and receipts</h3>
     <?php if (!$history): ?>
-      <p class="sub">No payments yet. Once you pay, each payment appears here with its invoice.</p>
+      <p class="sub">No payments yet. Once you pay, each payment appears here with its receipt.</p>
     <?php else: ?>
       <ul class="bh-list" role="list">
         <?php foreach ($history as $h):
@@ -221,14 +232,14 @@ rrp_app_start(['nav' => 'billing']);
           <form class="bh-mail" data-mail-form="<?= (int) $h['id'] ?>" hidden>
             <label for="bhTo<?= (int) $h['id'] ?>">Send to</label>
             <input id="bhTo<?= (int) $h['id'] ?>" type="email" inputmode="email" autocomplete="email" value="<?= rrp_h((string) ($owner['email'] ?? '')) ?>" />
-            <button type="submit" class="btn primary">Send invoice</button>
+            <button type="submit" class="btn primary">Send receipt</button>
             <p class="meta" data-mail-msg role="status" aria-live="polite"></p>
           </form>
           <?php endif; ?>
         </li>
         <?php endforeach; ?>
       </ul>
-      <p class="meta">Invoices show the tax separately and the discounts you used. A "Not charged" line means the card was declined and nothing was taken.</p>
+      <p class="meta">A receipt shows what you paid and the discounts you used. No tax is added. A "Not charged" line means the card was declined and nothing was taken.</p>
     <?php endif; ?>
   </section>
 

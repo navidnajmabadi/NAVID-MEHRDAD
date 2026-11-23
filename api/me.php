@@ -16,6 +16,11 @@ $usage = rrp_si_usage_row((int) $owner['id'], $day);
 
 rrp_json([
     'ok' => true,
+    'csrf' => rrp_csrf_token(),                                  // the iPhone app puts this in every POST
+    'apple_account_token' => rrp_apple_account_token((int) $owner['id']), // appAccountToken for In-App Purchase
+    'plan_expires_at' => $owner['plan_expires_at'] ?? null,
+    'paid_plus' => ($owner['plan'] ?? '') === 'plus' && !empty($owner['plan_expires_at']) && strtotime((string) $owner['plan_expires_at'] . ' UTC') > time(),
+    'access' => (function () use ($owner) { $a = rrp_access($owner); return ['state' => $a['state'], 'days_left' => $a['days_left']]; })(),
     'owner' => [
         'id' => (int) $owner['id'],
         'name' => $owner['name'],

@@ -13,6 +13,7 @@ rrp_json([
     'ok' => true,
     'quote' => $q,
     'currency' => $q['currency'],
+    'local' => rrp_currency_estimate((int) $q['amount'], (string) $q['currency'], $owner),   // estimate in the owner's own currency, or null
     'coupon_ok' => $q['coupon'] !== null,
     'coupon_error' => $couponAsked && $q['coupon'] === null ? 'That code is not valid or has run out.' : null,
 ]);

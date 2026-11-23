@@ -104,29 +104,19 @@ function rrp_billing_policy(): array
 }
 
 /**
- * Sales tax added on top of the price (after every discount). Default: none (0%): the business is under the small-supplier limit (CAD 30,000), so no HST is charged.
- * If that ever changes, Admin → Pricing sets the rate (for example 13), the name on the receipt and the countries it applies to (ISO codes, comma separated).
+ * No tax is charged (the business is under the small-supplier limit, CAD 30,000). The quote and the order rows still carry
+ * tax fields so old orders and the database keep working; they are always 0.
  * @return array{pct:float, label:string, countries:list<string>}
  */
 function rrp_billing_tax_rule(): array
 {
-    $countries = array_values(array_filter(array_map(static fn($c) => strtoupper(trim($c)), explode(',', (string) rrp_setting('tax_countries', 'CA')))));
-    return [
-        'pct' => min(40.0, max(0.0, (float) rrp_setting('tax_pct', '0'))),
-        'label' => mb_substr(trim((string) rrp_setting('tax_label', 'HST')) ?: 'Tax', 0, 20),
-        'countries' => $countries,
-    ];
+    return ['pct' => 0.0, 'label' => 'Tax', 'countries' => []];
 }
 
-/** Tax percentage for this owner (0 when their country is not on the admin's list). */
+/** Always 0: no tax is charged to anyone. */
 function rrp_billing_tax_pct_for(array $owner): float
 {
-    $rule = rrp_billing_tax_rule();
-    $code = function_exists('rrp_onb_country_code') ? rrp_onb_country_code((string) ($owner['country'] ?? '')) : '';
-    if (in_array('*', $rule['countries'], true)) {
-        return $rule['pct'];
-    }
-    return $code !== '' && in_array($code, $rule['countries'], true) ? $rule['pct'] : 0.0;
+    return 0.0;
 }
 
 /**
@@ -535,8 +525,14 @@ function rrp_billing_charge_saved_card(array $owner, array $opt = []): array
 {
     $ownerId = (int) $owner['id'];
     $profile = rrp_billing_profile($ownerId);
-    if ($profile['card_id'] === '' || $profile['customer_id'] === '') {
+    // 'source_token': a one-time wallet token (Apple Pay) that could not be kept on file: pay this one month straight from it.
+    $tok = (string) ($opt['source_token'] ?? '');
+    if ($tok === '' && ($profile['card_id'] === '' || $profile['customer_id'] === '')) {
         return ['ok' => false, 'error' => 'No card is saved yet.'];
+    }
+    if ($tok !== '') {
+        $profile['card_brand'] = 'Apple Pay';
+        $profile['card_last4'] = '';
     }
     $q = rrp_billing_quote($owner, 'plus_monthly', $opt);
     if (!$q) {
@@ -559,15 +555,14 @@ function rrp_billing_charge_saved_card(array $owner, array $opt = []): array
     $c = rrp_square_cfg();
     $res = rrp_square_request('POST', '/v2/payments', [
         'idempotency_key' => 'sipaw-ord-' . $orderId,
-        'source_id' => $profile['card_id'],
-        'customer_id' => $profile['customer_id'],
+        'source_id' => $tok !== '' ? $tok : $profile['card_id'],
         'location_id' => $c['location_id'],
         'amount_money' => ['amount' => $q['amount'], 'currency' => $q['currency']],
         'autocomplete' => true,
         'reference_id' => 'SIPAW-' . $orderId,
         'note' => 'SIPAW Plus, 1 month' . ($q['tax'] > 0 ? ' incl. ' . $q['tax_label'] . ' ' . rtrim(rtrim(number_format($q['tax_pct'], 2), '0'), '.') . '%' : '') . (!empty($opt['auto']) ? ' (auto-renewal)' : ''),
         'buyer_email_address' => (string) ($owner['email'] ?? ''),
-    ]);
+    ] + ($tok === '' ? ['customer_id' => $profile['customer_id']] : []));
     $pay = $res['data']['payment'] ?? null;
     if (empty($res['ok']) || !$pay || ($pay['status'] ?? '') !== 'COMPLETED') {
         $pdo->prepare("UPDATE billing_orders SET status = 'failed' WHERE id = ?")->execute([$orderId]);
@@ -599,7 +594,17 @@ function rrp_billing_subscribe(array $owner, ?string $token, array $opt): array
     if ($token !== null) {
         $saved = rrp_billing_save_card($owner, $token);
         if (empty($saved['ok'])) {
-            return $saved;
+            if (empty($opt['wallet'])) {
+                return $saved;
+            }
+            // Apple Pay token that Square would not keep on file: take this month's payment from it, without auto-renew.
+            $useCoins = !empty($opt['use_coins']);
+            rrp_db()->prepare('UPDATE owners SET use_coins = ?, auto_renew = 0 WHERE id = ?')->execute([$useCoins ? 1 : 0, $ownerId]);
+            $r = rrp_billing_charge_saved_card($owner, ['coupon' => (string) ($opt['coupon'] ?? ''), 'use_coins' => $useCoins, 'auto' => false, 'source_token' => $token]);
+            if (!empty($r['ok'])) {
+                $r['note'] = 'Paid with Apple Pay. This payment does not renew by itself: pay with a card to turn on auto-renew.';
+            }
+            return $r;
         }
     } elseif (rrp_billing_profile($ownerId)['card_id'] === '') {
         return ['ok' => false, 'error' => 'No card is saved yet.'];

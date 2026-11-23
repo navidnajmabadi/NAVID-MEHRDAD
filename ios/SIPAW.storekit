@@ -1,0 +1,33 @@
+{
+  "identifier" : "A1B2C3D4",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : { "_failTransactionsEnabled" : false, "_locale" : "en_CA", "_storefront" : "CAN", "_storeKitErrors" : [] },
+  "subscriptionGroups" : [
+    {
+      "id" : "21400001",
+      "localizations" : [],
+      "name" : "SIPAW Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            { "description" : "Everything in SIPAW for your pets, billed monthly", "displayName" : "SIPAW Plus (monthly)", "locale" : "en_US" }
+          ],
+          "productID" : "com.nakilab.sipaw.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "SIPAW Plus monthly",
+          "subscriptionGroupID" : "21400001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : { "major" : 4, "minor" : 0 }
+}

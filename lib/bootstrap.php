@@ -387,6 +387,8 @@ require_once __DIR__ . '/units.php';
 require_once __DIR__ . '/access.php';
 require_once __DIR__ . '/pdf.php';
 require_once __DIR__ . '/invoice.php';
+require_once __DIR__ . '/currency.php';
+require_once __DIR__ . '/apple.php';
 require_once __DIR__ . '/sipo/knowledge.php';
 require_once __DIR__ . '/sipo/choices.php';
 require_once __DIR__ . '/sipo/driver.php';

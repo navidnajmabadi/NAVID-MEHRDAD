@@ -40,7 +40,7 @@ diagnoses, never gives drug doses, and escalates real emergencies.
 ## Scope
 **In:** accounts and onboarding; pets and profiles; SIPO chat with tools; health care (vaccines, parasite control, treatments, labs from
 photos/PDF, weight, food); daily life (walks, bathroom, wellness); reminders and notifications (in-app, push, email); QR tags, scan and
-finder chat; Lost mode; expenses; paw coins, perfect weeks, referrals; Plus billing (Square), coupons, tax, invoices; weekly email report;
+finder chat; Lost mode; expenses; paw coins, perfect weeks, referrals; Plus billing (Square), coupons, receipts; weekly email report;
 admin console; NAKI quality red team; units and themes.
 
 **Out (for now):** native iOS/Android apps (the code is shaped for them later); SMS; physical tag sales; a public social board

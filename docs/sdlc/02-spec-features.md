@@ -72,14 +72,15 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | Feature | Details | Main files |
 |---------|---------|------------|
 | Plan | Free = 1 pet; Plus = up to 3 pets. Limits are off for everyone during the test period (`sipo.limits_enabled`) | `lib/plan.php` |
-| Billing page | Menu, Billing: pay, saved card, auto-renew, "use my coins", payment history, invoices | `billing.php`, `assets/js/plus-checkout.js` |
-| Price build-up | List price, then coupon, perfect weeks, paw coins (value and cap set by admin), then tax. **Tax is 0% by default** (small supplier, no HST); the admin can set a rate and countries later | `lib/payments/billing.php` |
+| Billing page | Menu, Billing: pay by card or Apple Pay, saved card, auto-renew, "use my coins", payment history, receipts; estimate of the price in the owner's own currency | `billing.php`, `assets/js/plus-checkout.js` |
+| Price build-up | List price, then coupon, perfect weeks, paw coins (value and cap set by admin), then nothing else: **no tax is charged** (small supplier, no HST; the code always uses 0%). Always charged in the Square account currency (CAD); `lib/currency.php` shows an estimate in the owner's currency (daily ECB rates, 12 h cache) and the bank converts | `lib/payments/billing.php`, `lib/currency.php` |
 | Cancel subscription | Standard flow: cancel any time in Billing, optional reason, no more charges, Plus works until the end of the paid period, no refund of the current period, confirmation by notification and email, "turn auto-renew back on" any time. Owners with auto-renew off are asked if they want it on | `billing.php`, `api/billing/manage.php` |
 | Admin accounts | Never subscribe or pay: Billing says so and shows no payment form | `lib/access.php` |
 | Card payment | Square Web Payments SDK form; card saved on file; real charge in CAD. **Needs keys** | `api/billing/subscribe.php` |
 | Auto-renew | Cron charges the saved card shortly before Plus ends; 3 daily tries; coins spent only on success; referral free month used first | `lib/payments/billing.php` (`rrp_billing_auto_tick`) |
 | Coupons | Percent, fixed amount or free month; typed on the Billing page. Admin can **create, edit (value, type, limit, last day), disable and delete** | `admin/coupons.php`, `lib/coupons.php` |
-| Invoices | Number `SIPAW-year-000123`; PDF with logo, seller, discounts, tax line; download or email | `invoice.php`, `lib/invoice.php`, `lib/pdf.php` |
+| iPhone app | Native SwiftUI app in `ios/` (SIPO chat, web Home/Health/Routines, More). Plus is bought with Apple In-App Purchase; the server checks Apple's signed transaction and follows Apple's renewal notices. The website payment is hidden in the app | `ios/`, `lib/apple.php`, `api/apple/*`, `api/auth/login.php` |
+| Receipts | Simple receipt, not a tax invoice. Number `SIPAW-year-000123`; PDF with logo, seller name and email, the discounts, total paid, how it was paid; download or email | `invoice.php`, `lib/invoice.php`, `lib/pdf.php` |
 | Old payment links | Still handled: signed webhook marks the order paid | `api/square/webhook.php` |
 
 ## G2. Blog and being found by search engines and assistants
@@ -95,7 +96,7 @@ Main files are in `code font`. "Pages" are PHP files in the repo root; "API" fil
 | `llms.txt` and `llms-full.txt` | A plain-language guide to the site for assistants, plus the full text of all published posts | `llms.php` |
 
 ## H. Admin console (`/admin`)
-Overview (SIPO health), Insights and Map, **Blog**, Accounts (tokens per message, filters, **Access column, per-account trial control, remove subscription**), Tickets, **Pricing** (price, coin value, cap, tax, invoice seller details,
+Overview (SIPO health), Insights and Map, **Blog**, Accounts (tokens per message, filters, **Access column, per-account trial control, remove subscription**), Tickets, **Pricing** (price, coin value, cap, receipt details (name, email),
 Square connection check), Coupons, Emails (preview templates), **NAKI brain**, **Brain graph**, **Test lab**, SIPO check, **Site health**, **Errors**, Logs, Moderation (when Pack is on).
 
 ## I. Quality and operations
